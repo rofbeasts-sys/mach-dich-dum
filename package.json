@@ -1,0 +1,11 @@
+{
+  "name": "wissensduell-party",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WISSENSDUELL PARTY - lokaler WLAN-Server für echten Mehrgeräte-Multiplayer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/run-test.js"
+  }
+}
