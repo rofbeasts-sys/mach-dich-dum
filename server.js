@@ -187,7 +187,7 @@ function roomStateForClient(room) {
     pointSystem: room.pointSystem,
     roundCount: room.roundCount,
     roundMode: room.roundMode,
-    roundDefs: room.roundDefs.map(r => ({ id: r.id, kind: r.kind, label: r.label })),
+    roundDefs: room.roundDefs.map(r => r ? ({ id: r.id, kind: r.kind, label: r.label }) : null),
     availableRoundDefs: ROUND_DEF_POOL.map(r => ({ id: r.id, kind: r.kind, label: r.label })),
     botTierOptions: BOT_TIER_ORDER.map(key => ({ id: key, label: BOT_TIERS[key].label })),
     maxParticipants: MAX_PARTICIPANTS,
@@ -238,9 +238,32 @@ function applyMistakePenalty(room, teamId) {
 /* ------------------------------------------------------------------------ */
 /* RUNDE: knowledgeQuiz                                                      */
 /* ------------------------------------------------------------------------ */
+// Gewichtung der Schwierigkeitsgrade im Party-Wissenstest (1=leicht … 4=extrem
+// schwer). Session-basiert, da der Party-Modus keinen persönlichen Rang je
+// Spieler kennt. Hier zentral anpassbar.
+const QUIZ_DIFFICULTY_WEIGHTS = [0.25, 0.35, 0.30, 0.10];
+
+function weightedQuizDifficulty() {
+  const r = Math.random();
+  const w = QUIZ_DIFFICULTY_WEIGHTS;
+  if (r < w[0]) return 1;
+  if (r < w[0] + w[1]) return 2;
+  if (r < w[0] + w[1] + w[2]) return 3;
+  return 4;
+}
+
 function pickQuizQuestions(n) {
-  const shuffled = [...QUIZ_QUESTIONS].sort(() => Math.random() - 0.5);
-  return shuffled.slice(0, n);
+  const picks = [];
+  const usedIdx = new Set();
+  for (let i = 0; i < n; i++) {
+    const diff = weightedQuizDifficulty();
+    let pool = QUIZ_QUESTIONS.map((q, idx) => ({ ...q, idx })).filter(q => q.d === diff && !usedIdx.has(q.idx));
+    if (pool.length === 0) pool = QUIZ_QUESTIONS.map((q, idx) => ({ ...q, idx })).filter(q => !usedIdx.has(q.idx));
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
+    usedIdx.add(chosen.idx);
+    picks.push(chosen);
+  }
+  return picks;
 }
 
 function startQuizRound(room) {
@@ -363,6 +386,11 @@ function startRankingRound(room, def) {
   const group = def.datasetGroup;
   const dsRaw = DATASETS[group][def.datasetKey];
   const revealOnTurn = group === "higherLower";
+  // Einordnen (orderingGame): alle Elemente liegen von Anfang an offen sichtbar
+  // im Pool, das aktive Team wählt selbst, welches Element es als Nächstes
+  // versucht. Mehr oder Weniger (higherLowerGame): weiterhin ein zufällig
+  // gezogenes Element pro Zug, dafür wird der Wert direkt aufgedeckt.
+  const freeChoice = !revealOnTurn;
 
   let pool = dsRaw.items.map(it => ({ ...it }));
   let placed = []; // aufsteigend nach Spielreihenfolge, in "order" sortiert (true Reihenfolge)
@@ -383,9 +411,11 @@ function startRankingRound(room, def) {
     unit: dsRaw.unit,
     order: dsRaw.order, // 'desc' oder 'asc'
     revealOnTurn,
-    pool,               // noch nicht platzierte Elemente (verdeckt)
+    freeChoice,
+    pool,               // bei Einordnen: sichtbare, noch nicht platzierte Elemente
+                        // bei Mehr-oder-Weniger: verdeckter Nachziehstapel
     placed,             // bestätigte Elemente in wahrer Reihenfolge
-    currentItem: null,
+    currentItem: null,  // nur bei Mehr-oder-Weniger genutzt
     turnOrder: teamIds,
     turnPointer: 0,
     lives: new Map(teamIds.map(id => [id, 3])),
@@ -405,7 +435,7 @@ function advanceRankingTurn(room, first) {
   const rt = room.runtime;
   const active = activeTeamsRemaining(room);
 
-  if (active.length === 0 || (rt.pool.length === 0 && !rt.currentItem)) {
+  if (active.length === 0 || rt.pool.length === 0) {
     return finishRankingRound(room);
   }
 
@@ -419,11 +449,9 @@ function advanceRankingTurn(room, first) {
     }
   }
 
-  if (rt.pool.length === 0) {
-    return finishRankingRound(room);
+  if (!rt.freeChoice) {
+    rt.currentItem = rt.pool.shift(); // Mehr oder Weniger: nächstes verdecktes Element ziehen
   }
-
-  rt.currentItem = rt.pool.shift();
   broadcastRankState(room);
   scheduleBotRankMove(room);
 }
@@ -445,33 +473,43 @@ function correctInsertIndexFor(rt, value) {
 // weiterhin immer selbst).
 function scheduleBotRankMove(room) {
   const rt = room.runtime;
-  if (!rt || !rt.currentItem) return;
+  if (!rt) return;
   const activeTeamId = rt.turnOrder[rt.turnPointer];
   const team = room.teams.get(activeTeamId);
   if (!team) return;
   const members = team.memberIds.map(id => room.players.get(id)).filter(Boolean);
   const allBots = members.length > 0 && members.every(p => p.isBot);
   if (!allBots) return;
+  if (rt.freeChoice && rt.pool.length === 0) return;
+  if (!rt.freeChoice && !rt.currentItem) return;
 
   const bot = members[0];
   const tier = BOT_TIERS[bot.botTier] || BOT_TIERS[DEFAULT_BOT_TIER];
-  const capturedItemId = rt.currentItem.id;
+  const turnSnapshot = rt.turnPointer;
   const delayMs = randRange(tier.rankDelayMin, tier.rankDelayMax);
 
   setTimeout(() => {
     if (!room.runtime || room.runtime !== rt) return; // Runde inzwischen beendet/gewechselt
-    if (!rt.currentItem || rt.currentItem.id !== capturedItemId) return; // bereits erledigt
-    if (rt.turnOrder[rt.turnPointer] !== activeTeamId) return; // Zug hat sich geändert
+    if (rt.turnPointer !== turnSnapshot || rt.turnOrder[rt.turnPointer] !== activeTeamId) return; // Zug hat sich geändert
+
+    let targetItem;
+    if (rt.freeChoice) {
+      if (rt.pool.length === 0) return;
+      targetItem = rt.pool[Math.floor(Math.random() * rt.pool.length)]; // Bot wählt ein beliebiges sichtbares Element
+    } else {
+      if (!rt.currentItem) return;
+      targetItem = rt.currentItem;
+    }
 
     const correct = Math.random() < tier.prob;
-    const trueIndex = correctInsertIndexFor(rt, rt.currentItem.value);
+    const trueIndex = correctInsertIndexFor(rt, targetItem.value);
     let insertIndex = trueIndex;
     if (!correct) {
       const wrongOptions = [];
       for (let i = 0; i <= rt.placed.length; i++) if (i !== trueIndex) wrongOptions.push(i);
       insertIndex = wrongOptions.length ? wrongOptions[Math.floor(Math.random() * wrongOptions.length)] : trueIndex;
     }
-    handleRankPlace(room, bot.id, insertIndex);
+    handleRankPlace(room, bot.id, targetItem.id, insertIndex);
   }, delayMs);
 }
 
@@ -483,8 +521,10 @@ function broadcastRankState(room) {
     label: rt.label,
     unit: rt.unit,
     order: rt.order,
+    freeChoice: rt.freeChoice,
     placed: rt.placed.map(it => ({ id: it.id, name: it.name, value: it.revealed ? it.value : undefined })),
-    currentItem: rt.currentItem ? { id: rt.currentItem.id, name: rt.currentItem.name } : null,
+    currentItem: (!rt.freeChoice && rt.currentItem) ? { id: rt.currentItem.id, name: rt.currentItem.name } : null,
+    pool: rt.freeChoice ? rt.pool.map(it => ({ id: it.id, name: it.name })) : undefined,
     turnTeamId: rt.turnOrder[rt.turnPointer],
     lives: Object.fromEntries(rt.lives),
     mistakes: Object.fromEntries(rt.mistakes),
@@ -504,30 +544,53 @@ function isPlacementCorrect(rt, value, insertIndex) {
   return okBefore && okAfter;
 }
 
-function handleRankPlace(room, playerId, insertIndex) {
+function handleRankPlace(room, playerId, itemId, insertIndex) {
   const rt = room.runtime;
-  if (!rt || !rt.currentItem) return;
+  if (!rt) return;
   const player = room.players.get(playerId);
   if (!player || player.teamId !== rt.turnOrder[rt.turnPointer]) return; // nur das Team am Zug darf ziehen
   if (typeof insertIndex !== "number" || insertIndex < 0 || insertIndex > rt.placed.length) return;
 
-  const item = rt.currentItem;
+  let item;
+  if (rt.freeChoice) {
+    // Einordnen: freie Auswahl aus dem sichtbaren Pool
+    const idx = rt.pool.findIndex(p => p.id === itemId);
+    if (idx === -1) return;
+    item = rt.pool[idx];
+    rt.pool.splice(idx, 1); // vorerst entfernen, kommt bei Fehlversuch zurück
+  } else {
+    // Mehr oder Weniger: muss das aktuell gezogene Element sein
+    if (!rt.currentItem || rt.currentItem.id !== itemId) return;
+    item = rt.currentItem;
+  }
+
   const teamId = player.teamId;
   const correct = isPlacementCorrect(rt, item.value, insertIndex);
 
-  let revealedValue = rt.revealOnTurn ? item.value : undefined;
-
   if (correct) {
-    rt.placed.splice(insertIndex, 0, { ...item, revealed: rt.revealOnTurn });
+    rt.placed.splice(insertIndex, 0, { ...item, revealed: false });
     rt.correctCount.set(teamId, (rt.correctCount.get(teamId) || 0) + 1);
     rt.roundPointsByTeam.set(teamId, (rt.roundPointsByTeam.get(teamId) || 0) + 10);
   } else {
     rt.mistakes.set(teamId, (rt.mistakes.get(teamId) || 0) + 1);
     rt.lives.set(teamId, Math.max(0, (rt.lives.get(teamId) || 3) - 1));
     applyMistakePenalty(room, teamId);
-    rt.pool.push(item); // zurück in den Pool, ein anderes Team versucht es später erneut
-    rt.pool.sort(() => Math.random() - 0.5);
     if (rt.lives.get(teamId) <= 0) rt.eliminated.add(teamId);
+
+    if (rt.revealOnTurn) {
+      // Mehr oder Weniger: Element sofort an seiner tatsächlich korrekten
+      // Stelle einsortieren, damit künftige Vergleiche weiterhin stimmen –
+      // der Wert selbst bleibt aber verborgen (erst die Auflösung am
+      // Rundenende deckt alle Werte auf). Der nächste Zug zieht ein neues,
+      // noch unbekanntes Element.
+      const trueIndex = correctInsertIndexFor(rt, item.value);
+      rt.placed.splice(trueIndex, 0, { ...item, revealed: false });
+    } else {
+      // Einordnen: Wert bleibt geheim -> Element zurück in den sichtbaren
+      // Pool, der nächste Spieler/das nächste Team kann es (oder ein
+      // anderes) versuchen.
+      rt.pool.push(item);
+    }
   }
   rt.currentItem = null;
 
@@ -536,7 +599,6 @@ function handleRankPlace(room, playerId, insertIndex) {
     teamId,
     itemName: item.name,
     correct,
-    value: revealedValue,
     livesLeft: rt.lives.get(teamId)
   });
 
@@ -683,13 +745,26 @@ wss.on("connection", (ws) => {
 
     switch (msg.action) {
       case "setRoundCount":
-        if (isHost && room.phase === "lobby") { room.roundCount = msg.count === 10 ? 10 : 5; pushRoomState(room); }
+        if (isHost && room.phase === "lobby") {
+          const n = parseInt(msg.count, 10);
+          const allowed = [5, 10, 15, 20];
+          room.roundCount = allowed.includes(n) ? n : 5;
+          if (room.roundMode === "custom") {
+            // Bereits getroffene Auswahl beibehalten, nur auf neue Länge anpassen
+            const defs = room.roundDefs.slice(0, room.roundCount);
+            while (defs.length < room.roundCount) defs.push(null);
+            room.roundDefs = defs;
+          } else {
+            randomizeRoundDefs(room);
+          }
+          pushRoomState(room);
+        }
         break;
       case "setRoundMode":
         if (isHost && room.phase === "lobby") {
           room.roundMode = msg.mode === "custom" ? "custom" : "random";
           if (room.roundMode === "random") randomizeRoundDefs(room);
-          else room.roundDefs = Array.from({ length: room.roundCount }, () => ROUND_DEF_POOL[0]);
+          else room.roundDefs = Array.from({ length: room.roundCount }, () => null); // "Noch nicht gewählt"
           pushRoomState(room);
         }
         break;
@@ -757,7 +832,7 @@ wss.on("connection", (ws) => {
         break;
       case "startGame":
         if (isHost && room.phase === "lobby") {
-          if (room.roundDefs.length !== room.roundCount) randomizeRoundDefs(room);
+          if (room.roundDefs.length !== room.roundCount || room.roundDefs.some(r => !r)) randomizeRoundDefs(room);
           if (room.teams.size === 0) rebuildFfaTeams(room);
           room.currentRoundIndex = -1;
           startNextRound(room);
@@ -770,7 +845,7 @@ wss.on("connection", (ws) => {
         handleQuizAnswer(room, ws.playerId, msg.selectedIndex);
         break;
       case "rankPlace":
-        handleRankPlace(room, ws.playerId, msg.insertIndex);
+        handleRankPlace(room, ws.playerId, msg.itemId, msg.insertIndex);
         break;
       case "restartLobby":
         if (isHost && room.phase === "gameEnd") {

@@ -87,7 +87,7 @@ test/                   Ein automatisierter End-to-End-Test (optional, `npm test
 ## 3. Neue Fragen / Kategorien hinzufügen
 
 - **Wissenstest-Fragen:** in `shared/quizQuestions.json` ein neues Objekt ergänzen
-  (`q`, `a` [4 Antworten], `c` [Index der richtigen Antwort], `cat`, `d` [Schwierigkeit 1–3], optional `e` [Erklärung]).
+  (`q`, `a` [4 Antworten], `c` [Index der richtigen Antwort], `cat`, `d` [Schwierigkeit 1=leicht, 2=normal, 3=schwer, 4=extrem schwer], optional `e` [Erklärung]).
 - **Einordnen / Mehr oder Weniger:** in `shared/partyDatasets.json` unter `ordering` bzw.
   `higherLower` einen neuen Eintrag mit `label`, `unit`, `order` (`"desc"` oder `"asc"`) und
   `items` (`id`, `name`, `value`) anlegen. Bei "Mehr oder Weniger" zusätzlich `seedId` setzen
@@ -111,6 +111,56 @@ lokale-Multiplayer-Profile; der Party-Modus verwendet eigene, sitzungsbasierte
 Team-Punktestände ohne Rangsystem).
 
 ## 6. Bots im Party-Raum
+
+### Solo-Party
+
+Im Hauptmenü unter „SOLO" gibt es neben dem klassischen Wissenstest jetzt auch
+„PARTY-MODUS": eine Party-Runde ganz allein, ohne Mitspieler und ohne Bots.
+Technisch ist das schlicht eine Party mit genau einem Teilnehmer – die Person
+konfiguriert Rundenanzahl und Zufallsrunde/Spiel erstellen wie ein Host, der
+Lobby-Wartebildschirm mit Raum-Code entfällt aber, da niemand beitreten muss.
+Es kommt dieselbe Server-Logik zum Einsatz wie im WLAN-Party-Modus (Wissenstest,
+Einordnen, Mehr oder Weniger) – Punktestände sind auch hier sitzungsbasiert und
+nicht mit dem persönlichen Solo-Rang verknüpft.
+
+### Eigene Spielrunde zusammenstellen ("Spiel erstellen")
+
+Bei "Spiel erstellen" (Party-Host wie auch Solo-Party) gibt es jetzt einen
+übersichtlichen Baukasten statt einer langen Dropdown-Liste: Rundenanzahl frei
+zwischen 5, 10, 15 oder 20 wählbar, danach pro Runde per Suche zuerst den Spielmodus
+(Wissenstest/Einordnen/Mehr oder Weniger) und – außer bei Wissenstest – die
+passende Kategorie auswählen, zur Liste "MEINE SPIELRUNDE" hinzufügen, bei
+Bedarf über ✏️/🗑️ bearbeiten oder entfernen. Erst wenn genau so viele Runden
+zusammengestellt sind wie die gewählte Rundenanzahl, lässt sich die
+Zusammenstellung mit "EIGENE SPIELRUNDE ÜBERNEHMEN" bestätigen. Die
+Kategorien selbst kommen unverändert aus `shared/partyDatasets.json` und
+`shared/quizQuestions.json` – für diesen Baukasten wurden keine neuen
+Kategorien erfunden, nur eine neue Auswahloberfläche dafür gebaut
+(`openRoundBuilder()`/`renderRoundBuilder()` in `public/index.html`).
+
+### Kategorien je Runde und Feingliederung nach Liga/Genre
+
+Jede Runde bei Einordnen/Mehr oder Weniger umfasst bewusst weiterhin nur rund
+8 Elemente (bei "Einwohner" 10) – das hält eine Runde überschaubar lang. Statt
+eine Kategorie größer zu machen, gibt es stattdessen inzwischen mehrere
+eigenständige Kategorien zum selben Thema, die im Round-Builder einzeln
+auswählbar sind, z. B.:
+
+- **Fußball (Kaderwert):** allgemein gemischt, plus getrennt nach Bundesliga,
+  2. Bundesliga, La Liga und Premier League
+- **Musik (Streams):** allgemein gemischt, plus getrennt nach Rock, HipHop
+  und Klassik
+- **Serien/Filme:** zusätzlich zur allgemeinen Serien- und Filme-Kategorie
+  gibt es jetzt auch Anime (Episodenanzahl), Manga (verkaufte Bände) und
+  Animationsfilme (Einspielergebnis)
+
+Aktuell (Stand dieser Version): 12 Einordnen- und 21 Mehr-oder-Weniger-
+Kategorien, darunter auch "Trash-TV Deutschland" (Anzahl der Staffeln von
+Dschungelcamp, Bachelor, Big Brother & Co. – Stand 2026, da sich Staffelzahlen
+bei jährlich laufenden Formaten schnell ändern). Weitere Liga-/Genre-Varianten
+lassen sich genauso leicht ergänzen – einfach einen neuen Eintrag in
+`shared/partyDatasets.json` anlegen, der Round-Builder und die Zufallsrunde
+nehmen ihn automatisch auf.
 
 Bots gibt es **ausschließlich im Party-Raum** – Solo und der bisherige lokale/Online-Multiplayer
 bleiben komplett bot-frei und unverändert.
@@ -151,9 +201,16 @@ bessere KI, perspektivisch auch durch echte Online-Spieler ersetzen).
 - **Wissenstest:** Da im Party-Modus jeder Spieler ein eigenes Gerät hat, muss die Antwort
   niemand mehr verbergen – alle beantworten dieselbe Frage gleichzeitig auf ihrem eigenen
   Bildschirm; nach Ablauf der Zeit oder wenn alle geantwortet haben, wird ausgewertet.
-- **Einordnen / Mehr oder Weniger:** Die Werte sind serverseitig bekannt, werden aber nie
-  ungefragt an die Clients gesendet – bei "Einordnen" werden sie erst nach Rundenende
-  aufgedeckt, bei "Mehr oder Weniger" direkt nach jedem einzelnen Zug (`rankAttempt`).
+- **Einordnen:** Alle Elemente liegen von Anfang an offen sichtbar im Pool (nur ihr
+  Wert bleibt verborgen). Das Team am Zug wählt frei, welches Element es versucht,
+  und an welcher Position. Bei einem Fehlversuch bleibt das Element weiterhin sichtbar
+  im Pool – das nächste Team kann es (oder ein anderes) probieren. Aufgedeckt werden
+  die Werte erst in der Auflösung am Rundenende.
+- **Mehr oder Weniger:** Weiterhin wird pro Zug ein verdecktes Element gezogen, dessen
+  Wert direkt nach der Entscheidung aufgedeckt wird (`rankAttempt`). Bei einem
+  Fehlversuch wird das Element sofort an seiner nun bekannten, korrekten Stelle
+  einsortiert (damit niemand von einem bereits verratenen Wert profitiert) – das
+  nächste Team zieht dafür ein neues, noch unbekanntes Element.
   Teams sind reihum an der Zug (`turnOrder`/`turnPointer`), jedes Team hat 3 Leben; bei 0
   Leben wird das Team für den Rest der Runde übersprungen. Endet die Runde, gewinnt das
   Team mit den meisten korrekt platzierten Elementen.
