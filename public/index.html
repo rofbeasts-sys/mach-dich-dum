@@ -197,6 +197,12 @@
   .chip-group{ display:flex; gap:8px; flex-wrap:wrap; }
   .chip-btn{ background:var(--bg-alt); border:1.5px solid var(--line); border-radius:999px; padding:7px 16px; font-size:13px; font-weight:700; color:var(--text-dim); cursor:pointer; }
   .chip-btn.active{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 18%, var(--bg-alt)); }
+  .builder-search{ width:100%; background:var(--bg-alt); border:1.5px solid var(--line); border-radius:12px; padding:11px 14px; color:var(--text); font-size:14px; font-family:inherit; margin-top:6px; }
+  .builder-search:focus{ outline:none; border-color:var(--accent); }
+  .builder-category-list{ display:flex; flex-direction:column; gap:6px; margin-top:8px; max-height:220px; overflow-y:auto; }
+  .builder-category-item{ background:var(--bg-alt); border:1.5px solid var(--line); border-radius:10px; padding:10px 14px; font-size:13px; font-weight:600; cursor:pointer; }
+  .builder-category-item:hover{ border-color:var(--accent); }
+  .builder-category-item.active{ border-color:var(--accent-2); background:color-mix(in srgb, var(--accent-2) 16%, var(--bg-alt)); color:var(--text); }
   .round-plan-list{ display:flex; flex-direction:column; gap:6px; margin-top:8px; }
   .round-plan-item{ display:flex; align-items:center; gap:10px; background:var(--bg-alt); border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-size:13px; }
   .round-plan-item .idx{ width:22px; height:22px; border-radius:6px; background:var(--panel-2); display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; flex-shrink:0; }
@@ -233,124 +239,551 @@
    ========================================================================= */
 
 /* ---------------------------- 1. FRAGENPOOL (zentral, für Solo & MP) ---------------------------- */
-const QUESTIONS = [
-{q:"Welcher ist der größte Ozean der Erde?",a:["Atlantik","Pazifik","Indischer Ozean","Arktischer Ozean"],c:1,cat:"Geografie",d:1,e:"Der Pazifik bedeckt rund ein Drittel der Erdoberfläche."},
+const QUESTIONS = [{q:"Welcher ist der größte Ozean der Erde?",a:["Atlantik","Pazifik","Indischer Ozean","Arktischer Ozean"],c:1,cat:"Geografie",d:1,e:"Der Pazifik bedeckt rund ein Drittel der Erdoberfläche."},
 {q:"Welcher Fluss gilt traditionell als der längste der Welt?",a:["Amazonas","Jangtse","Nil","Mississippi"],c:2,cat:"Geografie",d:2,e:"Je nach Messmethode wird teils auch der Amazonas als längster Fluss gezählt."},
-{q:"Welcher ist der kleinste Kontinent?",a:["Europa","Australien","Antarktis","Südamerika"],c:1,cat:"Geografie",d:1},
-{q:"In welcher Region liegt die Sahara hauptsächlich?",a:["Naher Osten","Nordafrika","Südliches Afrika","Zentralasien"],c:1,cat:"Geografie",d:1},
-{q:"Wie heißt der höchste Berg Afrikas?",a:["Mount Kenya","Kilimandscharo","Atlasgebirge","Ruwenzori"],c:1,cat:"Geografie",d:2},
+{q:"Welcher ist der kleinste Kontinent?",a:["Europa","Australien","Antarktis","Südamerika"],c:1,cat:"Geografie",d:1,e:"Australien ist mit rund 7,7 Millionen km² der kleinste der sieben Kontinente."},
+{q:"In welcher Region liegt die Sahara hauptsächlich?",a:["Naher Osten","Nordafrika","Südliches Afrika","Zentralasien"],c:1,cat:"Geografie",d:1,e:"Mit rund 9 Millionen km² ist die Sahara die größte heiße Wüste der Welt."},
+{q:"Wie heißt der höchste Berg Afrikas?",a:["Mount Kenya","Kilimandscharo","Atlasgebirge","Ruwenzori"],c:1,cat:"Geografie",d:2,e:"Der Kilimandscharo ist mit 5.895 Metern zugleich der höchste freistehende Berg der Welt."},
 {q:"Welches Land hat durch seine Überseegebiete die meisten Zeitzonen weltweit?",a:["Russland","USA","Frankreich","China"],c:2,cat:"Geografie",d:3,e:"Frankreich kommt durch seine Überseegebiete auf 12 Zeitzonen."},
-{q:"In welchem Jahr endete der Zweite Weltkrieg?",a:["1943","1944","1945","1946"],c:2,cat:"Geschichte",d:1},
-{q:"Wer war der erste Bundeskanzler der Bundesrepublik Deutschland?",a:["Konrad Adenauer","Ludwig Erhard","Willy Brandt","Helmut Kohl"],c:0,cat:"Geschichte",d:1},
-{q:"In welchem Jahr fiel die Berliner Mauer?",a:["1987","1989","1991","1993"],c:1,cat:"Geschichte",d:1},
-{q:"In welchem Jahr begann die Französische Revolution?",a:["1776","1789","1799","1804"],c:1,cat:"Geschichte",d:2},
-{q:"Wer entdeckte 1492 aus europäischer Sicht Amerika?",a:["Vasco da Gama","Christoph Kolumbus","Ferdinand Magellan","James Cook"],c:1,cat:"Geschichte",d:1},
-{q:"Welches Reich wurde im Jahr 476 n. Chr. gestürzt?",a:["Byzantinisches Reich","Weströmisches Reich","Perserreich","Frankenreich"],c:1,cat:"Geschichte",d:3},
-{q:"Wie viele Bundesländer hat Deutschland?",a:["13","15","16","18"],c:2,cat:"Politik",d:1},
-{q:"Wo befindet sich der Sitz der UNO-Hauptversammlung?",a:["Genf","New York","Brüssel","Den Haag"],c:1,cat:"Politik",d:1},
-{q:"Wie heißt das deutsche Parlament?",a:["Bundesrat","Bundestag","Landtag","Reichstag"],c:1,cat:"Politik",d:1},
-{q:"Welche Staatsform hat Deutschland?",a:["Präsidialrepublik","Parlamentarische Republik","Konstitutionelle Monarchie","Einparteienstaat"],c:1,cat:"Politik",d:2},
-{q:"Wie viele Mitgliedsstaaten hat die Europäische Union?",a:["25","27","28","30"],c:1,cat:"Politik",d:2},
-{q:"Welches Land hat KEIN ständiges Vetorecht im UN-Sicherheitsrat?",a:["Russland","China","Deutschland","Frankreich"],c:2,cat:"Politik",d:3},
-{q:"Welches chemische Symbol steht für Gold?",a:["Ag","Au","Gd","Go"],c:1,cat:"Wissenschaft",d:1},
-{q:"Wie viele Knochen hat ein erwachsener Mensch normalerweise?",a:["186","206","226","246"],c:1,cat:"Wissenschaft",d:2},
-{q:"Welche physikalische Größe misst man in Volt?",a:["Elektrischer Strom","Elektrischer Widerstand","Elektrische Spannung","Elektrische Leistung"],c:2,cat:"Wissenschaft",d:2},
-{q:"Wer entwickelte die Relativitätstheorie?",a:["Isaac Newton","Albert Einstein","Niels Bohr","Marie Curie"],c:1,cat:"Wissenschaft",d:1},
-{q:"Wie hoch ist die Lichtgeschwindigkeit ungefähr?",a:["300.000 km/s","150.000 km/s","1.000.000 km/s","30.000 km/s"],c:0,cat:"Wissenschaft",d:2},
-{q:"Welches Gas macht den größten Anteil unserer Atmosphäre aus?",a:["Sauerstoff","Kohlendioxid","Stickstoff","Wasserstoff"],c:2,cat:"Wissenschaft",d:3},
-{q:"Wie nennt man das Aneinanderstoßen und Untertauchen tektonischer Platten?",a:["Vulkanismus","Subduktion","Erosion","Sedimentation"],c:1,cat:"Natur",d:3},
-{q:"Welcher ist der größte Regenwald der Welt?",a:["Kongobecken","Amazonas","Borneo","Daintree"],c:1,cat:"Natur",d:1},
-{q:"Wie viele Jahreszeiten gibt es in der gemäßigten Klimazone?",a:["2","3","4","5"],c:2,cat:"Natur",d:1},
-{q:"Was passiert bei der Photosynthese?",a:["Umwandlung von Licht in chemische Energie","Umwandlung von Wärme in Wasser","Abbau von Sauerstoff zu CO2","Umwandlung von Erde in Nährstoffe"],c:0,cat:"Natur",d:2},
-{q:"Welches ist das härteste natürlich vorkommende Material?",a:["Titan","Diamant","Stahl","Quarz"],c:1,cat:"Natur",d:1},
-{q:"Welche Wüste gilt als die trockenste der Welt?",a:["Sahara","Atacama","Gobi","Kalahari"],c:1,cat:"Natur",d:3},
-{q:"Welches ist das schnellste Landtier der Welt?",a:["Löwe","Gepard","Pferd","Antilope"],c:1,cat:"Tiere",d:1},
-{q:"Welches ist das größte Säugetier der Welt?",a:["Elefant","Blauwal","Giraffe","Nashorn"],c:1,cat:"Tiere",d:1},
-{q:"Wie viele Herzen hat ein Oktopus?",a:["1","2","3","4"],c:2,cat:"Tiere",d:2},
-{q:"Welches Tier hält typischerweise einen Winterschlaf?",a:["Fuchs","Igel","Wolf","Hase"],c:1,cat:"Tiere",d:1},
-{q:"Welches ist das einzige Säugetier, das aktiv fliegen kann?",a:["Flughörnchen","Fledermaus","Gleitbeutler","Flughund"],c:1,cat:"Tiere",d:2},
-{q:"Wie nennt man ein Baby-Känguru?",a:["Joey","Cub","Kit","Pup"],c:0,cat:"Tiere",d:3},
-{q:"Wer gründete das Unternehmen Microsoft?",a:["Steve Jobs","Bill Gates","Elon Musk","Mark Zuckerberg"],c:1,cat:"Technik",d:1},
-{q:"Welches Unternehmen entwickelte das erste iPhone?",a:["Samsung","Apple","Google","Nokia"],c:1,cat:"Technik",d:1},
-{q:"Wofür steht die Abkürzung CPU?",a:["Central Processing Unit","Computer Power Unit","Central Program Utility","Core Processing Unify"],c:0,cat:"Technik",d:2},
-{q:"Wer gilt als Erfinder des World Wide Web?",a:["Bill Gates","Tim Berners-Lee","Steve Wozniak","Alan Turing"],c:1,cat:"Technik",d:3},
-{q:"Wonach wurde die Programmiersprache Java benannt?",a:["Einer Insel","Kaffee","Einem Programmierer","Einem Vulkan"],c:1,cat:"Technik",d:2},
-{q:"Welches Unternehmen brachte das erste Auto in Massenproduktion (Modell T)?",a:["Ford","General Motors","Daimler","Fiat"],c:0,cat:"Technik",d:2},
-{q:"Wer war der erste Mensch im Weltall?",a:["Juri Gagarin","Neil Armstrong","Buzz Aldrin","John Glenn"],c:0,cat:"Raumfahrt",d:1},
-{q:"Wer betrat als erster Mensch den Mond?",a:["Neil Armstrong","Buzz Aldrin","Juri Gagarin","John Glenn"],c:0,cat:"Raumfahrt",d:1},
-{q:"Welcher Planet wird auch der 'Rote Planet' genannt?",a:["Venus","Mars","Jupiter","Saturn"],c:1,cat:"Raumfahrt",d:1},
-{q:"Wie viele Planeten hat unser Sonnensystem offiziell?",a:["7","8","9","10"],c:1,cat:"Raumfahrt",d:2},
-{q:"Wofür steht die Abkürzung ISS?",a:["International Space Station","Interstellar Space System","International Star System","Inner Solar Station"],c:0,cat:"Raumfahrt",d:2},
-{q:"Welche NASA-Mission brachte Gesteinsproben eines Asteroiden zur Erde zurück?",a:["OSIRIS-REx","Voyager","Cassini","New Horizons"],c:0,cat:"Raumfahrt",d:3},
-{q:"Wie viele Spieler einer Mannschaft stehen beim Fußball gleichzeitig auf dem Feld?",a:["9","10","11","12"],c:2,cat:"Sport",d:1},
-{q:"In welcher Sportart wird der Begriff 'Grand Slam' klassisch verwendet?",a:["Fußball","Tennis","Basketball","Handball"],c:1,cat:"Sport",d:1},
-{q:"In welchem Rhythmus finden die Olympischen Sommerspiele statt?",a:["Alle 2 Jahre","Alle 3 Jahre","Alle 4 Jahre","Alle 5 Jahre"],c:2,cat:"Sport",d:1},
-{q:"Welches Land gewann die Fußball-Weltmeisterschaft 2014?",a:["Deutschland","Brasilien","Argentinien","Spanien"],c:0,cat:"Sport",d:2},
-{q:"Wie viele Ringe zeigt das olympische Symbol?",a:["4","5","6","7"],c:1,cat:"Sport",d:1},
-{q:"In welcher Sportart wird der Davis Cup vergeben?",a:["Golf","Tennis","Rudern","Segeln"],c:1,cat:"Sport",d:3},
-{q:"Wie viele Saiten hat eine klassische Gitarre?",a:["4","5","6","7"],c:2,cat:"Musik",d:1},
-{q:"Wer komponierte die 'Mondscheinsonate'?",a:["Mozart","Beethoven","Bach","Chopin"],c:1,cat:"Musik",d:2},
-{q:"Aus welchem Land stammt die Band ABBA?",a:["Norwegen","Schweden","Dänemark","Finnland"],c:1,cat:"Musik",d:1},
-{q:"Welches Instrument besitzt sowohl Tasten als auch Saiten?",a:["Orgel","Klavier","Akkordeon","Cembalo"],c:1,cat:"Musik",d:2},
-{q:"Wer komponierte die Oper 'Die Zauberflöte'?",a:["Beethoven","Mozart","Haydn","Bach"],c:1,cat:"Musik",d:2},
-{q:"Welche Band veröffentlichte das Album 'The Dark Side of the Moon'?",a:["Led Zeppelin","Pink Floyd","Queen","The Who"],c:1,cat:"Musik",d:3},
-{q:"Wer spielte die Rolle des Jack in 'Titanic'?",a:["Brad Pitt","Leonardo DiCaprio","Tom Cruise","Matt Damon"],c:1,cat:"Film & Serien",d:1},
-{q:"In welcher Stadt spielt die Serie 'Friends' hauptsächlich?",a:["Los Angeles","New York","Chicago","Boston"],c:1,cat:"Film & Serien",d:1},
-{q:"Welches Filmstudio produzierte die ursprünglichen 'Star Wars'-Filme?",a:["Warner Bros.","Lucasfilm","Universal","Paramount"],c:1,cat:"Film & Serien",d:2},
-{q:"Wer führte Regie bei der 'Herr der Ringe'-Trilogie?",a:["Steven Spielberg","Peter Jackson","James Cameron","Ridley Scott"],c:1,cat:"Film & Serien",d:1},
-{q:"Welcher Film gewann 2020 den Oscar für den besten Film?",a:["1917","Joker","Parasite","Once Upon a Time in Hollywood"],c:2,cat:"Film & Serien",d:3},
-{q:"In welcher Serie tritt die Figur Tyrion Lannister auf?",a:["House of Cards","Game of Thrones","Vikings","The Crown"],c:1,cat:"Film & Serien",d:1},
-{q:"Wer schrieb das Drama 'Faust'?",a:["Schiller","Goethe","Lessing","Kafka"],c:1,cat:"Literatur",d:1},
-{q:"Wer schrieb den Roman '1984'?",a:["Aldous Huxley","George Orwell","Ray Bradbury","H.G. Wells"],c:1,cat:"Literatur",d:2},
-{q:"Wer erschuf die Figur Harry Potter?",a:["J.R.R. Tolkien","J.K. Rowling","C.S. Lewis","Roald Dahl"],c:1,cat:"Literatur",d:1},
-{q:"Wer schrieb die Erzählung 'Die Verwandlung'?",a:["Thomas Mann","Franz Kafka","Hermann Hesse","Bertolt Brecht"],c:1,cat:"Literatur",d:2},
-{q:"Welches Epos wird Homer zugeschrieben?",a:["Die Ilias","Das Nibelungenlied","Die Aeneis","Das Gilgamesch-Epos"],c:0,cat:"Literatur",d:3},
-{q:"Wer verfasste den Roman 'Buddenbrooks'?",a:["Thomas Mann","Heinrich Mann","Hermann Hesse","Günter Grass"],c:0,cat:"Literatur",d:3},
-{q:"Wer malte die 'Mona Lisa'?",a:["Michelangelo","Leonardo da Vinci","Raffael","Sandro Botticelli"],c:1,cat:"Kunst",d:1},
-{q:"Zu welcher Kunstrichtung wird Salvador Dalí gezählt?",a:["Impressionismus","Surrealismus","Kubismus","Barock"],c:1,cat:"Kunst",d:2},
-{q:"Wer schuf die berühmte Skulptur 'David'?",a:["Donatello","Michelangelo","Bernini","Auguste Rodin"],c:1,cat:"Kunst",d:2},
-{q:"Welcher Künstler schnitt sich bekanntermaßen ein Stück seines Ohrs ab?",a:["Claude Monet","Vincent van Gogh","Pablo Picasso","Auguste Renoir"],c:1,cat:"Kunst",d:1},
-{q:"Wer malte das berühmte Antikriegsgemälde 'Guernica'?",a:["Salvador Dalí","Pablo Picasso","Joan Miró","Diego Rivera"],c:1,cat:"Kunst",d:2},
-{q:"Welche Kunstepoche folgte zeitlich auf die Renaissance?",a:["Rokoko","Barock","Gotik","Klassizismus"],c:1,cat:"Kunst",d:3},
-{q:"Wem wird die Erfindung der Glühbirne meist zugeschrieben?",a:["Nikola Tesla","Thomas Edison","Alexander Graham Bell","James Watt"],c:1,cat:"Erfindungen",d:1},
-{q:"Wer erfand das Telefon?",a:["Thomas Edison","Alexander Graham Bell","Guglielmo Marconi","Nikola Tesla"],c:1,cat:"Erfindungen",d:1},
-{q:"Um welches Jahr entwickelte Gutenberg den Buchdruck mit beweglichen Lettern?",a:["Um 1350","Um 1450","Um 1550","Um 1650"],c:1,cat:"Erfindungen",d:2},
-{q:"Wer entwickelte den ersten praktikablen Pockenimpfstoff?",a:["Louis Pasteur","Edward Jenner","Robert Koch","Alexander Fleming"],c:1,cat:"Erfindungen",d:3},
-{q:"Wer entdeckte das Penicillin?",a:["Alexander Fleming","Louis Pasteur","Marie Curie","Robert Koch"],c:0,cat:"Erfindungen",d:2},
-{q:"Welches Gerät geht auf Johannes Gutenberg zurück?",a:["Die Druckerpresse","Die Dampfmaschine","Das Fernrohr","Der Kompass"],c:0,cat:"Erfindungen",d:1},
-{q:"Welches Land hat die größte Fläche der Welt?",a:["Kanada","Russland","China","USA"],c:1,cat:"Länder",d:1},
-{q:"Welches Land hat die meisten Einwohner der Welt (Stand Anfang der 2020er)?",a:["China","Indien","USA","Indonesien"],c:1,cat:"Länder",d:2},
-{q:"Welches Land besteht aus mehr als 17.000 Inseln?",a:["Philippinen","Indonesien","Japan","Malaysia"],c:1,cat:"Länder",d:3},
-{q:"Wie heißt die Hauptstadt von Australien?",a:["Sydney","Melbourne","Canberra","Perth"],c:2,cat:"Hauptstädte",d:2},
-{q:"Wie heißt die Hauptstadt von Kanada?",a:["Toronto","Ottawa","Vancouver","Montreal"],c:1,cat:"Hauptstädte",d:2},
-{q:"Wie heißt die Hauptstadt von Japan?",a:["Osaka","Tokio","Kyoto","Nagoya"],c:1,cat:"Hauptstädte",d:1},
-{q:"Wie heißt die Hauptstadt von Ägypten?",a:["Kairo","Alexandria","Gizeh","Luxor"],c:0,cat:"Hauptstädte",d:1},
-{q:"Wie heißt die Hauptstadt von Neuseeland?",a:["Auckland","Wellington","Christchurch","Hamilton"],c:1,cat:"Hauptstädte",d:3},
-{q:"Wie heißt die Hauptstadt der Mongolei?",a:["Ulaanbaatar","Astana","Bischkek","Taschkent"],c:0,cat:"Hauptstädte",d:3},
-{q:"Welches Land hat ein Ahornblatt auf seiner Flagge?",a:["USA","Kanada","Norwegen","Irland"],c:1,cat:"Flaggen",d:1},
-{q:"Welches Land zeigt einen Drachen auf seiner Nationalflagge?",a:["Bhutan","Nepal","Thailand","Myanmar"],c:0,cat:"Flaggen",d:3},
-{q:"Welches Land trägt die 'Sonne von Mayo' im Zentrum seiner Flagge?",a:["Uruguay","Argentinien","Chile","Peru"],c:1,cat:"Flaggen",d:2},
-{q:"Welche Farben hat die Flagge Deutschlands?",a:["Schwarz-Rot-Gold","Rot-Weiß-Rot","Schwarz-Gelb-Rot","Blau-Weiß-Rot"],c:0,cat:"Flaggen",d:1},
-{q:"Welches Land hat einen weißen Stern in einem roten Dreieck auf seiner Flagge?",a:["Kuba","Puerto Rico","Chile","Panama"],c:0,cat:"Flaggen",d:2},
-{q:"Der Halbmond mit Stern auf roter Flagge ist historisch eng mit welchem Land verbunden?",a:["Marokko","Türkei","Pakistan","Algerien"],c:1,cat:"Flaggen",d:3},
-{q:"In welchem Land gilt Sushi als traditionelle Speise?",a:["China","Japan","Korea","Thailand"],c:1,cat:"Kulturen",d:1},
-{q:"Welches indische Lichterfest wird jährlich groß gefeiert?",a:["Holi","Diwali","Navratri","Eid"],c:1,cat:"Kulturen",d:2},
-{q:"In welchem Land hat das Oktoberfest seinen Ursprung?",a:["Österreich","Deutschland","Schweiz","Niederlande"],c:1,cat:"Kulturen",d:1},
-{q:"Woher stammt der Tanz Tango ursprünglich?",a:["Spanien","Argentinien","Brasilien","Kuba"],c:1,cat:"Kulturen",d:2},
-{q:"Welche Sprache hat weltweit die meisten Muttersprachler?",a:["Englisch","Mandarin-Chinesisch","Spanisch","Hindi"],c:1,cat:"Kulturen",d:2},
-{q:"In welchem Land liegt der historische Ursprung des Yoga?",a:["China","Indien","Nepal","Tibet"],c:1,cat:"Kulturen",d:1},
-{q:"Wie viele Tage hat ein Schaltjahr?",a:["364","365","366","367"],c:2,cat:"Allgemeinwissen",d:1},
-{q:"Wie viele Kontinente werden üblicherweise gezählt?",a:["5","6","7","8"],c:2,cat:"Allgemeinwissen",d:1},
-{q:"Was ist die Hauptzutat von Hummus?",a:["Kichererbsen","Linsen","Bohnen","Erbsen"],c:0,cat:"Allgemeinwissen",d:2},
-{q:"Wie viele Zähne hat ein erwachsener Mensch normalerweise?",a:["28","30","32","34"],c:2,cat:"Allgemeinwissen",d:2},
-{q:"In welcher Einheit wird die Lautstärke von Schall gemessen?",a:["Watt","Dezibel","Hertz","Lumen"],c:1,cat:"Allgemeinwissen",d:2},
-{q:"Wie viele Buchstaben hat das lateinische Standardalphabet?",a:["24","25","26","27"],c:2,cat:"Allgemeinwissen",d:1},
+{q:"In welchem Jahr endete der Zweite Weltkrieg?",a:["1943","1944","1945","1946"],c:2,cat:"Geschichte",d:1,e:"Mit der Kapitulation Japans im August 1945 endete der Krieg endgültig weltweit."},
+{q:"Wer war der erste Bundeskanzler der Bundesrepublik Deutschland?",a:["Konrad Adenauer","Ludwig Erhard","Willy Brandt","Helmut Kohl"],c:0,cat:"Geschichte",d:1,e:"Adenauer war von 1949 bis 1963 im Amt, so lange wie kein anderer Bundeskanzler vor der Wiedervereinigung."},
+{q:"In welchem Jahr fiel die Berliner Mauer?",a:["1987","1989","1991","1993"],c:1,cat:"Geschichte",d:1,e:"Der Mauerfall am 9. November 1989 leitete die deutsche Wiedervereinigung ein."},
+{q:"In welchem Jahr begann die Französische Revolution?",a:["1776","1789","1799","1804"],c:1,cat:"Geschichte",d:2,e:"Der Sturm auf die Bastille am 14. Juli gilt als ihr symbolischer Beginn."},
+{q:"Wer entdeckte 1492 aus europäischer Sicht Amerika?",a:["Vasco da Gama","Christoph Kolumbus","Ferdinand Magellan","James Cook"],c:1,cat:"Geschichte",d:1,e:"Kolumbus glaubte bis zu seinem Tod, einen Seeweg nach Indien gefunden zu haben."},
+{q:"Welches Reich wurde im Jahr 476 n. Chr. gestürzt?",a:["Byzantinisches Reich","Weströmisches Reich","Perserreich","Frankenreich"],c:1,cat:"Geschichte",d:3,e:"Mit der Absetzung von Romulus Augustulus endete die Antike in Westeuropa."},
+{q:"Wie viele Bundesländer hat Deutschland?",a:["13","15","16","18"],c:2,cat:"Politik",d:1,e:"Die letzten Länder in ihrer heutigen Form entstanden 1990 durch die Wiedervereinigung."},
+{q:"Wo befindet sich der Sitz der UNO-Hauptversammlung?",a:["Genf","New York","Brüssel","Den Haag"],c:1,cat:"Politik",d:1,e:"Das Gebäude am East River wurde 1952 fertiggestellt."},
+{q:"Wie heißt das deutsche Parlament?",a:["Bundesrat","Bundestag","Landtag","Reichstag"],c:1,cat:"Politik",d:1,e:"Er tagt im Berliner Reichstagsgebäude mit seiner markanten Glaskuppel."},
+{q:"Welche Staatsform hat Deutschland?",a:["Präsidialrepublik","Parlamentarische Republik","Konstitutionelle Monarchie","Einparteienstaat"],c:1,cat:"Politik",d:2,e:"Die Bundeskanzlerin bzw. der Bundeskanzler wird vom Parlament gewählt, nicht direkt vom Volk."},
+{q:"Wie viele Mitgliedsstaaten hat die Europäische Union?",a:["25","27","28","30"],c:1,cat:"Politik",d:2,e:"Nach dem Austritt Großbritanniens 2020 sind es seither 27 Staaten."},
+{q:"Welches Land hat KEIN ständiges Vetorecht im UN-Sicherheitsrat?",a:["Russland","China","Deutschland","Frankreich"],c:2,cat:"Politik",d:3,e:"Die fünf ständigen Vetomächte sind die USA, Russland, China, Frankreich und Großbritannien."},
+{q:"Welches chemische Symbol steht für Gold?",a:["Ag","Au","Gd","Go"],c:1,cat:"Wissenschaft",d:1,e:"Es leitet sich vom lateinischen Wort \"aurum\" ab."},
+{q:"Wie viele Knochen hat ein erwachsener Mensch normalerweise?",a:["186","206","226","246"],c:1,cat:"Wissenschaft",d:2,e:"Babys kommen mit etwa 300 Knochen zur Welt, von denen viele im Laufe des Wachstums verschmelzen."},
+{q:"Welche physikalische Größe misst man in Volt?",a:["Elektrischer Strom","Elektrischer Widerstand","Elektrische Spannung","Elektrische Leistung"],c:2,cat:"Wissenschaft",d:2,e:"Die Einheit ist nach dem Physiker Alessandro Volta benannt."},
+{q:"Wer entwickelte die Relativitätstheorie?",a:["Isaac Newton","Albert Einstein","Niels Bohr","Marie Curie"],c:1,cat:"Wissenschaft",d:1,e:"Er veröffentlichte 1905 die spezielle und 1915 die allgemeine Relativitätstheorie."},
+{q:"Wie hoch ist die Lichtgeschwindigkeit ungefähr?",a:["300.000 km/s","150.000 km/s","1.000.000 km/s","30.000 km/s"],c:0,cat:"Wissenschaft",d:2,e:"Im Vakuum gilt sie als die höchste im Universum mögliche Geschwindigkeit."},
+{q:"Welches Gas macht den größten Anteil unserer Atmosphäre aus?",a:["Sauerstoff","Kohlendioxid","Stickstoff","Wasserstoff"],c:2,cat:"Wissenschaft",d:3,e:"Sauerstoff folgt mit knapp 21 Prozent erst an zweiter Stelle."},
+{q:"Wie nennt man das Aneinanderstoßen und Untertauchen tektonischer Platten?",a:["Vulkanismus","Subduktion","Erosion","Sedimentation"],c:1,cat:"Natur",d:3,e:"Dabei taucht eine Platte unter eine andere und schmilzt im Erdmantel wieder auf."},
+{q:"Welcher ist der größte Regenwald der Welt?",a:["Kongobecken","Amazonas","Borneo","Daintree"],c:1,cat:"Natur",d:1,e:"Er erstreckt sich über neun Länder Südamerikas und wird oft als \"grüne Lunge der Erde\" bezeichnet."},
+{q:"Wie viele Jahreszeiten gibt es in der gemäßigten Klimazone?",a:["2","3","4","5"],c:2,cat:"Natur",d:1,e:"In den Tropen gibt es dagegen oft nur eine Trocken- und eine Regenzeit."},
+{q:"Was passiert bei der Photosynthese?",a:["Umwandlung von Licht in chemische Energie","Umwandlung von Wärme in Wasser","Abbau von Sauerstoff zu CO2","Umwandlung von Erde in Nährstoffe"],c:0,cat:"Natur",d:2,e:"Pflanzen nutzen dabei Sonnenenergie, um aus Wasser und CO2 Traubenzucker herzustellen."},
+{q:"Welches ist das härteste natürlich vorkommende Material?",a:["Titan","Diamant","Stahl","Quarz"],c:1,cat:"Natur",d:1,e:"Er besteht wie Grafit vollständig aus Kohlenstoffatomen, nur in anderer Kristallstruktur."},
+{q:"Welche Wüste gilt als die trockenste der Welt?",a:["Sahara","Atacama","Gobi","Kalahari"],c:1,cat:"Natur",d:3,e:"In Teilen dieser chilenischen Wüste wurde jahrzehntelang kein einziger Regentropfen gemessen."},
+{q:"Welches ist das schnellste Landtier der Welt?",a:["Löwe","Gepard","Pferd","Antilope"],c:1,cat:"Tiere",d:1,e:"Er kann in nur drei Sekunden von 0 auf 100 km/h beschleunigen."},
+{q:"Welches ist das größte Säugetier der Welt?",a:["Elefant","Blauwal","Giraffe","Nashorn"],c:1,cat:"Tiere",d:1,e:"Sein Herz allein kann so groß wie ein Kleinwagen sein."},
+{q:"Wie viele Herzen hat ein Oktopus?",a:["1","2","3","4"],c:2,cat:"Tiere",d:2,e:"Zwei davon pumpen Blut zu den Kiemen, eines durch den restlichen Körper."},
+{q:"Welches Tier hält typischerweise einen Winterschlaf?",a:["Fuchs","Igel","Wolf","Hase"],c:1,cat:"Tiere",d:1,e:"Dabei sinkt seine Körpertemperatur fast auf Umgebungstemperatur ab."},
+{q:"Welches ist das einzige Säugetier, das aktiv fliegen kann?",a:["Flughörnchen","Fledermaus","Gleitbeutler","Flughund"],c:1,cat:"Tiere",d:2,e:"Andere \"fliegende\" Säugetiere wie Flughörnchen gleiten nur, ohne aktiv zu fliegen."},
+{q:"Wie nennt man ein Baby-Känguru?",a:["Joey","Cub","Kit","Pup"],c:0,cat:"Tiere",d:3,e:"Es verbringt nach der Geburt Monate geschützt im Beutel der Mutter."},
+{q:"Wer gründete das Unternehmen Microsoft?",a:["Steve Jobs","Bill Gates","Elon Musk","Mark Zuckerberg"],c:1,cat:"Technik",d:1,e:"Er gründete das Unternehmen 1975 zusammen mit Paul Allen."},
+{q:"Welches Unternehmen entwickelte das erste iPhone?",a:["Samsung","Apple","Google","Nokia"],c:1,cat:"Technik",d:1,e:"Das erste iPhone wurde 2007 von Steve Jobs vorgestellt."},
+{q:"Wofür steht die Abkürzung CPU?",a:["Central Processing Unit","Computer Power Unit","Central Program Utility","Core Processing Unify"],c:0,cat:"Technik",d:2,e:"Sie gilt als das \"Gehirn\" eines Computers."},
+{q:"Wer gilt als Erfinder des World Wide Web?",a:["Bill Gates","Tim Berners-Lee","Steve Wozniak","Alan Turing"],c:1,cat:"Technik",d:3,e:"Er entwickelte es 1989 am CERN, um Forschungsdokumente zu verknüpfen."},
+{q:"Wonach wurde die Programmiersprache Java benannt?",a:["Einer Insel","Kaffee","Einem Programmierer","Einem Vulkan"],c:1,cat:"Technik",d:2,e:"Der ursprüngliche Name war \"Oak\", wurde aber aus rechtlichen Gründen geändert."},
+{q:"Welches Unternehmen brachte das erste Auto in Massenproduktion (Modell T)?",a:["Ford","General Motors","Daimler","Fiat"],c:0,cat:"Technik",d:2,e:"Durch die Fließbandproduktion wurde das Auto erstmals für viele Menschen erschwinglich."},
+{q:"Wer war der erste Mensch im Weltall?",a:["Juri Gagarin","Neil Armstrong","Buzz Aldrin","John Glenn"],c:0,cat:"Raumfahrt",d:1,e:"Sein Flug 1961 dauerte nur 108 Minuten, machte ihn aber weltberühmt."},
+{q:"Wer betrat als erster Mensch den Mond?",a:["Neil Armstrong","Buzz Aldrin","Juri Gagarin","John Glenn"],c:0,cat:"Raumfahrt",d:1,e:"Über 600 Millionen Menschen verfolgten die Live-Übertragung 1969 im Fernsehen."},
+{q:"Welcher Planet wird auch der 'Rote Planet' genannt?",a:["Venus","Mars","Jupiter","Saturn"],c:1,cat:"Raumfahrt",d:1,e:"Seine rote Farbe stammt von eisenoxidhaltigem Staub, also im Grunde Rost."},
+{q:"Wie viele Planeten hat unser Sonnensystem offiziell?",a:["7","8","9","10"],c:1,cat:"Raumfahrt",d:2,e:"Pluto wurde 2006 offiziell zum \"Zwergplaneten\" herabgestuft."},
+{q:"Wofür steht die Abkürzung ISS?",a:["International Space Station","Interstellar Space System","International Star System","Inner Solar Station"],c:0,cat:"Raumfahrt",d:2,e:"Sie umkreist die Erde in rund 400 Kilometern Höhe alle 90 Minuten einmal."},
+{q:"Welche NASA-Mission brachte Gesteinsproben eines Asteroiden zur Erde zurück?",a:["OSIRIS-REx","Voyager","Cassini","New Horizons"],c:0,cat:"Raumfahrt",d:3,e:"Die Proben landeten 2023 in einer Kapsel in der Wüste von Utah."},
+{q:"Wie viele Spieler einer Mannschaft stehen beim Fußball gleichzeitig auf dem Feld?",a:["9","10","11","12"],c:2,cat:"Sport",d:1,e:"Davon ist genau ein Spieler der Torwart."},
+{q:"In welcher Sportart wird der Begriff 'Grand Slam' klassisch verwendet?",a:["Fußball","Tennis","Basketball","Handball"],c:1,cat:"Sport",d:1,e:"Die vier großen Turniere sind Australian Open, French Open, Wimbledon und US Open."},
+{q:"In welchem Rhythmus finden die Olympischen Sommerspiele statt?",a:["Alle 2 Jahre","Alle 3 Jahre","Alle 4 Jahre","Alle 5 Jahre"],c:2,cat:"Sport",d:1,e:"Die Winterspiele folgen demselben Vier-Jahres-Rhythmus, nur zeitversetzt."},
+{q:"Welches Land gewann die Fußball-Weltmeisterschaft 2014?",a:["Deutschland","Brasilien","Argentinien","Spanien"],c:0,cat:"Sport",d:2,e:"Das Finale gegen Argentinien wurde im Maracanã-Stadion in Rio ausgetragen."},
+{q:"Wie viele Ringe zeigt das olympische Symbol?",a:["4","5","6","7"],c:1,cat:"Sport",d:1,e:"Sie stehen symbolisch für die fünf damals teilnehmenden Kontinente."},
+{q:"In welcher Sportart wird der Davis Cup vergeben?",a:["Golf","Tennis","Rudern","Segeln"],c:1,cat:"Sport",d:3,e:"Es ist der wichtigste Mannschaftswettbewerb im Herrentennis."},
+{q:"Wie viele Saiten hat eine klassische Gitarre?",a:["4","5","6","7"],c:2,cat:"Musik",d:1,e:"Manche Sonderformen wie die 12-saitige Gitarre haben doppelt so viele."},
+{q:"Wer komponierte die 'Mondscheinsonate'?",a:["Mozart","Beethoven","Bach","Chopin"],c:1,cat:"Musik",d:2,e:"Den Beinamen \"Mondschein\" gab ihr allerdings nicht Beethoven selbst, sondern ein Kritiker nach seinem Tod."},
+{q:"Aus welchem Land stammt die Band ABBA?",a:["Norwegen","Schweden","Dänemark","Finnland"],c:1,cat:"Musik",d:1,e:"Der Bandname setzt sich aus den Anfangsbuchstaben der vier Mitglieder zusammen."},
+{q:"Welches Instrument besitzt sowohl Tasten als auch Saiten?",a:["Orgel","Klavier","Akkordeon","Cembalo"],c:1,cat:"Musik",d:2,e:"Beim Anschlagen der Tasten schlagen kleine Hämmerchen auf gespannte Saiten."},
+{q:"Wer komponierte die Oper 'Die Zauberflöte'?",a:["Beethoven","Mozart","Haydn","Bach"],c:1,cat:"Musik",d:2,e:"Es war eines seiner letzten Werke, uraufgeführt nur Monate vor seinem Tod."},
+{q:"Welche Band veröffentlichte das Album 'The Dark Side of the Moon'?",a:["Led Zeppelin","Pink Floyd","Queen","The Who"],c:1,cat:"Musik",d:3,e:"Es blieb über 14 Jahre ununterbrochen in den US-Albumcharts."},
+{q:"Wer spielte die Rolle des Jack in 'Titanic'?",a:["Brad Pitt","Leonardo DiCaprio","Tom Cruise","Matt Damon"],c:1,cat:"Film & Serien",d:1,e:"Der Film gewann 1998 elf Oscars, darunter den für den besten Film."},
+{q:"In welcher Stadt spielt die Serie 'Friends' hauptsächlich?",a:["Los Angeles","New York","Chicago","Boston"],c:1,cat:"Film & Serien",d:1,e:"Die Wohnungen der Hauptfiguren wären dort in echt kaum bezahlbar gewesen."},
+{q:"Welches Filmstudio produzierte die ursprünglichen 'Star Wars'-Filme?",a:["Warner Bros.","Lucasfilm","Universal","Paramount"],c:1,cat:"Film & Serien",d:2,e:"Es wurde später von Disney übernommen."},
+{q:"Wer führte Regie bei der 'Herr der Ringe'-Trilogie?",a:["Steven Spielberg","Peter Jackson","James Cameron","Ridley Scott"],c:1,cat:"Film & Serien",d:1,e:"Die Dreharbeiten fanden über gut ein Jahr am Stück in Neuseeland statt."},
+{q:"Welcher Film gewann 2020 den Oscar für den besten Film?",a:["1917","Joker","Parasite","Once Upon a Time in Hollywood"],c:2,cat:"Film & Serien",d:3,e:"Er war der erste nicht-englischsprachige Film, der diesen Oscar gewann."},
+{q:"In welcher Serie tritt die Figur Tyrion Lannister auf?",a:["House of Cards","Game of Thrones","Vikings","The Crown"],c:1,cat:"Film & Serien",d:1,e:"Die Serie basiert auf den Romanen von George R. R. Martin."},
+{q:"Wer schrieb das Drama 'Faust'?",a:["Schiller","Goethe","Lessing","Kafka"],c:1,cat:"Literatur",d:1,e:"Er arbeitete rund 60 Jahre lang immer wieder an diesem Werk."},
+{q:"Wer schrieb den Roman '1984'?",a:["Aldous Huxley","George Orwell","Ray Bradbury","H.G. Wells"],c:1,cat:"Literatur",d:2,e:"Begriffe wie \"Big Brother\" und \"Neusprech\" stammen aus diesem Roman."},
+{q:"Wer erschuf die Figur Harry Potter?",a:["J.R.R. Tolkien","J.K. Rowling","C.S. Lewis","Roald Dahl"],c:1,cat:"Literatur",d:1,e:"Der erste Band wurde von mehreren Verlagen abgelehnt, bevor er zum Welterfolg wurde."},
+{q:"Wer schrieb die Erzählung 'Die Verwandlung'?",a:["Thomas Mann","Franz Kafka","Hermann Hesse","Bertolt Brecht"],c:1,cat:"Literatur",d:2,e:"Darin verwandelt sich der Protagonist Gregor Samsa über Nacht in ein riesiges Insekt."},
+{q:"Welches Epos wird Homer zugeschrieben?",a:["Die Ilias","Das Nibelungenlied","Die Aeneis","Das Gilgamesch-Epos"],c:0,cat:"Literatur",d:3,e:"Es erzählt vom letzten Jahr des Trojanischen Krieges."},
+{q:"Wer verfasste den Roman 'Buddenbrooks'?",a:["Thomas Mann","Heinrich Mann","Hermann Hesse","Günter Grass"],c:0,cat:"Literatur",d:3,e:"Für sein Lebenswerk erhielt er 1929 den Literaturnobelpreis."},
+{q:"Wer malte die 'Mona Lisa'?",a:["Michelangelo","Leonardo da Vinci","Raffael","Sandro Botticelli"],c:1,cat:"Kunst",d:1,e:"Ihr rätselhaftes Lächeln fasziniert Betrachter seit über 500 Jahren."},
+{q:"Zu welcher Kunstrichtung wird Salvador Dalí gezählt?",a:["Impressionismus","Surrealismus","Kubismus","Barock"],c:1,cat:"Kunst",d:2,e:"Typisch für diese Kunstrichtung sind traumhafte, irrationale Bildwelten."},
+{q:"Wer schuf die berühmte Skulptur 'David'?",a:["Donatello","Michelangelo","Bernini","Auguste Rodin"],c:1,cat:"Kunst",d:2,e:"Die Statue ist über 5 Meter hoch und wurde aus einem einzigen Marmorblock gehauen."},
+{q:"Welcher Künstler schnitt sich bekanntermaßen ein Stück seines Ohrs ab?",a:["Claude Monet","Vincent van Gogh","Pablo Picasso","Auguste Renoir"],c:1,cat:"Kunst",d:1,e:"Er tat dies während einer psychischen Krise im Jahr 1888."},
+{q:"Wer malte das berühmte Antikriegsgemälde 'Guernica'?",a:["Salvador Dalí","Pablo Picasso","Joan Miró","Diego Rivera"],c:1,cat:"Kunst",d:2,e:"Es entstand als Reaktion auf die Bombardierung der spanischen Stadt Guernica 1937."},
+{q:"Welche Kunstepoche folgte zeitlich auf die Renaissance?",a:["Rokoko","Barock","Gotik","Klassizismus"],c:1,cat:"Kunst",d:3,e:"Sie ist bekannt für besonders üppige, dramatische und prunkvolle Gestaltung."},
+{q:"Wem wird die Erfindung der Glühbirne meist zugeschrieben?",a:["Nikola Tesla","Thomas Edison","Alexander Graham Bell","James Watt"],c:1,cat:"Erfindungen",d:1,e:"Tatsächlich verbesserte er ältere Glühlampen-Konzepte entscheidend, erfand sie nicht ganz von Grund auf."},
+{q:"Wer erfand das Telefon?",a:["Thomas Edison","Alexander Graham Bell","Guglielmo Marconi","Nikola Tesla"],c:1,cat:"Erfindungen",d:1,e:"Sein Patent von 1876 löste einen jahrelangen Rechtsstreit über die wahre Urheberschaft aus."},
+{q:"Um welches Jahr entwickelte Gutenberg den Buchdruck mit beweglichen Lettern?",a:["Um 1350","Um 1450","Um 1550","Um 1650"],c:1,cat:"Erfindungen",d:2,e:"Seine Erfindung gilt als eine der einflussreichsten der Menschheitsgeschichte."},
+{q:"Wer entwickelte den ersten praktikablen Pockenimpfstoff?",a:["Louis Pasteur","Edward Jenner","Robert Koch","Alexander Fleming"],c:1,cat:"Erfindungen",d:3,e:"Er testete seine Idee 1796 zunächst an einem achtjährigen Jungen."},
+{q:"Wer entdeckte das Penicillin?",a:["Alexander Fleming","Louis Pasteur","Marie Curie","Robert Koch"],c:0,cat:"Erfindungen",d:2,e:"Die Entdeckung geschah eher zufällig durch eine verschimmelte Petrischale."},
+{q:"Welches Gerät geht auf Johannes Gutenberg zurück?",a:["Die Druckerpresse","Die Dampfmaschine","Das Fernrohr","Der Kompass"],c:0,cat:"Erfindungen",d:1,e:"Vorher mussten Bücher noch mühsam von Hand abgeschrieben werden."},
+{q:"Welches Land hat die größte Fläche der Welt?",a:["Kanada","Russland","China","USA"],c:1,cat:"Länder",d:1,e:"Es erstreckt sich über elf Zeitzonen."},
+{q:"Welches Land hat die meisten Einwohner der Welt (Stand Anfang der 2020er)?",a:["China","Indien","USA","Indonesien"],c:1,cat:"Länder",d:2,e:"Es überholte China in dieser Statistik erst in den frühen 2020er Jahren."},
+{q:"Welches Land besteht aus mehr als 17.000 Inseln?",a:["Philippinen","Indonesien","Japan","Malaysia"],c:1,cat:"Länder",d:3,e:"Nur etwa 6.000 dieser Inseln sind tatsächlich bewohnt."},
+{q:"Wie heißt die Hauptstadt von Australien?",a:["Sydney","Melbourne","Canberra","Perth"],c:2,cat:"Hauptstädte",d:2,e:"Canberra wurde extra als Kompromiss zwischen den rivalisierenden Städten Sydney und Melbourne gegründet."},
+{q:"Wie heißt die Hauptstadt von Kanada?",a:["Toronto","Ottawa","Vancouver","Montreal"],c:1,cat:"Hauptstädte",d:2,e:"Sie liegt an der Grenze zwischen den Provinzen Ontario und Québec."},
+{q:"Wie heißt die Hauptstadt von Japan?",a:["Osaka","Tokio","Kyoto","Nagoya"],c:1,cat:"Hauptstädte",d:1,e:"Mit ihrem Ballungsraum ist sie die bevölkerungsreichste Metropolregion der Welt."},
+{q:"Wie heißt die Hauptstadt von Ägypten?",a:["Kairo","Alexandria","Gizeh","Luxor"],c:0,cat:"Hauptstädte",d:1,e:"Sie liegt nur wenige Kilometer von den berühmten Pyramiden von Gizeh entfernt."},
+{q:"Wie heißt die Hauptstadt von Neuseeland?",a:["Auckland","Wellington","Christchurch","Hamilton"],c:1,cat:"Hauptstädte",d:3,e:"Sie gilt wegen ihrer Lage als eine der windigsten Hauptstädte der Welt."},
+{q:"Wie heißt die Hauptstadt der Mongolei?",a:["Ulaanbaatar","Astana","Bischkek","Taschkent"],c:0,cat:"Hauptstädte",d:3,e:"Sie zählt zu den kältesten Hauptstädten der Welt."},
+{q:"Welches Land hat ein Ahornblatt auf seiner Flagge?",a:["USA","Kanada","Norwegen","Irland"],c:1,cat:"Flaggen",d:1,e:"Das Ahornblatt ist seit 1965 auf der Flagge zu sehen."},
+{q:"Welches Land zeigt einen Drachen auf seiner Nationalflagge?",a:["Bhutan","Nepal","Thailand","Myanmar"],c:0,cat:"Flaggen",d:3,e:"Es ist die weltweit einzige Nationalflagge mit einem Drachen als Hauptmotiv."},
+{q:"Welches Land trägt die 'Sonne von Mayo' im Zentrum seiner Flagge?",a:["Uruguay","Argentinien","Chile","Peru"],c:1,cat:"Flaggen",d:2,e:"Sie erinnert an die Maiwoche 1810, die den Beginn der Unabhängigkeitsbewegung markierte."},
+{q:"Welche Farben hat die Flagge Deutschlands?",a:["Schwarz-Rot-Gold","Rot-Weiß-Rot","Schwarz-Gelb-Rot","Blau-Weiß-Rot"],c:0,cat:"Flaggen",d:1,e:"Diese Farben gehen unter anderem auf die Uniformen der Lützower Jäger zurück."},
+{q:"Welches Land hat einen weißen Stern in einem roten Dreieck auf seiner Flagge?",a:["Kuba","Puerto Rico","Chile","Panama"],c:0,cat:"Flaggen",d:2,e:"Der Stern wird oft als \"einsamer Stern\" bezeichnet."},
+{q:"Der Halbmond mit Stern auf roter Flagge ist historisch eng mit welchem Land verbunden?",a:["Marokko","Türkei","Pakistan","Algerien"],c:1,cat:"Flaggen",d:3,e:"Dieses Symbol inspirierte die Flaggen vieler islamisch geprägter Länder."},
+{q:"In welchem Land gilt Sushi als traditionelle Speise?",a:["China","Japan","Korea","Thailand"],c:1,cat:"Kulturen",d:1,e:"Ursprünglich diente die Reisfermentierung dabei nur der Haltbarmachung von Fisch."},
+{q:"Welches indische Lichterfest wird jährlich groß gefeiert?",a:["Holi","Diwali","Navratri","Eid"],c:1,cat:"Kulturen",d:2,e:"Es symbolisiert den Sieg des Lichts über die Dunkelheit."},
+{q:"In welchem Land hat das Oktoberfest seinen Ursprung?",a:["Österreich","Deutschland","Schweiz","Niederlande"],c:1,cat:"Kulturen",d:1,e:"Es geht ursprünglich auf eine königliche Hochzeitsfeier in München im Jahr 1810 zurück."},
+{q:"Woher stammt der Tanz Tango ursprünglich?",a:["Spanien","Argentinien","Brasilien","Kuba"],c:1,cat:"Kulturen",d:2,e:"Er entstand Ende des 19. Jahrhunderts in den Arbeitervierteln von Buenos Aires."},
+{q:"Welche Sprache hat weltweit die meisten Muttersprachler?",a:["Englisch","Mandarin-Chinesisch","Spanisch","Hindi"],c:1,cat:"Kulturen",d:2,e:"Es ist die Amtssprache mit den meisten Muttersprachlern weltweit, noch vor Spanisch und Englisch."},
+{q:"In welchem Land liegt der historische Ursprung des Yoga?",a:["China","Indien","Nepal","Tibet"],c:1,cat:"Kulturen",d:1,e:"Die Praxis ist dort bereits mehrere Tausend Jahre alt."},
+{q:"Wie viele Tage hat ein Schaltjahr?",a:["364","365","366","367"],c:2,cat:"Allgemeinwissen",d:1,e:"Der zusätzliche Tag gleicht aus, dass ein Erdjahr eigentlich etwas mehr als 365 Tage dauert."},
+{q:"Wie viele Kontinente werden üblicherweise gezählt?",a:["5","6","7","8"],c:2,cat:"Allgemeinwissen",d:1,e:"Je nach Modell werden manchmal auch nur 5 oder 6 Kontinente gezählt."},
+{q:"Was ist die Hauptzutat von Hummus?",a:["Kichererbsen","Linsen","Bohnen","Erbsen"],c:0,cat:"Allgemeinwissen",d:2,e:"Die Paste wird meist mit Tahin, Zitrone und Olivenöl verfeinert."},
+{q:"Wie viele Zähne hat ein erwachsener Mensch normalerweise?",a:["28","30","32","34"],c:2,cat:"Allgemeinwissen",d:2,e:"Dazu zählen auch die vier Weisheitszähne, sofern sie vorhanden sind."},
+{q:"In welcher Einheit wird die Lautstärke von Schall gemessen?",a:["Watt","Dezibel","Hertz","Lumen"],c:1,cat:"Allgemeinwissen",d:2,e:"Die Skala ist logarithmisch, schon kleine Zahlenunterschiede bedeuten große Lautstärkeunterschiede."},
+{q:"Wie viele Buchstaben hat das lateinische Standardalphabet?",a:["24","25","26","27"],c:2,cat:"Allgemeinwissen",d:1,e:"Das lateinische Alphabet bildet die Grundlage vieler Sprachen weltweit."},
 {q:"Wie lange kann sich Honig ungeöffnet mindestens halten, ohne zu verderben?",a:["Ein paar Monate","Ein paar Jahre","Jahrhunderte","Nur wenige Wochen"],c:2,cat:"Kurioses",d:2,e:"Archäologisch wurde bereits Jahrtausende alter, noch essbarer Honig gefunden."},
-{q:"Wie viele 'Herzen' (Aortenbögen) besitzt ein Regenwurm umgangssprachlich?",a:["1","5","10","Keine"],c:1,cat:"Kurioses",d:2},
-{q:"Botanisch betrachtet ist eine Banane eigentlich...?",a:["Obst","Eine Beere","Gemüse","Eine Nuss"],c:1,cat:"Kurioses",d:3},
-{q:"Wie lange dauert ein durchschnittlicher Wimpernschlag ungefähr?",a:["Unter 1 Sekunde","Etwa 2 Sekunden","Etwa 5 Sekunden","Etwa 10 Sekunden"],c:0,cat:"Kurioses",d:1},
-{q:"In welchem Land gibt es laut Reiseführern praktisch keine Mücken?",a:["Island","Norwegen","Grönland","Schottland"],c:0,cat:"Kurioses",d:3},
-{q:"Wie viele Herzen hat eine Giraffe?",a:["1","2","3","4"],c:0,cat:"Kurioses",d:2}
+{q:"Wie viele 'Herzen' (Aortenbögen) besitzt ein Regenwurm umgangssprachlich?",a:["1","5","10","Keine"],c:1,cat:"Kurioses",d:2,e:"Streng biologisch sind es eher verdickte, pumpende Blutgefäße als echte Herzen."},
+{q:"Botanisch betrachtet ist eine Banane eigentlich...?",a:["Obst","Eine Beere","Gemüse","Eine Nuss"],c:1,cat:"Kurioses",d:3,e:"Botanisch zählt sie damit zur selben Kategorie wie Tomaten oder Gurken."},
+{q:"Wie lange dauert ein durchschnittlicher Wimpernschlag ungefähr?",a:["Unter 1 Sekunde","Etwa 2 Sekunden","Etwa 5 Sekunden","Etwa 10 Sekunden"],c:0,cat:"Kurioses",d:1,e:"Er zählt zu den schnellsten Muskelbewegungen des menschlichen Körpers."},
+{q:"In welchem Land gibt es laut Reiseführern praktisch keine Mücken?",a:["Island","Norwegen","Grönland","Schottland"],c:0,cat:"Kurioses",d:3,e:"Grund dafür sind vermutlich die klimatischen Bedingungen der Insel."},
+{q:"Wie viele Herzen hat eine Giraffe?",a:["1","2","3","4"],c:0,cat:"Kurioses",d:2,e:"Ihr Herz muss besonders kräftig pumpen, um das Blut bis zum weit entfernten Kopf zu befördern."},
+{q:"Was erhalten wir von einer Kuh?",a:["Milch","Wolle","Eier","Honig"],c:0,cat:"Tiere",d:1,e:"Eine Milchkuh gibt im Schnitt rund 20 bis 30 Liter Milch am Tag."},
+{q:"Welches Tier sagt \"Muh\"?",a:["Schaf","Kuh","Ziege","Pferd"],c:1,cat:"Tiere",d:1,e:"Kühe können sich über ihre Rufe sogar gegenseitig individuell erkennen."},
+{q:"Was legt eine Henne?",a:["Milch","Honig","Eier","Wolle"],c:2,cat:"Tiere",d:1,e:"Ein Huhn legt im Schnitt fast ein Ei pro Tag."},
+{q:"Wie heißen die drei Neffen von Donald Duck?",a:["Tick, Trick und Track","Ede, Ali und Timmy","Bibi, Tina und Mia","Fix, Foxi und Lupo"],c:0,cat:"Kurioses",d:1,e:"Im englischen Original heißen sie Huey, Dewey und Louie."},
+{q:"Wie nennt man ein Baby-Hund?",a:["Kätzchen","Fohlen","Welpe","Kalb"],c:2,cat:"Tiere",d:1,e:"In den ersten Wochen sind sie noch blind und taub."},
+{q:"Wie nennt man eine Baby-Katze?",a:["Kätzchen","Welpe","Ferkel","Lamm"],c:0,cat:"Tiere",d:1,e:"Sie öffnen ihre Augen meist erst nach etwa einer Woche."},
+{q:"Welches Tier hat einen Rüssel?",a:["Giraffe","Elefant","Zebra","Nashorn"],c:1,cat:"Tiere",d:1,e:"Der Rüssel enthält mehr als 40.000 einzelne Muskeln."},
+{q:"Wie viele Beine hat eine Spinne?",a:["6","8","10","4"],c:1,cat:"Tiere",d:1,e:"Damit unterscheiden sie sich klar von Insekten, die nur sechs Beine haben."},
+{q:"Wie viele Beine hat ein Hund?",a:["2","4","6","8"],c:1,cat:"Tiere",d:1,e:"Hunde gehören wie alle Säugetiere zu den Vierbeinern."},
+{q:"Welches Tier wird oft als \"König der Tiere\" bezeichnet?",a:["Tiger","Elefant","Löwe","Bär"],c:2,cat:"Tiere",d:1,e:"Dabei jagen meist die Löwinnen im Rudel, während die Männchen das Revier verteidigen."},
+{q:"Was ist schwerer: ein Kilo Federn oder ein Kilo Steine?",a:["Die Federn","Die Steine","Beide gleich schwer","Das kommt drauf an"],c:2,cat:"Kurioses",d:1,e:"Klassische Scherzfrage: Ein Kilo ist immer ein Kilo, egal woraus es besteht."},
+{q:"Ein Bauer hat 17 Schafe. Alle bis auf 9 sterben. Wie viele Schafe hat er noch?",a:["8","9","17","0"],c:1,cat:"Kurioses",d:1,e:"Fangfrage: \"alle bis auf 9\" bedeutet, dass genau 9 übrig bleiben."},
+{q:"Wie viele Monate im Jahr haben mindestens 28 Tage?",a:["1","6","12","28"],c:2,cat:"Kurioses",d:1,e:"Fangfrage: Jeder Monat hat mindestens 28 Tage, nicht nur der Februar."},
+{q:"Wie viele Tage hat eine Woche?",a:["5","6","7","8"],c:2,cat:"Allgemeinwissen",d:1,e:"Diese Einteilung geht auf antike Kalender zurück, die sich an den sieben damals bekannten Himmelskörpern orientierten."},
+{q:"Wie viele Monate hat ein Jahr?",a:["10","11","12","13"],c:2,cat:"Allgemeinwissen",d:1,e:"Der Kalender mit zwölf Monaten geht in seiner heutigen Form auf die alten Römer zurück."},
+{q:"Wie viele Sekunden hat eine Minute?",a:["50","60","100","30"],c:1,cat:"Allgemeinwissen",d:1,e:"Diese Einteilung in 60er-Schritte stammt ursprünglich aus dem babylonischen Zahlensystem."},
+{q:"Wie viele Finger hat ein Mensch normalerweise an einer Hand?",a:["4","5","6","10"],c:1,cat:"Allgemeinwissen",d:1,e:"Vermutlich ist das auch der Grund, warum sich das Zehnersystem beim Zählen durchgesetzt hat."},
+{q:"Welche Farbe hat eine reife Banane meistens?",a:["Grün","Rot","Gelb","Blau"],c:2,cat:"Allgemeinwissen",d:1,e:"Unreife Bananen sind dagegen noch grün."},
+{q:"Welche Farbe entsteht, wenn man Blau und Gelb mischt?",a:["Lila","Grün","Orange","Braun"],c:1,cat:"Kunst",d:1,e:"Es zählt zu den drei klassischen Sekundärfarben der Farbmischung."},
+{q:"Was scheint tagsüber am Himmel?",a:["Der Mond","Die Sterne","Die Sonne","Die Wolken"],c:2,cat:"Natur",d:1,e:"Ihr Licht braucht rund 8 Minuten, um die Erde zu erreichen."},
+{q:"Welche Farbe hat der Himmel an einem klaren Tag?",a:["Grün","Blau","Grau","Gelb"],c:1,cat:"Natur",d:1,e:"Grund dafür ist die Streuung des Sonnenlichts an Luftmolekülen (Rayleigh-Streuung)."},
+{q:"Wie heißt die Jahreszeit direkt nach dem Winter?",a:["Herbst","Sommer","Frühling","Winter"],c:2,cat:"Natur",d:1,e:"In dieser Zeit erwachen viele Pflanzen und Tiere aus ihrer Winterruhe."},
+{q:"Was ist gefrorenes Wasser?",a:["Dampf","Eis","Nebel","Schaum"],c:1,cat:"Natur",d:1,e:"Es dehnt sich beim Gefrieren aus, weshalb Eis leichter ist als flüssiges Wasser."},
+{q:"Wie viele Farben hat ein klassischer Regenbogen?",a:["5","6","7","9"],c:2,cat:"Natur",d:1,e:"Die klassische Einteilung geht auf Isaac Newton zurück."},
+{q:"Was braucht eine Pflanze zum Wachsen, neben Wasser?",a:["Sonnenlicht","Schokolade","Salz","Benzin"],c:0,cat:"Natur",d:1,e:"Ohne Licht kann eine Pflanze keine Photosynthese betreiben."},
+{q:"Wie viele Räder hat ein normales Fahrrad?",a:["1","2","3","4"],c:1,cat:"Allgemeinwissen",d:1,e:"Frühe Vorläufer wie die Draisine hatten ebenfalls schon zwei Räder, aber keine Pedale."},
+{q:"Welche Farbe haben die meisten Feuerwehrautos in Deutschland?",a:["Blau","Grün","Rot","Gelb"],c:2,cat:"Allgemeinwissen",d:1,e:"Die Farbe soll für bessere Sichtbarkeit im Straßenverkehr sorgen."},
+{q:"Aus welchen Bohnen wird Kaffee gemacht?",a:["Kakaobohnen","Kaffeebohnen","Sojabohnen","Erbsen"],c:1,cat:"Allgemeinwissen",d:1,e:"Die Bohnen sind eigentlich die Samen der Kaffeekirsche."},
+{q:"Welches Land grenzt an den Ärmelkanal auf der britischen Seite?",a:["Irland","Großbritannien","Niederlande","Belgien"],c:1,cat:"Geografie",d:2,e:"An der schmalsten Stelle bei Dover sind es nur etwa 33 Kilometer bis Frankreich."},
+{q:"In welchem Jahr endete der Zweite Weltkrieg in Europa (Kapitulation Deutschlands)?",a:["1943","1944","1945","1946"],c:2,cat:"Geschichte",d:2,e:"Der 8. Mai 1945 wird als \"Tag der Befreiung\" bezeichnet."},
+{q:"Wie viele Sterne hat die Flagge der USA?",a:["48","50","52","54"],c:1,cat:"Flaggen",d:2,e:"Jeder Stern steht für einen der 50 Bundesstaaten."},
+{q:"Welches Gas atmen Pflanzen bei der Photosynthese hauptsächlich ein?",a:["Sauerstoff","Kohlendioxid","Stickstoff","Wasserstoff"],c:1,cat:"Wissenschaft",d:2,e:"Dabei entsteht als Nebenprodukt der für uns lebenswichtige Sauerstoff."},
+{q:"Wie heißt der größte Ozean der Erde nach Fläche?",a:["Atlantik","Pazifik","Indischer Ozean","Arktischer Ozean"],c:1,cat:"Geografie",d:2,e:"Der Pazifik bedeckt mit rund 165 Millionen km² fast ein Drittel der Erdoberfläche."},
+{q:"Welches Tier gilt als das schnellste Säugetier im Wasser?",a:["Delfin","Schwertfisch","Schwertwal","Segelfisch"],c:3,cat:"Tiere",d:2,e:"Der Segelfisch (Fisch, kein Säugetier im engeren Sinn – hier als Rekordhalter unter Meerestieren) gilt oft als schnellstes Meerestier; unter Säugetieren zählt der Schwertwal zu den schnellsten Schwimmern."},
+{q:"Wie heißt die Hauptstadt von Portugal?",a:["Porto","Lissabon","Faro","Braga"],c:1,cat:"Hauptstädte",d:2,e:"Sie liegt an der Mündung des Flusses Tejo in den Atlantik."},
+{q:"Welcher Planet unseres Sonnensystems hat die meisten Ringe sichtbar?",a:["Jupiter","Saturn","Uranus","Neptun"],c:1,cat:"Raumfahrt",d:2,e:"Seine Ringe bestehen hauptsächlich aus Eis- und Gesteinsbrocken."},
+{q:"Wer schrieb die Musik zur Nationalhymne Deutschlands (Melodie)?",a:["Ludwig van Beethoven","Joseph Haydn","Johann Sebastian Bach","Richard Wagner"],c:1,cat:"Musik",d:2,e:"Dieselbe Melodie diente einst auch als Kaiserhymne Österreich-Ungarns."},
+{q:"Welches Land ist für den Bau des Eiffelturms bekannt?",a:["Italien","Frankreich","Spanien","Deutschland"],c:1,cat:"Kunst",d:2,e:"Er wurde 1889 als Eingangstor zur Weltausstellung errichtet und war ursprünglich nur als temporäres Bauwerk geplant."},
+{q:"Welcher Fluss ist mit rund 6.650 km der längste Fluss Afrikas?",a:["Kongo","Niger","Nil","Sambesi"],c:2,cat:"Geografie",d:3,e:"Der Nil durchquert auf seinem Weg zum Mittelmeer elf Länder."},
+{q:"In welchem Gebirge liegt der Mont Blanc?",a:["Pyrenäen","Alpen","Apennin","Karpaten"],c:1,cat:"Geografie",d:3,e:"Mit 4.809 Metern ist er der höchste Berg der Alpen und Westeuropas."},
+{q:"Welches Land hat die längste Küstenlinie der Welt?",a:["Russland","Indonesien","Kanada","Australien"],c:2,cat:"Geografie",d:3,e:"Kanadas Küste misst durch die vielen Inseln und Fjorde über 200.000 Kilometer."},
+{q:"Wie heißt die tiefste Stelle der Weltmeere?",a:["Puerto-Rico-Graben","Marianengraben","Java-Graben","Tonga-Graben"],c:1,cat:"Geografie",d:3,e:"Der Marianengraben im Pazifik erreicht eine Tiefe von fast 11.000 Metern."},
+{q:"Welche Wüste liegt größtenteils in Botswana?",a:["Namib","Kalahari","Sahara","Gobi"],c:1,cat:"Geografie",d:3,e:"Die Kalahari ist eher eine Trockensavanne als eine klassische Sandwüste."},
+{q:"Welcher See ist der tiefste See der Welt?",a:["Titicacasee","Baikalsee","Kaspisches Meer","Tanganjikasee"],c:1,cat:"Geografie",d:3,e:"Der Baikalsee in Sibirien ist bis zu 1.642 Meter tief."},
+{q:"Auf welchem Kontinent liegt die Atacama-Wüste?",a:["Afrika","Asien","Südamerika","Australien"],c:2,cat:"Geografie",d:3,e:"In Teilen der Atacama wurde jahrzehntelang gar kein Regen gemessen."},
+{q:"In welchem Jahr wurde die Berliner Mauer errichtet?",a:["1958","1961","1965","1971"],c:1,cat:"Geschichte",d:3,e:"Sie wurde in der Nacht zum 13. August 1961 überraschend errichtet."},
+{q:"Wer war der letzte Zar Russlands?",a:["Alexander III.","Nikolaus II.","Peter der Große","Iwan der Schreckliche"],c:1,cat:"Geschichte",d:3,e:"Er und seine Familie wurden 1918 nach der Oktoberrevolution ermordet."},
+{q:"In welchem Jahr endete der Dreißigjährige Krieg?",a:["1618","1638","1648","1658"],c:2,cat:"Geschichte",d:3,e:"Der Westfälische Friede beendete einen der verheerendsten Kriege Europas."},
+{q:"Welches Ereignis löste den Ersten Weltkrieg unmittelbar aus?",a:["Der Überfall auf Polen","Das Attentat von Sarajevo","Die Oktoberrevolution","Der Vertrag von Versailles"],c:1,cat:"Geschichte",d:3,e:"Erzherzog Franz Ferdinand wurde am 28. Juni 1914 erschossen."},
+{q:"Wer war der erste Kaiser des neu gegründeten Deutschen Reiches von 1871?",a:["Wilhelm I.","Wilhelm II.","Friedrich III.","Otto von Bismarck"],c:0,cat:"Geschichte",d:3,e:"Er wurde im Spiegelsaal von Versailles zum Kaiser ausgerufen."},
+{q:"In welchem Jahr wurde die Sowjetunion aufgelöst?",a:["1989","1991","1993","1995"],c:1,cat:"Geschichte",d:3,e:"Aus ihr gingen 15 unabhängige Staaten hervor, darunter Russland."},
+{q:"Welche Dynastie regierte während des Baus der Verbotenen Stadt in Peking?",a:["Tang-Dynastie","Ming-Dynastie","Qing-Dynastie","Song-Dynastie"],c:1,cat:"Geschichte",d:3,e:"Der Bau dauerte von 1406 bis 1420 und beschäftigte Hunderttausende Arbeiter."},
+{q:"Wie viele Richter hat der Supreme Court der USA?",a:["7","9","11","13"],c:1,cat:"Politik",d:3,e:"Sie werden auf Lebenszeit vom Präsidenten ernannt und vom Senat bestätigt."},
+{q:"Welches Land führte als erstes das Frauenwahlrecht auf nationaler Ebene ein?",a:["USA","Neuseeland","Großbritannien","Finnland"],c:1,cat:"Politik",d:3,e:"Neuseeland führte 1893 als erstes selbstständiges Land das Frauenwahlrecht ein."},
+{q:"Wie viele Artikel hat das deutsche Grundgesetz ungefähr?",a:["Etwa 50","Etwa 100","Etwa 150","Etwa 200"],c:3,cat:"Politik",d:3,e:"Artikel 1 garantiert die Unantastbarkeit der Menschenwürde."},
+{q:"In welcher Stadt hat der Internationale Gerichtshof seinen Sitz?",a:["Straßburg","Den Haag","Genf","Brüssel"],c:1,cat:"Politik",d:3,e:"Er ist das wichtigste Rechtsprechungsorgan der Vereinten Nationen."},
+{q:"Welches Land war Mitglied der EU, ist aber 2020 wieder ausgetreten?",a:["Großbritannien","Norwegen","Schweiz","Island"],c:0,cat:"Politik",d:3,e:"Der sogenannte Brexit trat am 31. Januar 2020 in Kraft."},
+{q:"Wie heißt das Oberhaus des britischen Parlaments?",a:["House of Commons","House of Lords","Senate","Privy Council"],c:1,cat:"Politik",d:3,e:"Seine Mitglieder werden anders als im Unterhaus nicht gewählt, sondern meist ernannt."},
+{q:"Seit welchem Jahr gilt der Euro als Bargeld in Deutschland?",a:["1999","2002","2005","1995"],c:1,cat:"Politik",d:3,e:"Als Buchgeld wurde er bereits 1999 eingeführt."},
+{q:"Wie nennt man den Übergang eines Stoffes von fest direkt zu gasförmig?",a:["Kondensation","Sublimation","Resublimation","Verdunstung"],c:1,cat:"Wissenschaft",d:3,e:"Trockeneis geht auf genau diese Weise direkt in gasförmiges CO2 über."},
+{q:"Welches Element hat die Ordnungszahl 1 im Periodensystem?",a:["Helium","Wasserstoff","Lithium","Sauerstoff"],c:1,cat:"Wissenschaft",d:3,e:"Es ist zugleich das häufigste Element im gesamten Universum."},
+{q:"Wer formulierte die drei Gesetze der Planetenbewegung?",a:["Isaac Newton","Johannes Kepler","Galileo Galilei","Nikolaus Kopernikus"],c:1,cat:"Wissenschaft",d:3,e:"Seine Gesetze beschreiben, dass Planeten sich auf elliptischen Bahnen um die Sonne bewegen."},
+{q:"Wie viele Chromosomenpaare hat ein Mensch normalerweise?",a:["21","23","25","27"],c:1,cat:"Wissenschaft",d:3,e:"Das letzte Paar bestimmt das biologische Geschlecht."},
+{q:"Welches Gas entsteht bei der Photosynthese als Nebenprodukt?",a:["Kohlendioxid","Stickstoff","Sauerstoff","Wasserstoff"],c:2,cat:"Wissenschaft",d:3,e:"Ohne diesen Prozess gäbe es in unserer Atmosphäre kaum freien Sauerstoff."},
+{q:"Wie nennt man die kleinste Einheit eines chemischen Elements, die noch dessen Eigenschaften besitzt?",a:["Molekül","Atom","Ion","Elektron"],c:1,cat:"Wissenschaft",d:3,e:"Das Wort stammt vom griechischen \"atomos\" für \"unteilbar\" ab."},
+{q:"Welcher Wissenschaftler entwickelte die Theorie der natürlichen Selektion?",a:["Gregor Mendel","Charles Darwin","Louis Pasteur","Carl Linné"],c:1,cat:"Wissenschaft",d:3,e:"Seine Beobachtungen auf den Galápagos-Inseln lieferten wichtige Belege dafür."},
+{q:"Wie nennt man Regenwälder, die das ganze Jahr über gleichmäßig feucht sind?",a:["Monsunwälder","Tropische Regenwälder","Laubwälder","Savannen"],c:1,cat:"Natur",d:3,e:"Sie beherbergen trotz nur etwa 6 Prozent der Landfläche über die Hälfte aller bekannten Tier- und Pflanzenarten."},
+{q:"Welcher Prozess beschreibt den Kreislauf von Verdunstung, Kondensation und Niederschlag?",a:["Photosynthese","Wasserkreislauf","Stickstoffkreislauf","Erosion"],c:1,cat:"Natur",d:3,e:"Angetrieben wird er hauptsächlich durch die Energie der Sonne."},
+{q:"Wie heißt die Schicht der Erdatmosphäre, in der das Wettergeschehen stattfindet?",a:["Stratosphäre","Troposphäre","Mesosphäre","Thermosphäre"],c:1,cat:"Natur",d:3,e:"Sie reicht je nach Breitengrad nur bis etwa 8 bis 18 Kilometer Höhe."},
+{q:"Welches Element macht den größten Massenanteil der Erdkruste aus?",a:["Eisen","Silizium","Sauerstoff","Aluminium"],c:2,cat:"Natur",d:3,e:"Silizium folgt mit rund 28 Prozent erst an zweiter Stelle."},
+{q:"Wie nennt man das Absterben ganzer Tier- und Pflanzenarten über die Erdgeschichte hinweg?",a:["Mutation","Massenaussterben","Fossilisation","Selektion"],c:1,cat:"Natur",d:3,e:"Das bekannteste Beispiel ist das Aussterben der Dinosaurier vor rund 66 Millionen Jahren."},
+{q:"Welcher Ozean ist der kälteste der Erde?",a:["Pazifik","Atlantik","Indischer Ozean","Arktischer Ozean"],c:3,cat:"Natur",d:3,e:"Er ist zugleich der kleinste und flachste der fünf Weltmeere."},
+{q:"Wie wird die Grenze bezeichnet, ab der Bäume wegen der Höhenlage nicht mehr wachsen?",a:["Permafrostgrenze","Baumgrenze","Schneegrenze","Vegetationszone"],c:1,cat:"Natur",d:3,e:"Oberhalb davon werden Bedingungen wie Kälte und Wind für Bäume zu lebensfeindlich."},
+{q:"Welches Tier hat das beste Gehör aller Landtiere?",a:["Fledermaus","Elefant","Eule","Hund"],c:0,cat:"Tiere",d:3,e:"Sie orientieren sich im Dunkeln zusätzlich per Echoortung."},
+{q:"Wie lange dauert die Tragzeit eines Elefanten ungefähr?",a:["9 Monate","12 Monate","22 Monate","30 Monate"],c:2,cat:"Tiere",d:3,e:"Das ist die längste Tragzeit aller Landsäugetiere."},
+{q:"Welches ist das giftigste Landtier der Welt (nach Toxizität)?",a:["Schwarze Mamba","Beutelteufel-Frosch","Inlandtaipan","Skorpion"],c:2,cat:"Tiere",d:3,e:"Der Inlandtaipan besitzt das giftigste Gift aller Landschlangen."},
+{q:"Wie viele Kammern hat das Herz eines Vogels?",a:["2","3","4","5"],c:2,cat:"Tiere",d:3,e:"Wie bei Säugetieren ermöglicht das eine strikte Trennung von sauerstoffreichem und sauerstoffarmem Blut."},
+{q:"Welches Tier kann sich als einziges Säugetier nicht selbst im Spiegel erkennen, obwohl es hochintelligent ist – meist genannt wird stattdessen welches Tier ERKENNT sich?",a:["Delfin","Hausschwein","Pferd","Kaninchen"],c:0,cat:"Tiere",d:3,e:"Der Spiegeltest gilt als Hinweis auf ein Bewusstsein für das eigene Ich."},
+{q:"Welche Spinnenart gilt als eine der giftigsten der Welt?",a:["Vogelspinne","Brasilianische Wanderspinne","Kreuzspinne","Wolfsspinne"],c:1,cat:"Tiere",d:3,e:"Trotz ihres gefährlichen Rufs sind Todesfälle durch ihren Biss heute dank Gegengift selten."},
+{q:"Wie nennt man die Fähigkeit mancher Tiere, ihre Körperfarbe der Umgebung anzupassen?",a:["Metamorphose","Mimikry","Tarnung durch Farbwechsel (Mimese)","Hibernation"],c:2,cat:"Tiere",d:3,e:"Chamäleons nutzen dafür spezielle Farbzellen in ihrer Haut."},
+{q:"Welches Unternehmen entwickelte das Betriebssystem Android ursprünglich?",a:["Google","Apple","Android Inc.","Samsung"],c:2,cat:"Technik",d:3,e:"Android Inc. wurde 2005 von Google übernommen."},
+{q:"Wofür steht die Abkürzung HTML?",a:["High Text Markup Language","HyperText Markup Language","Home Tool Markup Language","Hyperlink Text Management Language"],c:1,cat:"Technik",d:3,e:"Sie bildet das grundlegende Gerüst nahezu jeder Webseite."},
+{q:"Welcher Prozessorhersteller entwickelte die x86-Architektur?",a:["AMD","Intel","IBM","Motorola"],c:1,cat:"Technik",d:3,e:"Sie prägt bis heute die meisten PC-Prozessoren."},
+{q:"In welchem Jahrzehnt wurde das World Wide Web öffentlich zugänglich gemacht?",a:["1970er","1980er","1990er","2000er"],c:2,cat:"Technik",d:3,e:"1991 wurde die erste Webseite überhaupt veröffentlicht."},
+{q:"Wie heißt das erste kommerziell erfolgreiche Smartphone-Betriebssystem von Apple?",a:["macOS","iOS","watchOS","iPadOS"],c:1,cat:"Technik",d:3,e:"Es wurde ursprünglich schlicht \"iPhone OS\" genannt."},
+{q:"Wer gilt als Miterfinder des Internets durch das TCP/IP-Protokoll?",a:["Tim Berners-Lee","Vint Cerf","Bill Gates","Steve Wozniak"],c:1,cat:"Technik",d:3,e:"Er wird oft als einer der \"Väter des Internets\" bezeichnet."},
+{q:"Welche Programmiersprache wurde speziell für das Web als Skriptsprache entwickelt?",a:["Python","JavaScript","C++","Swift"],c:1,cat:"Technik",d:3,e:"Sie wurde 1995 in nur zehn Tagen von Brendan Eich entwickelt."},
+{q:"Wie heißt das erste künstliche Objekt, das die Erde umkreiste?",a:["Explorer 1","Sputnik 1","Apollo 1","Wostok 1"],c:1,cat:"Raumfahrt",d:3,e:"Sein Start 1957 löste den sogenannten \"Sputnikschock\" im Westen aus."},
+{q:"Welche Raumsonde verließ als erstes menschengemachtes Objekt unser Sonnensystem?",a:["Pioneer 10","Voyager 1","Cassini","New Horizons"],c:1,cat:"Raumfahrt",d:3,e:"Sie trägt eine goldene Schallplatte mit Grüßen an mögliche außerirdische Zivilisationen."},
+{q:"Wie heißt die NASA-Mission, die 1969 die erste bemannte Mondlandung durchführte?",a:["Apollo 8","Apollo 11","Apollo 13","Gemini 4"],c:1,cat:"Raumfahrt",d:3,e:"Neil Armstrongs Worte dabei wurden weltberühmt: \"Ein kleiner Schritt für einen Menschen...\""},
+{q:"Welcher Planet hat die meisten bekannten Monde in unserem Sonnensystem (Stand aktueller Zählungen)?",a:["Jupiter","Saturn","Uranus","Neptun"],c:1,cat:"Raumfahrt",d:3,e:"Saturn hat nach neueren Entdeckungen Jupiter bei der Anzahl bekannter Monde überholt."},
+{q:"Wie heißt das europäische Gegenstück zur NASA?",a:["ESA","EUSA","ESRO","EUSPACE"],c:0,cat:"Raumfahrt",d:3,e:"Sie wurde 1975 gegründet und hat ihren Hauptsitz in Paris."},
+{q:"Welche Rakete brachte die Apollo-Missionen zum Mond?",a:["Saturn V","Atlas V","Falcon 9","Ariane 5"],c:0,cat:"Raumfahrt",d:3,e:"Sie ist bis heute die stärkste jemals erfolgreich eingesetzte Rakete."},
+{q:"Wie heißt der erste private Konzern, der bemannte Missionen zur ISS durchführte?",a:["Blue Origin","SpaceX","Virgin Galactic","Boeing"],c:1,cat:"Raumfahrt",d:3,e:"Zuvor waren Astronautentransporte reine Staatsangelegenheit gewesen."},
+{q:"Wie viele Spieler stehen bei einem Basketballspiel gleichzeitig pro Team auf dem Feld?",a:["4","5","6","7"],c:1,cat:"Sport",d:3,e:"Dazu kommen mehrere Auswechselspieler auf der Bank."},
+{q:"In welcher Sportart gibt es den Begriff \"Ippon\"?",a:["Karate","Judo","Taekwondo","Aikido"],c:1,cat:"Sport",d:3,e:"Ein Ippon beendet den Kampf sofort mit einem klaren Sieg."},
+{q:"Wie oft wurde Fußball-Weltmeister Brasilien bislang Weltmeister (Stand vor 2026)?",a:["3-mal","4-mal","5-mal","6-mal"],c:2,cat:"Sport",d:3,e:"Damit ist Brasilien Rekordweltmeister und das einzige Land, das bei jeder WM dabei war."},
+{q:"Welches Land ist Rekordsieger bei den Olympischen Sommerspielen (nach Gesamtmedaillen)?",a:["Sowjetunion","USA","Großbritannien","China"],c:1,cat:"Sport",d:3,e:"Die USA führen die ewige Medaillenwertung mit deutlichem Abstand an."},
+{q:"Wie lang ist ein Marathonlauf offiziell?",a:["40,195 km","42,195 km","44,195 km","39,195 km"],c:1,cat:"Sport",d:3,e:"Die Distanz geht auf die Strecke der Olympischen Spiele 1908 in London zurück."},
+{q:"In welcher Sportart wird der \"Green Jacket\" als Siegertrophäe verliehen?",a:["Tennis","Golf","Cricket","Rudern"],c:1,cat:"Sport",d:3,e:"Beim Golfturnier US Masters erhält der Sieger das Grüne Jackett."},
+{q:"Wie viele Runden umfasst ein professioneller Boxkampf über die volle Distanz meist?",a:["8","10","12","15"],c:2,cat:"Sport",d:3,e:"Jede Runde dauert dabei üblicherweise drei Minuten."},
+{q:"Welcher Komponist war taub, als er seine 9. Sinfonie vollendete?",a:["Johann Sebastian Bach","Ludwig van Beethoven","Wolfgang Amadeus Mozart","Johannes Brahms"],c:1,cat:"Musik",d:3,e:"Bei der Uraufführung musste man ihn zum Publikum umdrehen, damit er den tosenden Applaus sehen konnte."},
+{q:"Aus welcher Stadt stammt die Band The Beatles ursprünglich?",a:["London","Manchester","Liverpool","Birmingham"],c:2,cat:"Musik",d:3,e:"Dort gibt es bis heute das berühmte \"Cavern Club\", in dem die Band früh auftrat."},
+{q:"Welches Instrument spielte Jimi Hendrix hauptsächlich?",a:["Schlagzeug","Bass","E-Gitarre","Keyboard"],c:2,cat:"Musik",d:3,e:"Er gilt bis heute als einer der einflussreichsten Gitarristen der Rockgeschichte."},
+{q:"Wie heißt die tiefste Männerstimme in der klassischen Musik?",a:["Tenor","Bariton","Bass","Countertenor"],c:2,cat:"Musik",d:3,e:"Bariton und Tenor liegen stimmlich jeweils darüber."},
+{q:"Welches Musikgenre entstand maßgeblich in New Orleans Anfang des 20. Jahrhunderts?",a:["Blues","Jazz","Reggae","Country"],c:1,cat:"Musik",d:3,e:"Es entwickelte sich aus einer Mischung von Blues, Ragtime und afroamerikanischer Musiktradition."},
+{q:"Wer komponierte die Oper \"Carmen\"?",a:["Giuseppe Verdi","Georges Bizet","Giacomo Puccini","Richard Wagner"],c:1,cat:"Musik",d:3,e:"Bei der Uraufführung 1875 fiel das Werk zunächst durch, gilt heute aber als Opernklassiker."},
+{q:"In welchem Jahrzehnt entstand die Punkrock-Bewegung?",a:["1960er","1970er","1980er","1990er"],c:1,cat:"Musik",d:3,e:"Bands wie die Sex Pistols und The Ramones prägten diese Zeit."},
+{q:"Wer führte Regie bei \"Pulp Fiction\"?",a:["Martin Scorsese","Quentin Tarantino","David Fincher","Christopher Nolan"],c:1,cat:"Film & Serien",d:3,e:"Der Film gewann 1994 die Goldene Palme in Cannes."},
+{q:"In welchem Jahr erschien der erste \"Star Wars\"-Film?",a:["1975","1977","1980","1983"],c:1,cat:"Film & Serien",d:3,e:"Er startete zunächst ohne Zusatztitel, später als \"Episode IV: Eine neue Hoffnung\" bekannt."},
+{q:"Welcher Schauspieler spielte den Joker im Film \"The Dark Knight\" (2008)?",a:["Jared Leto","Joaquin Phoenix","Heath Ledger","Jack Nicholson"],c:2,cat:"Film & Serien",d:3,e:"Er erhielt für seine Rolle posthum den Oscar als bester Nebendarsteller."},
+{q:"Wie heißt das fiktive britische Internat aus den Harry-Potter-Filmen?",a:["Beauxbatons","Durmstrang","Hogwarts","Ilvermorny"],c:2,cat:"Film & Serien",d:3,e:"Die Schule ist in vier Häuser unterteilt: Gryffindor, Slytherin, Hufflepuff und Ravenclaw."},
+{q:"Welcher Film gewann als erster Animationsfilm einen Oscar für den besten Film (Nominierung)?",a:["Toy Story","Die Schöne und das Biest","Shrek","Findet Nemo"],c:1,cat:"Film & Serien",d:3,e:"\"Die Schöne und das Biest\" (1991) war 1992 als erster Animationsfilm für den Oscar als bester Film nominiert."},
+{q:"In welcher Stadt spielt die Serie \"Breaking Bad\" hauptsächlich?",a:["Los Angeles","Albuquerque","Phoenix","Las Vegas"],c:1,cat:"Film & Serien",d:3,e:"Die Stadt liegt im US-Bundesstaat New Mexico."},
+{q:"Wer spielte die Hauptrolle in \"Forrest Gump\"?",a:["Tom Hanks","Tom Cruise","Kevin Costner","Robin Williams"],c:0,cat:"Film & Serien",d:3,e:"Für die Rolle erhielt er 1995 den Oscar als bester Hauptdarsteller."},
+{q:"Wer schrieb den Roman \"Krieg und Frieden\"?",a:["Fjodor Dostojewski","Leo Tolstoi","Anton Tschechow","Iwan Turgenew"],c:1,cat:"Literatur",d:3,e:"Der Roman zählt mit über 1.200 Seiten zu den umfangreichsten Werken der Weltliteratur."},
+{q:"In welchem Jahrhundert lebte William Shakespeare?",a:["14./15. Jahrhundert","15./16. Jahrhundert","16./17. Jahrhundert","17./18. Jahrhundert"],c:2,cat:"Literatur",d:3,e:"Von vielen seiner Werke ist bis heute nicht restlos geklärt, wann genau sie entstanden."},
+{q:"Wer schrieb \"Die Leiden des jungen Werther\"?",a:["Friedrich Schiller","Johann Wolfgang von Goethe","Heinrich Heine","Novalis"],c:1,cat:"Literatur",d:3,e:"Der Roman löste bei seinem Erscheinen 1774 eine regelrechte Modewelle aus."},
+{q:"Welches Buch gilt als erster moderner Roman der westlichen Literatur?",a:["Don Quijote","Robinson Crusoe","Die Odyssee","Decamerone"],c:0,cat:"Literatur",d:3,e:"Sein Protagonist kämpft darin bekanntlich gegen Windmühlen."},
+{q:"Wer verfasste die Dystopie \"Schöne neue Welt\"?",a:["George Orwell","Aldous Huxley","Ray Bradbury","Arthur C. Clarke"],c:1,cat:"Literatur",d:3,e:"Der Roman erschien bereits 1932, lange vor Orwells \"1984\"."},
+{q:"In welcher Stadt spielt der Großteil von Charles Dickens' \"Oliver Twist\"?",a:["Manchester","London","Liverpool","Edinburgh"],c:1,cat:"Literatur",d:3,e:"Der Roman zeigt das harte Leben armer Kinder im viktorianischen England."},
+{q:"Welcher Kunststil ist besonders für kräftige Farben und wilde Pinselstriche bekannt und wurde von Matisse mitgeprägt?",a:["Kubismus","Fauvismus","Impressionismus","Dadaismus"],c:1,cat:"Kunst",d:3,e:"Kritiker nannten die Künstler dieser Richtung spöttisch \"wilde Tiere\", woher der Name stammt."},
+{q:"Wer malte die Deckenfresken der Sixtinischen Kapelle?",a:["Raffael","Leonardo da Vinci","Michelangelo","Tizian"],c:2,cat:"Kunst",d:3,e:"Er malte sie liegend auf einem Gerüst, was über vier Jahre dauerte."},
+{q:"Welcher Künstler ist bekannt für seine Streifenbilder und Farbfeldmalerei mit dem Werk \"Who's Afraid of Red, Yellow and Blue\"?",a:["Jackson Pollock","Barnett Newman","Mark Rothko","Piet Mondrian"],c:1,cat:"Kunst",d:3,e:"Seine großflächigen Farbfeldbilder zählen zur amerikanischen Nachkriegs-Avantgarde."},
+{q:"In welchem Land liegt der Ursprung der Kunstrichtung Kubismus?",a:["Italien","Spanien/Frankreich","Deutschland","Niederlande"],c:1,cat:"Kunst",d:3,e:"Picasso und Braque entwickelten den Stil gemeinsam in Paris."},
+{q:"Wer schuf die berühmte Statue \"Der Denker\"?",a:["Auguste Rodin","Michelangelo","Antonio Canova","Gian Lorenzo Bernini"],c:0,cat:"Kunst",d:3,e:"Ursprünglich war die Figur Teil eines größeren Werks namens \"Das Höllentor\"."},
+{q:"Welche Kunstbewegung entstand als Reaktion auf den Ersten Weltkrieg und lehnte klassische Ästhetik bewusst ab?",a:["Surrealismus","Dadaismus","Expressionismus","Pop-Art"],c:1,cat:"Kunst",d:3,e:"Ihre Anhänger wollten bewusst mit traditionellen Kunstvorstellungen brechen."},
+{q:"Wer erfand das erste praktikable Dynamit?",a:["Alfred Nobel","Thomas Edison","Wilhelm Röntgen","James Watt"],c:0,cat:"Erfindungen",d:3,e:"Aus Reue über dessen zerstörerische Nutzung stiftete er später den nach ihm benannten Friedenspreis."},
+{q:"In welchem Jahrzehnt wurde der erste MP3-Player kommerziell verkauft?",a:["1980er","1990er","2000er","2010er"],c:1,cat:"Erfindungen",d:3,e:"Das MP3-Format selbst wurde in Deutschland am Fraunhofer-Institut entwickelt."},
+{q:"Wer entwickelte das erste funktionsfähige Telefon-Patent 1876?",a:["Thomas Edison","Alexander Graham Bell","Nikola Tesla","Guglielmo Marconi"],c:1,cat:"Erfindungen",d:3,e:"Sein erster übermittelter Satz soll gelautet haben: \"Mr. Watson, kommen Sie her, ich möchte Sie sehen.\""},
+{q:"Welches Unternehmen brachte die erste kommerzielle Digitalkamera auf den Markt?",a:["Canon","Kodak","Sony","Nikon"],c:1,cat:"Erfindungen",d:3,e:"Ironischerweise geriet genau dieses Unternehmen später durch den digitalen Wandel selbst in Schwierigkeiten."},
+{q:"Wer erfand die Dampfmaschine in ihrer wegweisenden, verbesserten Form?",a:["Thomas Newcomen","James Watt","George Stephenson","Richard Trevithick"],c:1,cat:"Erfindungen",d:3,e:"Nach ihm ist bis heute die Einheit der Leistung, das Watt, benannt."},
+{q:"In welchem Jahr wurde das Penicillin von Alexander Fleming entdeckt?",a:["1918","1928","1938","1948"],c:1,cat:"Erfindungen",d:3,e:"Erst rund ein Jahrzehnt später wurde es massentauglich als Medikament weiterentwickelt."},
+{q:"Welches Land hat die meisten Nachbarländer der Welt?",a:["Russland","China","Brasilien","Deutschland"],c:1,cat:"Länder",d:3,e:"China und Russland teilen sich mit jeweils 14 Nachbarländern den Rekord."},
+{q:"Welches ist das bevölkerungsreichste Land Afrikas?",a:["Ägypten","Äthiopien","Nigeria","Südafrika"],c:2,cat:"Länder",d:3,e:"Über 200 Millionen Menschen leben dort, mehr als in jedem anderen afrikanischen Land."},
+{q:"Welches Land besitzt mit den Färöern und Grönland autonome Gebiete?",a:["Norwegen","Dänemark","Island","Schweden"],c:1,cat:"Länder",d:3,e:"Grönland ist dabei flächenmäßig die größte Insel der Welt."},
+{q:"Welches Land ist flächenmäßig das kleinste souveräne Land der Welt?",a:["Monaco","San Marino","Vatikanstadt","Liechtenstein"],c:2,cat:"Länder",d:3,e:"Es liegt vollständig innerhalb der Stadt Rom und misst nur etwa 0,44 km²."},
+{q:"Welches Land grenzt als einziges Land an sowohl das Kaspische als auch das Schwarze Meer?",a:["Iran","Russland","Türkei","Aserbaidschan"],c:1,cat:"Länder",d:3,e:"Es liegt geografisch an der Grenze zwischen Europa und Asien."},
+{q:"Welches Land war bis 1989 in zwei separate Staaten geteilt?",a:["Korea","Vietnam","Deutschland","Jemen"],c:2,cat:"Länder",d:3,e:"Die Wiedervereinigung erfolgte offiziell am 3. Oktober 1990."},
+{q:"Wie heißt die Hauptstadt von Südafrika (Regierungssitz)?",a:["Kapstadt","Pretoria","Johannesburg","Durban"],c:1,cat:"Hauptstädte",d:3,e:"Südafrika hat drei Hauptstädte; Pretoria ist der Regierungssitz."},
+{q:"Wie heißt die Hauptstadt von Kasachstan?",a:["Almaty","Astana","Bischkek","Taschkent"],c:1,cat:"Hauptstädte",d:3,e:"Die Stadt wurde mehrfach umbenannt und hieß zuvor unter anderem Nur-Sultan."},
+{q:"Wie heißt die Hauptstadt von Myanmar?",a:["Rangun","Naypyidaw","Mandalay","Bagan"],c:1,cat:"Hauptstädte",d:3,e:"Sie wurde erst 2005 als geplante neue Hauptstadt anstelle von Rangun gegründet."},
+{q:"Wie heißt die Hauptstadt von Sri Lanka?",a:["Colombo","Sri Jayawardenepura Kotte","Kandy","Galle"],c:1,cat:"Hauptstädte",d:3,e:"Offizielle Hauptstadt ist Sri Jayawardenepura Kotte, Colombo ist die Regierungs- und Wirtschaftsmetropole."},
+{q:"Wie heißt die Hauptstadt von Bolivien (Regierungssitz)?",a:["Sucre","La Paz","Santa Cruz","Cochabamba"],c:1,cat:"Hauptstädte",d:3,e:"Sucre ist offizielle Hauptstadt, La Paz Regierungssitz."},
+{q:"Welches Land hat als einziges eine nicht-rechteckige Nationalflagge?",a:["Bhutan","Nepal","Schweiz","Vatikanstadt"],c:1,cat:"Flaggen",d:3,e:"Nepals Flagge besteht aus zwei übereinander liegenden Wimpeln."},
+{q:"Welche Farben hat die Flagge Italiens?",a:["Grün-Weiß-Rot","Rot-Weiß-Grün","Weiß-Grün-Rot","Grün-Rot-Weiß"],c:0,cat:"Flaggen",d:3,e:"Sie ist der französischen Trikolore nachempfunden, mit eigenen Farben."},
+{q:"Welches Land führt als einziges einen Kalaschnikow auf seiner Nationalflagge?",a:["Angola","Mosambik","Simbabwe","Eritrea"],c:1,cat:"Flaggen",d:3,e:"Das Symbol erinnert an den Unabhängigkeitskampf des Landes."},
+{q:"Welche Farbe dominiert die Flagge Japans als Hintergrund?",a:["Rot","Weiß","Blau","Gelb"],c:1,cat:"Flaggen",d:3,e:"Der rote Kreis in der Mitte symbolisiert die aufgehende Sonne."},
+{q:"Welches Land hat eine Flagge mit einer Zeder in der Mitte?",a:["Libanon","Syrien","Jordanien","Israel"],c:0,cat:"Flaggen",d:3,e:"Der Baum ist ein Nationalsymbol und war schon in der Bibel erwähnt."},
+{q:"Wie viele Sterne zeigt die Flagge der Europäischen Union?",a:["10","12","15","27"],c:1,cat:"Flaggen",d:3,e:"Die zwölf Sterne stehen symbolisch für Einheit, nicht für die Anzahl der Mitgliedsstaaten."},
+{q:"Welches Fest markiert im Judentum das neue Jahr?",a:["Jom Kippur","Rosch ha-Schana","Pessach","Sukkot"],c:1,cat:"Kulturen",d:3,e:"Es wird traditionell mit dem Blasen des Widderhorns, dem Schofar, eingeläutet."},
+{q:"In welchem Land liegt der Ursprung des Sushi in seiner modernen Form?",a:["China","Japan","Korea","Thailand"],c:1,cat:"Kulturen",d:3,e:"Die heutige Form mit frischem rohem Fisch entwickelte sich erst im 19. Jahrhundert in Tokio."},
+{q:"Welcher Feiertag wird in Mexiko als \"Día de los Muertos\" gefeiert?",a:["Tag der Toten","Unabhängigkeitstag","Dreikönigstag","Karneval"],c:0,cat:"Kulturen",d:3,e:"Er wird bunt und feierlich begangen, nicht traurig, und ehrt verstorbene Angehörige."},
+{q:"Aus welchem Land stammt die Teezeremonie in ihrer bekanntesten klassischen Form?",a:["China","Japan","Indien","Marokko"],c:1,cat:"Kulturen",d:3,e:"Sie folgt einem jahrhundertealten, streng festgelegten Ablauf."},
+{q:"Welche Religion hat den Ramadan als wichtigen Fastenmonat?",a:["Christentum","Islam","Hinduismus","Buddhismus"],c:1,cat:"Kulturen",d:3,e:"Während dieses Monats wird von Sonnenaufgang bis Sonnenuntergang gefastet."},
+{q:"In welchem Land liegt der Ursprung des Flamenco?",a:["Portugal","Spanien","Italien","Griechenland"],c:1,cat:"Kulturen",d:3,e:"Er entstand vor allem unter dem Einfluss der Roma-Kultur in Südspanien."},
+{q:"Wie viele Zeitzonen gibt es weltweit ungefähr?",a:["12","24","30","36"],c:1,cat:"Allgemeinwissen",d:3,e:"Durch Halbstundenversätze gibt es real deutlich mehr als 24 genutzte Zeitzonen."},
+{q:"Welche Einheit misst die Dichte eines Stoffes üblicherweise?",a:["kg/m","kg/m²","kg/m³","kg/s"],c:2,cat:"Allgemeinwissen",d:3,e:"Wasser hat bei dieser Einheit einen Referenzwert von 1.000."},
+{q:"Wie viele Zähne hat ein erwachsenes Pferd ungefähr?",a:["20","30","40","50"],c:2,cat:"Allgemeinwissen",d:3,e:"An der Abnutzung der Zähne lässt sich sogar ungefähr das Alter eines Pferdes ablesen."},
+{q:"Wie nennt man die Angst vor engen Räumen?",a:["Akrophobie","Klaustrophobie","Agoraphobie","Arachnophobie"],c:1,cat:"Allgemeinwissen",d:3,e:"Das Gegenteil, die Angst vor weiten, offenen Plätzen, heißt Agoraphobie."},
+{q:"Wie viele Buchstaben hat das griechische Alphabet?",a:["22","24","26","28"],c:1,cat:"Allgemeinwissen",d:3,e:"Viele seiner Buchstaben werden bis heute in Mathematik und Naturwissenschaften als Symbole verwendet."},
+{q:"Welche Blutgruppe gilt als \"Universalspender\"?",a:["A","B","AB","0 negativ"],c:3,cat:"Allgemeinwissen",d:3,e:"Sie kann in Notfällen fast jedem Menschen verabreicht werden, unabhängig von dessen eigener Blutgruppe."},
+{q:"Wie viele Herzen hat ein Tintenfisch (Oktopus)?",a:["1","2","3","4"],c:2,cat:"Kurioses",d:3,e:"Bei Anstrengung wird sein Blut sogar blau statt rot, da es auf Kupfer statt Eisen basiert."},
+{q:"Wie lange kann eine Schnecke ungefähr schlafen, wenn die Bedingungen ungünstig sind?",a:["Ein paar Tage","Ein paar Wochen","Mehrere Jahre","Nie"],c:2,cat:"Kurioses",d:3,e:"Manche Schneckenarten können mehrere Jahre in einer Art Ruhezustand verharren."},
+{q:"Welches Land hat die meisten Feiertage der Welt (unter den bekanntesten Rankings)?",a:["Indien","Kambodscha","Kolumbien","Iran"],c:1,cat:"Kurioses",d:3,e:"Grund dafür ist unter anderem die Vielfalt religiöser und königlicher Feiertage im Land."},
+{q:"Wie viele Zähne hat eine erwachsene Schnecke ungefähr (Raspelzunge)?",a:["Ein paar hundert","Ein paar tausend","Über zehntausend","Keine"],c:2,cat:"Kurioses",d:3,e:"Die Radula mancher Schneckenarten trägt zehntausende winziger Zähnchen."},
+{q:"Welches ist das am schnellsten wachsende Landtier der Erde bezogen auf die Körpergröße kurz nach der Geburt?",a:["Elefant","Blauwal-Kalb","Buckelwal","Giraffe"],c:1,cat:"Kurioses",d:3,e:"Ein neugeborenes Walkalb nimmt in seiner Säugezeit täglich enorme Mengen Gewicht zu."},
+{q:"Wie heißt das Phänomen, wenn man ein Wort so oft wiederholt, bis es bedeutungslos klingt?",a:["Deja-vu","Semantische Sättigung","Tautologie","Aphasie"],c:1,cat:"Kurioses",d:3,e:"Das Gehirn verliert dabei vorübergehend den Zugriff auf die Wortbedeutung."},
+{q:"Welcher ist der wasserreichste Fluss der Welt (nach Abflussmenge)?",a:["Nil","Jangtse","Amazonas","Kongo"],c:2,cat:"Geografie",d:4,e:"Der Amazonas führt mehr Wasser als die nächsten sieben größten Flüsse zusammen."},
+{q:"Wie heißt die höchste Erhebung Australiens?",a:["Mount Kosciuszko","Uluru","Mount Bartle Frere","Mount Ossa"],c:0,cat:"Geografie",d:4,e:"Mit 2.228 Metern ist er im Vergleich zu anderen Kontinenten eher niedrig."},
+{q:"In welchem Land liegt der Titicacasee größtenteils?",a:["Chile","Peru/Bolivien","Ecuador","Argentinien"],c:1,cat:"Geografie",d:4,e:"Er gilt mit rund 3.800 Metern Höhe als höchster schiffbarer See der Welt."},
+{q:"Welche Meerenge trennt Asien von Nordamerika?",a:["Straße von Gibraltar","Beringstraße","Straße von Malakka","Bosporus"],c:1,cat:"Geografie",d:4,e:"An ihrer schmalsten Stelle sind es nur etwa 82 Kilometer zwischen den Kontinenten."},
+{q:"Wie heißt die trockenste bewohnte Region der Erde (Niederschlag fast null über Jahre)?",a:["Death Valley","Atacama-Wüste","Sahara","Gobi"],c:1,cat:"Geografie",d:4,e:"Einige Wetterstationen dort haben noch nie Regen registriert."},
+{q:"Welcher Staat der USA hat die meisten Zeitzonen?",a:["Alaska","Texas","Florida","Michigan"],c:0,cat:"Geografie",d:4,e:"Alaska erstreckt sich über mehrere Zeitzonen inklusive der Aleuten."},
+{q:"Wie heißt der niedrigste Punkt der Landoberfläche der Erde?",a:["Death Valley","Ufer des Toten Meeres","Qattara-Senke","Kaspisches Meer"],c:1,cat:"Geografie",d:4,e:"Er liegt etwa 430 Meter unter dem Meeresspiegel."},
+{q:"Welcher Kontinent hat den höchsten Punkt und den tiefsten Ozeangraben gleichzeitig auf seinem Gebiet bzw. angrenzend?",a:["Afrika","Asien","Südamerika","Europa"],c:1,cat:"Geografie",d:4,e:"Asien beherbergt den Mount Everest und liegt nahe dem Marianengraben im Pazifik."},
+{q:"Welches Land hat die meisten aktiven Vulkane der Welt?",a:["Japan","Indonesien","USA","Island"],c:1,cat:"Geografie",d:4,e:"Indonesien liegt am pazifischen Feuerring, einer besonders vulkanreichen Zone."},
+{q:"Wie heißt die Landenge, die Nord- und Südamerika verbindet?",a:["Isthmus von Suez","Isthmus von Panama","Isthmus von Tehuantepec","Isthmus von Kra"],c:1,cat:"Geografie",d:4,e:"Durch sie verläuft auch der berühmte Panamakanal."},
+{q:"Welcher Fluss bildet einen Großteil der Grenze zwischen den USA und Mexiko?",a:["Colorado River","Rio Grande","Mississippi","Pecos River"],c:1,cat:"Geografie",d:4,e:"In Mexiko wird er Río Bravo del Norte genannt."},
+{q:"In welchem Gebirge liegt der K2, der zweithöchste Berg der Erde?",a:["Himalaya","Karakorum","Hindukusch","Pamir"],c:1,cat:"Geografie",d:4,e:"Der K2 gilt wegen seiner Steilheit als noch gefährlicher zu besteigen als der Everest."},
+{q:"Welches Land besitzt mit Abstand die meisten Seen der Welt?",a:["Russland","Kanada","Finnland","USA"],c:1,cat:"Geografie",d:4,e:"Kanada verfügt über mehr Seen als der Rest der Welt zusammen."},
+{q:"In welchem Jahr fand die Schlacht von Hastings statt?",a:["1066","1215","1348","1415"],c:0,cat:"Geschichte",d:4,e:"Wilhelm der Eroberer besiegte dabei den englischen König Harald II."},
+{q:"Wer war Pharao Ägyptens während des Baus der Großen Pyramide von Gizeh?",a:["Tutanchamun","Cheops (Khufu)","Ramses II.","Amenophis III."],c:1,cat:"Geschichte",d:4,e:"Die Pyramide war fast 4.000 Jahre lang das höchste Bauwerk der Welt."},
+{q:"In welchem Jahr wurde das Edikt von Nantes erlassen?",a:["1572","1598","1648","1685"],c:1,cat:"Geschichte",d:4,e:"Es gewährte den Hugenotten in Frankreich religiöse Freiheiten."},
+{q:"Welcher Vertrag beendete offiziell den Ersten Weltkrieg zwischen Deutschland und den Alliierten?",a:["Vertrag von Trianon","Vertrag von Versailles","Vertrag von Saint-Germain","Vertrag von Sèvres"],c:1,cat:"Geschichte",d:4,e:"Seine harten Bedingungen gelten als Mitursache für spätere Spannungen in Europa."},
+{q:"In welchem Jahrhundert lebte Karl der Große?",a:["6./7. Jahrhundert","7./8. Jahrhundert","8./9. Jahrhundert","9./10. Jahrhundert"],c:2,cat:"Geschichte",d:4,e:"Er wurde im Jahr 800 zum Kaiser gekrönt und gilt als \"Vater Europas\"."},
+{q:"Welche Schlacht gilt als Wendepunkt des Zweiten Weltkriegs an der Ostfront?",a:["Schlacht um Moskau","Schlacht von Stalingrad","Schlacht am Kursker Bogen","Belagerung von Leningrad"],c:1,cat:"Geschichte",d:4,e:"Sie zählt mit Hunderttausenden Toten zu den verlustreichsten Schlachten der Geschichte."},
+{q:"In welchem Jahr wurde die Magna Carta unterzeichnet?",a:["1066","1215","1315","1415"],c:1,cat:"Geschichte",d:4,e:"Sie schränkte erstmals die Macht des englischen Königs rechtlich ein."},
+{q:"Wer regierte als Pharao während des Auszugs der Israeliten laut biblischer Überlieferung vermutet (kontrovers diskutiert)?",a:["Ramses II.","Echnaton","Tutanchamun","Thutmosis III."],c:0,cat:"Geschichte",d:4,e:"Ein historischer Nachweis für den Auszug selbst fehlt bislang."},
+{q:"In welchem Jahr wurde die Hanse als Städtebund ihrem Höhepunkt nach etwa aktiv (14. Jh. Blütezeit)?",a:["12. Jahrhundert","13. Jahrhundert","14. Jahrhundert","16. Jahrhundert"],c:2,cat:"Geschichte",d:4,e:"Zeitweise gehörten ihr über 200 Städte im Ostsee- und Nordseeraum an."},
+{q:"Welcher römische Kaiser machte das Christentum 380 n. Chr. zur Staatsreligion?",a:["Konstantin der Große","Theodosius I.","Diokletian","Justinian I."],c:1,cat:"Geschichte",d:4,e:"Zuvor hatte bereits Konstantin das Christentum 313 offiziell toleriert."},
+{q:"In welchem Jahr wurde die Deutsche Demokratische Republik (DDR) gegründet?",a:["1945","1949","1955","1961"],c:1,cat:"Geschichte",d:4,e:"Sie wurde wenige Monate nach der Bundesrepublik im selben Jahr gegründet."},
+{q:"Welche Seeschlacht 1805 sicherte Großbritanniens Seeherrschaft gegen Napoleon?",a:["Schlacht von Trafalgar","Schlacht am Nil","Schlacht von Jütland","Schlacht von Lepanto"],c:0,cat:"Geschichte",d:4,e:"Admiral Nelson gewann die Schlacht, fiel aber selbst dabei."},
+{q:"In welchem Jahr wurde die Berliner Mauer geöffnet?",a:["1987","1989","1990","1991"],c:1,cat:"Geschichte",d:4,e:"Auslöser war eine improvisierte Ankündigung bei einer Pressekonferenz."},
+{q:"Wie viele Mitgliedstaaten hatte die UNO bei ihrer Gründung 1945?",a:["25","36","51","65"],c:2,cat:"Politik",d:4,e:"Heute zählt die UNO 193 Mitgliedstaaten."},
+{q:"Welches Land hat als einziges Land der Welt kein eigenes stehendes Militär, ist aber ein UN-Mitglied?",a:["Andorra","Costa Rica","Island","Monaco"],c:1,cat:"Politik",d:4,e:"Costa Rica schaffte sein Militär 1948 offiziell ab."},
+{q:"In welchem Jahr trat der Vertrag von Maastricht in Kraft, der die EU gründete?",a:["1989","1992","1993","1999"],c:2,cat:"Politik",d:4,e:"Unterzeichnet 1992, in Kraft getreten 1993."},
+{q:"Wie heißt das Zweikammersystem-Unterhaus in Deutschland auf Länderebene, das den Bund mitbestimmt?",a:["Landtag","Bundesrat","Bundestag","Bundesversammlung"],c:1,cat:"Politik",d:4,e:"Er besteht aus Vertretern der Landesregierungen, nicht aus direkt gewählten Abgeordneten."},
+{q:"Welcher Staat hat die älteste noch bestehende geschriebene Verfassung der Welt?",a:["Großbritannien","USA","San Marino","Frankreich"],c:1,cat:"Politik",d:4,e:"Die US-Verfassung von 1787 gilt als älteste noch geltende geschriebene Nationalverfassung; San Marinos Statuten von 1600 werden manchmal als älter angeführt."},
+{q:"Wie viele ständige Mitglieder hat der UN-Sicherheitsrat mit Vetorecht?",a:["3","5","7","10"],c:1,cat:"Politik",d:4,e:"Daneben gibt es zehn nichtständige, wechselnde Mitglieder."},
+{q:"In welchem Jahr wurde die Weimarer Republik ausgerufen?",a:["1916","1918","1919","1923"],c:1,cat:"Politik",d:4,e:"Sie war Deutschlands erste parlamentarische Demokratie."},
+{q:"Welches Land führte als erstes Land der Welt eine Verfassung mit Gewaltenteilung nach Montesquieu praktisch um?",a:["Frankreich","USA","Großbritannien","Niederlande"],c:1,cat:"Politik",d:4,e:"Die US-Verfassung von 1787 gilt bis heute als älteste noch geltende geschriebene Nationalverfassung."},
+{q:"Wie nennt man das Wahlsystem, bei dem die stärkste Partei oft überproportional viele Sitze erhält?",a:["Verhältniswahl","Mehrheitswahl","Listenwahl","Kumulieren"],c:1,cat:"Politik",d:4,e:"Großbritannien und die USA nutzen dieses Prinzip bei nationalen Wahlen."},
+{q:"In welchem Jahr wurde das Frauenwahlrecht in Deutschland eingeführt?",a:["1908","1918","1928","1933"],c:1,cat:"Politik",d:4,e:"Bei der Wahl 1919 durften Frauen in Deutschland erstmals wählen."},
+{q:"Welche Organisation ging 1993 aus der Europäischen Gemeinschaft hervor?",a:["NATO","Europäische Union","OSZE","Europarat"],c:1,cat:"Politik",d:4,e:"Grundlage war der Vertrag von Maastricht."},
+{q:"Wie heißt das Regierungssystem, in dem Legislative und Exekutive stark getrennt sind, wie in den USA?",a:["Parlamentarisches System","Präsidentielles System","Direktoriales System","Konstitutionelle Monarchie"],c:1,cat:"Politik",d:4,e:"Der Präsident wird dabei unabhängig vom Parlament gewählt."},
+{q:"In welchem Jahr wurde die Europäische Menschenrechtskonvention unterzeichnet?",a:["1948","1950","1957","1966"],c:1,cat:"Politik",d:4,e:"Sie wird vom Europäischen Gerichtshof für Menschenrechte in Straßburg überwacht."},
+{q:"Wie lautet die chemische Formel für Schwefelsäure?",a:["H2SO3","H2SO4","H2S","SO4"],c:1,cat:"Wissenschaft",d:4,e:"Sie zählt zu den wichtigsten Industriechemikalien der Welt."},
+{q:"Wer stellte die Unschärferelation der Quantenmechanik auf?",a:["Niels Bohr","Werner Heisenberg","Erwin Schrödinger","Max Planck"],c:1,cat:"Wissenschaft",d:4,e:"Sie besagt, dass Ort und Impuls eines Teilchens nie gleichzeitig exakt bestimmbar sind."},
+{q:"Wie viele Aminosäuren bilden die Grundbausteine der meisten Proteine?",a:["10","20","25","30"],c:1,cat:"Wissenschaft",d:4,e:"Acht davon kann der menschliche Körper nicht selbst herstellen und muss sie über die Nahrung aufnehmen."},
+{q:"Welches Teilchen wurde 2012 am CERN experimentell nachgewiesen und bestätigte das Standardmodell?",a:["Neutrino","Higgs-Boson","Positron","Myon"],c:1,cat:"Wissenschaft",d:4,e:"Es wird umgangssprachlich manchmal \"Gottesteilchen\" genannt."},
+{q:"Wie nennt man die Lehre von den Erbanlagen?",a:["Zytologie","Genetik","Physiologie","Taxonomie"],c:1,cat:"Wissenschaft",d:4,e:"Der Begriff wurde erst 1905 geprägt, obwohl Mendel schon Jahrzehnte zuvor forschte."},
+{q:"Welche Temperatur entspricht dem absoluten Nullpunkt in Grad Celsius?",a:["-100 °C","-273,15 °C","-373 °C","0 °C"],c:1,cat:"Wissenschaft",d:4,e:"Bei dieser Temperatur kommt jede Teilchenbewegung theoretisch zum Stillstand."},
+{q:"Wer entdeckte die Röntgenstrahlung?",a:["Marie Curie","Wilhelm Conrad Röntgen","Ernest Rutherford","Max Planck"],c:1,cat:"Wissenschaft",d:4,e:"Dafür erhielt er 1901 den allerersten Physik-Nobelpreis."},
+{q:"Wie nennt man die Einheit der elektrischen Kapazität?",a:["Ohm","Farad","Henry","Coulomb"],c:1,cat:"Wissenschaft",d:4,e:"Sie ist nach dem englischen Physiker Michael Faraday benannt."},
+{q:"Welches Organ produziert Insulin im menschlichen Körper?",a:["Leber","Bauchspeicheldrüse","Niere","Milz"],c:1,cat:"Wissenschaft",d:4,e:"Bei Diabetes funktioniert diese Insulinproduktion nicht mehr richtig."},
+{q:"Wie nennt man die Theorie, dass sich Kontinente über geologische Zeiträume bewegen?",a:["Evolutionstheorie","Plattentektonik","Urknalltheorie","Relativitätstheorie"],c:1,cat:"Wissenschaft",d:4,e:"Vor über 200 Millionen Jahren bildeten alle heutigen Kontinente einen einzigen Superkontinent namens Pangäa."},
+{q:"Welches Element wird in Kernkraftwerken am häufigsten als Spaltmaterial verwendet?",a:["Plutonium","Uran","Thorium","Radium"],c:1,cat:"Wissenschaft",d:4,e:"Nur ein kleiner Anteil des natürlichen Urans ist tatsächlich spaltbar."},
+{q:"Wie viele Knochen hat ein neugeborenes Baby ungefähr (mehr als ein Erwachsener, da einige später verschmelzen)?",a:["Etwa 150","Etwa 206","Etwa 270","Etwa 350"],c:2,cat:"Wissenschaft",d:4,e:"Viele dieser Knochen verschmelzen im Laufe der Kindheit zu größeren Einheiten."},
+{q:"Wer entwickelte die allgemeine Relativitätstheorie?",a:["Isaac Newton","Albert Einstein","Niels Bohr","Max Born"],c:1,cat:"Wissenschaft",d:4,e:"Sie beschreibt die Schwerkraft als Krümmung von Raum und Zeit."},
+{q:"Wie nennt man den Prozess, bei dem Gestein durch Wind, Wasser oder Eis abgetragen wird?",a:["Sedimentation","Erosion","Verwitterung","Subduktion"],c:1,cat:"Natur",d:4,e:"Der Grand Canyon entstand über Jahrmillionen genau durch diesen Prozess."},
+{q:"Welche Schicht der Erde liegt zwischen Kruste und äußerem Kern?",a:["Lithosphäre","Mantel","Asthenosphäre","Kruste"],c:1,cat:"Natur",d:4,e:"Er macht mit Abstand den größten Teil des Erdvolumens aus."},
+{q:"Wie nennt man ein Ökosystem, das von Süß- und Salzwasser gleichermaßen beeinflusst wird?",a:["Auwald","Ästuar","Mangrove","Feuchtgebiet"],c:1,cat:"Natur",d:4,e:"Solche Flussmündungsgebiete zählen zu den artenreichsten Lebensräumen der Erde."},
+{q:"Welcher Wind bläst regelmäßig saisonal über Süd- und Südostasien und bringt starken Regen?",a:["Passat","Monsun","Föhn","Mistral"],c:1,cat:"Natur",d:4,e:"Für die Landwirtschaft in dieser Region ist er von lebenswichtiger Bedeutung."},
+{q:"Wie heißt das Phänomen periodisch stark erwärmten Pazifikwassers, das das Weltklima beeinflusst?",a:["La Niña","El Niño","Monsun","Jetstream"],c:1,cat:"Natur",d:4,e:"Der Name stammt von peruanischen Fischern und bedeutet \"das Christkind\", da es oft um Weihnachten auftritt."},
+{q:"Welches Gestein entsteht durch Abkühlung von Magma unter der Erdoberfläche?",a:["Sedimentgestein","Metamorphes Gestein","Plutonisches (Tiefen-)Gestein","Vulkanisches Gestein"],c:2,cat:"Natur",d:4,e:"Granit ist ein bekanntes Beispiel für dieses langsam abgekühlte Gestein."},
+{q:"Wie nennt man die Übergangszone zwischen zwei unterschiedlichen Ökosystemen?",a:["Biotop","Ökoton","Habitat","Biom"],c:1,cat:"Natur",d:4,e:"Solche Übergangszonen weisen oft eine besonders hohe Artenvielfalt auf."},
+{q:"Welches ist das häufigste Gas in Vulkanausbrüchen (nach Wasserdampf)?",a:["Sauerstoff","Kohlendioxid","Methan","Stickstoff"],c:1,cat:"Natur",d:4,e:"Große Ausbrüche können dadurch kurzfristig sogar das Weltklima beeinflussen."},
+{q:"Wie nennt man Bäume, die ihre Blätter im Winter nicht verlieren?",a:["Laubbäume","Nadelbäume/Immergrüne","Mischwaldbäume","Sukkulenten"],c:1,cat:"Natur",d:4,e:"Ihre nadelförmigen Blätter verdunsten deutlich weniger Wasser als breite Laubblätter."},
+{q:"Welcher Fachbegriff beschreibt die Gesamtheit aller Ökosysteme der Erde?",a:["Atmosphäre","Biosphäre","Lithosphäre","Hydrosphäre"],c:1,cat:"Natur",d:4,e:"Sie reicht von der Tiefsee bis in die oberen Schichten der Atmosphäre."},
+{q:"Wie heißt der stärkste je gemessene Wirbelsturm-Typ nach Windgeschwindigkeit, wenn er sich über dem Atlantik bildet?",a:["Taifun","Hurrikan","Zyklon","Tornado"],c:1,cat:"Natur",d:4,e:"Über dem Atlantik und Ostpazifik werden tropische Wirbelstürme als Hurrikane bezeichnet."},
+{q:"Welches Mineral ist die Referenz für die Härte 10 auf der Mohs-Skala?",a:["Quarz","Topas","Korund","Diamant"],c:3,cat:"Natur",d:4,e:"Er besteht wie Grafit vollständig aus Kohlenstoff, nur anders angeordnet."},
+{q:"Wie nennt man Pflanzen, die sich an sehr trockene Lebensräume angepasst haben?",a:["Halophyten","Xerophyten","Hydrophyten","Epiphyten"],c:1,cat:"Natur",d:4,e:"Kakteen sind ein klassisches Beispiel für diese Anpassung."},
+{q:"Welches Tier hat unter allen Wirbeltieren die meisten Herzschläge pro Minute?",a:["Kolibri","Maus","Spitzmaus","Fledermaus"],c:2,cat:"Tiere",d:4,e:"Das Herz einer Spitzmaus kann über 1000 Mal pro Minute schlagen."},
+{q:"Wie nennt man die Zähne, mit denen Elefanten grasen bzw. Rinde abraspeln (nicht die Stoßzähne)?",a:["Schneidezähne","Backenzähne (Molaren)","Eckzähne","Prämolaren"],c:1,cat:"Tiere",d:4,e:"Sie werden im Laufe des Lebens mehrfach durch nachrückende Zähne ersetzt."},
+{q:"Welches Tier legt die größten Eier aller heute lebenden Vögel?",a:["Kondor","Emu","Strauß","Pelikan"],c:2,cat:"Tiere",d:4,e:"Ein einziges Straußenei kann so viel wiegen wie etwa 24 Hühnereier."},
+{q:"Wie viele Mägen hat eine Kuh?",a:["1","2","3","4"],c:3,cat:"Tiere",d:4,e:"Nur einer davon, der Labmagen, entspricht funktional unserem Magen."},
+{q:"Welches Tier kann als einziges Säugetier tatsächlich elektrische Felder zur Jagd nutzen (Elektrorezeption)?",a:["Delfin","Schnabeltier","Nacktmull","Fledermaus"],c:1,cat:"Tiere",d:4,e:"Es gehört zu den wenigen giftigen Säugetieren überhaupt."},
+{q:"Wie nennt man das Verhalten von Zugvögeln, saisonal weite Strecken zurückzulegen?",a:["Migration","Hibernation","Diapause","Torpor"],c:0,cat:"Tiere",d:4,e:"Manche Arten legen dabei mehrere Zehntausend Kilometer im Jahr zurück."},
+{q:"Welches Tier hat die kürzeste bekannte Lebensdauer als erwachsenes Insekt (nur wenige Stunden bis Tage)?",a:["Libelle","Eintagsfliege","Florfliege","Maikäfer"],c:1,cat:"Tiere",d:4,e:"Als Larve kann sie dagegen mehrere Jahre unter Wasser leben."},
+{q:"Welches ist das einzige Säugetier, das nicht springen kann?",a:["Faultier","Elefant","Nilpferd","Nacktmull"],c:1,cat:"Tiere",d:4,e:"Elefanten können aufgrund ihrer Beinstruktur keine vier Beine gleichzeitig vom Boden abheben."},
+{q:"Wie viele Herzen besitzt ein Regenwurm-typischer Ringelwurm tatsächlich (Aortenbögen umgangssprachlich Herzen genannt)?",a:["1","5","10","0"],c:1,cat:"Tiere",d:4,e:"Biologisch gesehen sind es eigentlich verdickte Blutgefäße, keine echten Herzen."},
+{q:"Welches Tier hat das größte Auge unter allen lebenden Tieren?",a:["Blauwal","Riesenkalmar","Pottwal","Weißer Hai"],c:1,cat:"Tiere",d:4,e:"Das Auge des Riesenkalmars kann bis zu 27 cm im Durchmesser erreichen."},
+{q:"Welche Vogelart legt ihre Eier in fremde Nester und überlässt die Aufzucht anderen Vögeln?",a:["Amsel","Kuckuck","Spatz","Star"],c:1,cat:"Tiere",d:4,e:"Das Kuckucksküken wirft dabei oft die echten Eier der Wirtseltern aus dem Nest."},
+{q:"Wie nennt man Tiere, die sowohl Pflanzen als auch Fleisch fressen?",a:["Herbivoren","Karnivoren","Omnivoren","Detritivoren"],c:2,cat:"Tiere",d:4,e:"Bären und der Mensch zählen ebenfalls zu dieser Gruppe."},
+{q:"Welches Tier kann seinen eigenen Schwanz abwerfen, um Fressfeinden zu entkommen?",a:["Salamander/Eidechse","Frosch","Schildkröte","Schlange"],c:0,cat:"Tiere",d:4,e:"Der Schwanz wächst danach oft in einer etwas kürzeren Version nach."},
+{q:"Wie viele Bit umfasst ein klassisches Byte?",a:["4","8","16","32"],c:1,cat:"Technik",d:4,e:"Damit lassen sich 256 verschiedene Werte darstellen."},
+{q:"Welches Unternehmen entwickelte den ersten kommerziellen Mikroprozessor 4004?",a:["AMD","Intel","Texas Instruments","Motorola"],c:1,cat:"Technik",d:4,e:"Er erschien 1971 und war der Startschuss für die moderne Prozessorindustrie."},
+{q:"Wofür steht die Abkürzung GPU?",a:["General Processing Unit","Graphics Processing Unit","Global Positioning Unit","General Program Utility"],c:1,cat:"Technik",d:4,e:"Sie ist auf parallele Berechnungen spezialisiert, etwa für Grafik oder KI."},
+{q:"Wer gilt als Erfinder des ersten mechanischen Computers (Analytical Engine, Entwurf)?",a:["Alan Turing","Charles Babbage","John von Neumann","Ada Lovelace"],c:1,cat:"Technik",d:4,e:"Ada Lovelace schrieb dafür bereits im 19. Jahrhundert das erste bekannte Computerprogramm."},
+{q:"Welches Protokoll bildet die Grundlage für sicheren Datenverkehr im Web (https)?",a:["FTP","SSH","TLS/SSL","SMTP"],c:2,cat:"Technik",d:4,e:"Das kleine Schloss-Symbol im Browser zeigt an, dass diese Verschlüsselung aktiv ist."},
+{q:"In welchem Jahrzehnt wurde die erste E-Mail verschickt?",a:["1960er","1970er","1980er","1990er"],c:1,cat:"Technik",d:4,e:"Das @-Zeichen zur Adressierung wurde dabei erstmals verwendet."},
+{q:"Wie heißt die von Linus Torvalds 1991 initiierte Betriebssystem-Kernel-Entwicklung?",a:["Unix","Linux","BSD","GNU Hurd"],c:1,cat:"Technik",d:4,e:"Er entwickelte sie zunächst nur als privates Hobbyprojekt."},
+{q:"Welches Unternehmen entwickelte die Programmiersprache Java ursprünglich?",a:["Microsoft","Sun Microsystems","IBM","Oracle"],c:1,cat:"Technik",d:4,e:"Sun Microsystems entwickelte Java 1995; das Unternehmen wurde später von Oracle übernommen."},
+{q:"Wofür steht die Abkürzung RAM?",a:["Read Access Memory","Random Access Memory","Rapid Access Module","Real Application Memory"],c:1,cat:"Technik",d:4,e:"Anders als eine Festplatte verliert er beim Ausschalten alle gespeicherten Daten."},
+{q:"Wer schrieb 1936 das theoretische Konzept der \"Turingmaschine\"?",a:["John von Neumann","Alan Turing","Claude Shannon","Kurt Gödel"],c:1,cat:"Technik",d:4,e:"Sie gilt als theoretisches Grundmodell für jeden modernen Computer."},
+{q:"Welches Unternehmen brachte 2007 das erste iPhone auf den Markt?",a:["Google","Apple","Samsung","BlackBerry"],c:1,cat:"Technik",d:4,e:"Es veränderte die Smartphone-Branche grundlegend."},
+{q:"Wie nennt man die kleinste adressierbare Speichereinheit eines Prozessors üblicherweise?",a:["Bit","Byte","Wort","Register"],c:1,cat:"Technik",d:4,e:"Ein Byte besteht selbst wiederum aus 8 kleineren Einheiten, den Bits."},
+{q:"Welche Erfindung von Tim Berners-Lee 1989 legte den Grundstein für das World Wide Web?",a:["E-Mail","HTTP/HTML","TCP/IP","USB"],c:1,cat:"Technik",d:4,e:"Damit konnten erstmals Dokumente über Links miteinander verknüpft werden."},
+{q:"Wie heißt die erste Frau im Weltall?",a:["Sally Ride","Walentina Tereschkowa","Mae Jemison","Judith Resnik"],c:1,cat:"Raumfahrt",d:4,e:"Die Sowjetkosmonautin Walentina Tereschkowa flog 1963 als erste Frau ins All."},
+{q:"Welche Raumsonde lieferte die ersten Nahaufnahmen des Pluto?",a:["Voyager 2","New Horizons","Cassini","Juno"],c:1,cat:"Raumfahrt",d:4,e:"Sie brauchte über neun Jahre für die Reise dorthin."},
+{q:"Wie heißt das erste Space Shuttle, das ins All flog?",a:["Discovery","Challenger","Columbia","Atlantis"],c:2,cat:"Raumfahrt",d:4,e:"Es startete 1981 zu seiner ersten Mission."},
+{q:"In welchem Jahr landete der erste Rover erfolgreich auf dem Mars?",a:["1971","1976","1997","2004"],c:1,cat:"Raumfahrt",d:4,e:"Viking 1 landete 1976 erfolgreich, wenn auch als stationärer Lander; Sojourner (Pathfinder) war 1997 der erste mobile Rover."},
+{q:"Wie heißt die Raumstation, die vor der ISS von der Sowjetunion/Russland betrieben wurde?",a:["Saljut","Mir","Skylab","Tiangong"],c:1,cat:"Raumfahrt",d:4,e:"Sie war fast 15 Jahre lang im Einsatz, länger als geplant."},
+{q:"Welcher Astronaut betrat als zweiter Mensch den Mond, direkt nach Neil Armstrong?",a:["Michael Collins","Buzz Aldrin","John Glenn","Alan Shepard"],c:1,cat:"Raumfahrt",d:4,e:"Er folgte Armstrong nur wenige Minuten später auf die Mondoberfläche."},
+{q:"Wie heißt der Kometen, der 1986 und 2061 von der Erde aus sichtbar ist/war?",a:["Hale-Bopp","Halleyscher Komet","Komet Encke","Shoemaker-Levy 9"],c:1,cat:"Raumfahrt",d:4,e:"Er ist von der Erde aus etwa alle 76 Jahre sichtbar."},
+{q:"Welches Land startete 2020 seine erste eigenständige Marsmission (Tianwen-1)?",a:["Indien","Japan","China","Südkorea"],c:2,cat:"Raumfahrt",d:4,e:"Die Mission umfasste einen Orbiter, einen Lander und einen Rover."},
+{q:"Wie heißt das Weltraumteleskop, das 2021 als Nachfolger von Hubble gestartet wurde?",a:["Kepler-Teleskop","James-Webb-Teleskop","Spitzer-Teleskop","Chandra-Teleskop"],c:1,cat:"Raumfahrt",d:4,e:"Es beobachtet das Universum hauptsächlich im Infrarotbereich."},
+{q:"Wie viele Astronauten waren typischerweise bei den Apollo-Mondmissionen im Kommandomodul unterwegs?",a:["1","2","3","4"],c:2,cat:"Raumfahrt",d:4,e:"Meist landeten nur zwei von ihnen tatsächlich auf dem Mond, einer blieb im Orbit."},
+{q:"Welcher Planet hat mit dem Olympus Mons den höchsten bekannten Vulkan des Sonnensystems?",a:["Venus","Erde","Mars","Merkur"],c:2,cat:"Raumfahrt",d:4,e:"Er ist fast dreimal so hoch wie der Mount Everest."},
+{q:"Wie heißt das erste Land, das eine Sonde erfolgreich auf dem Mond landete?",a:["USA","Sowjetunion","China","Indien"],c:1,cat:"Raumfahrt",d:4,e:"Luna 9 (UdSSR) gelang 1966 die erste weiche Mondlandung."},
+{q:"Wie nennt man den Punkt in einer Umlaufbahn, an dem ein Objekt der Erde am nächsten ist?",a:["Apogäum","Perigäum","Zenit","Perihel"],c:1,cat:"Raumfahrt",d:4,e:"Das Gegenteil, der erdfernste Punkt, heißt Apogäum."},
+{q:"In welcher Sportart wird der Begriff \"Grand Chelem\" (Grand Slam) für den Gewinn aller vier großen Turniere in einem Jahr verwendet, außer Tennis?",a:["Golf","Rugby","Snooker","Segeln"],c:0,cat:"Sport",d:4,e:"Auch im Golf gibt es vier \"Major\"-Turniere, die als Grand Slam zählen."},
+{q:"Wie viele Spieler hat eine Mannschaft beim Wasserball im Wasser gleichzeitig (ohne Torhüter mitgezählt separat)?",a:["5","6","7","8"],c:2,cat:"Sport",d:4,e:"Dazu kommt noch ein Torhüter, macht insgesamt sieben Feldspieler plus Torwart."},
+{q:"Welches Land gewann die erste Fußball-Weltmeisterschaft 1930?",a:["Brasilien","Argentinien","Uruguay","Italien"],c:2,cat:"Sport",d:4,e:"Das Turnier fand im eigenen Land statt, im neu erbauten Stadion Centenario."},
+{q:"Wie heißt die höchste individuelle Auszeichnung im Fußball, die jährlich von France Football vergeben wird?",a:["FIFA World Player","Ballon d'Or","The Best FIFA Award","Goldener Schuh"],c:1,cat:"Sport",d:4,e:"Sie wird seit 1956 jährlich an den besten Fußballer der Welt vergeben."},
+{q:"In welcher Sportart tritt man in Disziplinen wie Florett, Degen und Säbel an?",a:["Boxen","Fechten","Ringen","Taekwondo"],c:1,cat:"Sport",d:4,e:"Die drei Waffen unterscheiden sich in Gewicht, Trefferfläche und Regeln."},
+{q:"Wie viele Spieler bilden eine Mannschaft beim American Football auf dem Feld?",a:["9","11","13","15"],c:1,cat:"Sport",d:4,e:"Offense und Defense treten dabei nie gleichzeitig gemeinsam auf dem Feld an."},
+{q:"Welcher Sportler hält den Weltrekord im 100-Meter-Lauf der Männer (Stand vor 2023)?",a:["Tyson Gay","Yohan Blake","Usain Bolt","Justin Gatlin"],c:2,cat:"Sport",d:4,e:"Seinen Weltrekord von 9,58 Sekunden stellte er 2009 in Berlin auf."},
+{q:"In welcher Stadt fanden die ersten modernen Olympischen Spiele 1896 statt?",a:["Paris","London","Athen","Rom"],c:2,cat:"Sport",d:4,e:"Damit kehrten die Spiele symbolisch an ihren antiken Ursprungsort zurück."},
+{q:"Wie heißt der Wettbewerb, bei dem Radprofis drei Wochen lang durch Frankreich fahren?",a:["Giro d'Italia","Tour de France","Vuelta a España","Paris-Roubaix"],c:1,cat:"Sport",d:4,e:"Der Träger des Gesamtführenden trägt dabei das berühmte gelbe Trikot."},
+{q:"Wie viele Punkte ist ein Homerun im Baseball für den Schlagmann und alle Läufer auf der Base mindestens wert (nur der Schlagmann allein)?",a:["1 Punkt","2 Punkte","3 Punkte","4 Punkte"],c:0,cat:"Sport",d:4,e:"Sind zusätzlich alle drei Bases besetzt, bringt ein Homerun sogar vier Punkte auf einmal."},
+{q:"In welcher Sportart wird der \"Stanley Cup\" vergeben?",a:["Basketball","Eishockey","Baseball","American Football"],c:1,cat:"Sport",d:4,e:"Er ist die älteste noch vergebene Sporttrophäe Nordamerikas."},
+{q:"Wie viele Ringe umfasst eine offizielle Turn-Disziplin bei Männern (Turngerät)?",a:["1 Paar","2 Paare","3 Ringe einzeln","Kein festes Turngerät"],c:0,cat:"Sport",d:4,e:"Diese Disziplin verlangt außergewöhnliche Kraft in den Armen und Schultern."},
+{q:"Welches Land hat die Fußball-Weltmeisterschaft am häufigsten ausgerichtet (Stand vor 2026, Mehrfachausrichter)?",a:["Brasilien","Mexiko","Italien","Deutschland"],c:1,cat:"Sport",d:4,e:"Mexiko war 1970 und 1986 Gastgeber."},
+{q:"Welcher Komponist schrieb die \"Eroica\"-Sinfonie (3. Sinfonie)?",a:["Joseph Haydn","Ludwig van Beethoven","Franz Schubert","Johannes Brahms"],c:1,cat:"Musik",d:4,e:"Ursprünglich widmete er sie Napoleon, strich die Widmung aber wieder, als dieser sich zum Kaiser krönte."},
+{q:"In welcher Stadt wurde die Band Queen gegründet?",a:["Manchester","London","Liverpool","Birmingham"],c:1,cat:"Musik",d:4,e:"Sänger Freddie Mercury studierte zu dieser Zeit Grafikdesign."},
+{q:"Wer komponierte die Oper \"Der Ring des Nibelungen\"?",a:["Richard Strauss","Richard Wagner","Johann Strauss","Carl Orff"],c:1,cat:"Musik",d:4,e:"Das gesamte Werk umfasst vier Opern und dauert insgesamt über 15 Stunden."},
+{q:"Welches Album gilt als meistverkauftes Studioalbum aller Zeiten?",a:["Back in Black (AC/DC)","Thriller (Michael Jackson)","The Dark Side of the Moon (Pink Floyd)","Rumours (Fleetwood Mac)"],c:1,cat:"Musik",d:4,e:"Es enthält Welthits wie \"Billie Jean\" und \"Beat It\"."},
+{q:"Wer komponierte die berühmte Filmmusik zu \"Star Wars\"?",a:["Hans Zimmer","John Williams","Danny Elfman","James Horner"],c:1,cat:"Musik",d:4,e:"Er komponierte auch die Musik zu \"Jurassic Park\" und \"Indiana Jones\"."},
+{q:"In welchem Jahrhundert lebte der Komponist Johann Sebastian Bach?",a:["16./17. Jahrhundert","17./18. Jahrhundert","18./19. Jahrhundert","19./20. Jahrhundert"],c:1,cat:"Musik",d:4,e:"Zu Lebzeiten war er vor allem als Organist bekannt, nicht als Komponist."},
+{q:"Welches Instrument gilt als \"König der Instrumente\" wegen seiner Klangfülle?",a:["Klavier","Orgel","Cello","Harfe"],c:1,cat:"Musik",d:4,e:"Die größten Exemplare besitzen mehrere Tausend Pfeifen."},
+{q:"Wer war der Leadsänger der Band Nirvana?",a:["Dave Grohl","Kurt Cobain","Chris Cornell","Eddie Vedder"],c:1,cat:"Musik",d:4,e:"Sein Song \"Smells Like Teen Spirit\" wurde zur Hymne des Grunge."},
+{q:"Welches Musical basiert auf dem Roman \"Les Misérables\" von Victor Hugo?",a:["Cats","Les Misérables","Phantom der Oper","Wicked"],c:1,cat:"Musik",d:4,e:"Es zählt zu den erfolgreichsten Musicals aller Zeiten."},
+{q:"Welcher Musikstil entstand in Jamaika und beeinflusste später Bands wie The Police maßgeblich?",a:["Reggae","Salsa","Samba","Calypso"],c:0,cat:"Musik",d:4,e:"Bob Marley machte diesen Musikstil weltberühmt."},
+{q:"Wer schrieb die Musik zur Oper \"Die Zauberflöte\"?",a:["Joseph Haydn","Wolfgang Amadeus Mozart","Ludwig van Beethoven","Antonio Salieri"],c:1,cat:"Musik",d:4,e:"Er starb nur wenige Wochen nach der Uraufführung im Alter von nur 35 Jahren."},
+{q:"Welches Orchesterinstrument hat üblicherweise 47 Saiten?",a:["Cello","Kontrabass","Harfe","Gitarre"],c:2,cat:"Musik",d:4,e:"Gespielt wird sie mit den Fingern, nicht mit einem Bogen wie eine Geige."},
+{q:"In welcher Stadt fand das legendäre Woodstock-Festival 1969 statt?",a:["New York City","Bethel","Boston","Woodstock (Stadt)"],c:1,cat:"Musik",d:4,e:"Das Festival fand auf einer Farm bei Bethel statt, nicht in der Stadt Woodstock selbst."},
+{q:"Wer führte Regie beim Film \"2001: Odyssee im Weltraum\"?",a:["Steven Spielberg","Stanley Kubrick","George Lucas","Ridley Scott"],c:1,cat:"Film & Serien",d:4,e:"Der Film gilt bis heute als Meilenstein der Science-Fiction-Filmgeschichte."},
+{q:"Welcher Film gewann 1994 den Oscar für den besten Film und handelt von einem Gefängnisausbruch?",a:["The Green Mile","Die Verurteilten (Shawshank Redemption)","Der Pate","American History X"],c:1,cat:"Film & Serien",d:4,e:"\"Die Verurteilten\" war 1995 nominiert, gewann aber tatsächlich keinen Oscar für den besten Film - Gewinner war \"Forrest Gump\"."},
+{q:"Wer spielte die Hauptrolle des Michael Corleone in \"Der Pate\"?",a:["Marlon Brando","Al Pacino","Robert De Niro","James Caan"],c:1,cat:"Film & Serien",d:4,e:"Für die Rolle wurde er zunächst von den Studiobossen als ungeeignet abgelehnt."},
+{q:"In welchem Jahr wurde der erste abendfüllende Animationsfilm \"Schneewittchen und die sieben Zwerge\" veröffentlicht?",a:["1927","1937","1947","1957"],c:1,cat:"Film & Serien",d:4,e:"Viele hielten das Projekt zunächst für finanziellen Wahnsinn und nannten es spöttisch \"Disneys Torheit\"."},
+{q:"Welcher Regisseur drehte \"Psycho\" und gilt als Meister des Suspense-Thrillers?",a:["Orson Welles","Alfred Hitchcock","Billy Wilder","John Ford"],c:1,cat:"Film & Serien",d:4,e:"Die berühmte Duschszene besteht aus über 70 verschiedenen Kameraeinstellungen."},
+{q:"Wer spielte die Titelrolle in \"Amélie\" (2001)?",a:["Marion Cotillard","Audrey Tautou","Juliette Binoche","Sophie Marceau"],c:1,cat:"Film & Serien",d:4,e:"Der Film machte sie international schlagartig bekannt."},
+{q:"Welche Serie handelt von der Chemielehrer-Figur Walter White?",a:["Better Call Saul","Breaking Bad","The Wire","Ozark"],c:1,cat:"Film & Serien",d:4,e:"Er verwandelt sich darin vom Chemielehrer zum Drogenproduzenten."},
+{q:"Wer komponierte die Musik zu \"Der Pate\"?",a:["John Williams","Nino Rota","Ennio Morricone","Jerry Goldsmith"],c:1,cat:"Film & Serien",d:4,e:"Sein Liebesthema aus dem Film wurde weltberühmt."},
+{q:"In welchem Land spielt der Großteil der Handlung von \"Der Herr der Ringe\" (fiktiver Schauplatz Mittelerde, real gedreht in)?",a:["Australien","Neuseeland","Kanada","Irland"],c:1,cat:"Film & Serien",d:4,e:"Die eindrucksvollen Landschaften dort machten das Land zu einem beliebten Reiseziel für Fans."},
+{q:"Welcher Film war der erste Farbfilm, der einen Oscar für den besten Film gewann?",a:["Der Zauberer von Oz","Vom Winde verweht","Casablanca","Ben Hur"],c:1,cat:"Film & Serien",d:4,e:"\"Vom Winde verweht\" gewann 1940 als erster überwiegend farbiger Film den Oscar für den besten Film."},
+{q:"Wer schuf die Zeichentrickfigur Mickey Mouse?",a:["Walt Disney","Chuck Jones","Tex Avery","William Hanna"],c:0,cat:"Film & Serien",d:4,e:"Er sprach die Figur in frühen Filmen sogar selbst."},
+{q:"Welche Schauspielerin erhielt für \"La Vie en Rose\" (Piaf-Biopic) einen Oscar?",a:["Juliette Binoche","Marion Cotillard","Audrey Tautou","Catherine Deneuve"],c:1,cat:"Film & Serien",d:4,e:"Sie spielte darin die französische Sängerin Édith Piaf."},
+{q:"In welchem Jahrzehnt entstand die erste \"Star Trek\"-TV-Serie?",a:["1950er","1960er","1970er","1980er"],c:1,cat:"Film & Serien",d:4,e:"Sie wurde nach nur drei Staffeln zunächst abgesetzt, entwickelte aber später Kultstatus."},
+{q:"Wer schrieb das Versepos \"Die Odyssee\"?",a:["Vergil","Homer","Sophokles","Aischylos"],c:1,cat:"Literatur",d:4,e:"Es schildert die zehnjährige Irrfahrt des Odysseus nach dem Trojanischen Krieg."},
+{q:"In welchem Jahrhundert entstand Dantes \"Göttliche Komödie\"?",a:["11. Jahrhundert","12. Jahrhundert","14. Jahrhundert","16. Jahrhundert"],c:2,cat:"Literatur",d:4,e:"Das Werk beschreibt eine fiktive Reise durch Hölle, Fegefeuer und Paradies."},
+{q:"Wer schrieb den Roman \"Hundert Jahre Einsamkeit\"?",a:["Jorge Luis Borges","Gabriel García Márquez","Mario Vargas Llosa","Pablo Neruda"],c:1,cat:"Literatur",d:4,e:"Für sein Lebenswerk erhielt er 1982 den Literaturnobelpreis."},
+{q:"Welcher russische Autor schrieb \"Schuld und Sühne\"?",a:["Leo Tolstoi","Fjodor Dostojewski","Anton Tschechow","Nikolai Gogol"],c:1,cat:"Literatur",d:4,e:"Der Roman handelt von einem Mord und den seelischen Qualen danach."},
+{q:"Wer verfasste die Tragödie \"Faust\"?",a:["Friedrich Schiller","Johann Wolfgang von Goethe","Gotthold Ephraim Lessing","Heinrich von Kleist"],c:1,cat:"Literatur",d:4,e:"Das Werk gilt als eines der bedeutendsten der deutschen Literatur."},
+{q:"In welchem Land wurde der Literaturnobelpreisträger Gabriel García Márquez geboren?",a:["Mexiko","Kolumbien","Peru","Argentinien"],c:1,cat:"Literatur",d:4,e:"Sein magisch-realistischer Stil prägte die lateinamerikanische Literatur nachhaltig."},
+{q:"Welches Werk gilt als das erste bekannte schriftliche Epos der Menschheitsgeschichte?",a:["Ilias","Gilgamesch-Epos","Mahabharata","Beowulf"],c:1,cat:"Literatur",d:4,e:"Es stammt aus dem alten Mesopotamien und ist über 4.000 Jahre alt."},
+{q:"Wer schrieb \"Stolz und Vorurteil\"?",a:["Charlotte Brontë","Jane Austen","Emily Brontë","Virginia Woolf"],c:1,cat:"Literatur",d:4,e:"Der Roman erschien 1813 zunächst anonym."},
+{q:"In welchem Jahrhundert lebte der Dichter Dante Alighieri?",a:["11./12. Jahrhundert","13./14. Jahrhundert","15./16. Jahrhundert","17./18. Jahrhundert"],c:1,cat:"Literatur",d:4,e:"Er schrieb sein Hauptwerk in italienischer Sprache statt im damals üblichen Latein."},
+{q:"Wer schrieb den philosophischen Roman \"Also sprach Zarathustra\"?",a:["Arthur Schopenhauer","Friedrich Nietzsche","Immanuel Kant","Georg Wilhelm Friedrich Hegel"],c:1,cat:"Literatur",d:4,e:"Darin findet sich auch der berühmte Satz \"Gott ist tot\"."},
+{q:"Welcher Autor schrieb die Kurzgeschichtensammlung, aus der die Figur Sherlock Holmes stammt?",a:["Agatha Christie","Arthur Conan Doyle","Edgar Allan Poe","Wilkie Collins"],c:1,cat:"Literatur",d:4,e:"Er versuchte später sogar, seine eigene Figur sterben zu lassen, musste sie aber wegen Fanprotesten wiederbeleben."},
+{q:"In welcher Sprache wurde \"Don Quijote\" ursprünglich verfasst?",a:["Italienisch","Spanisch","Portugiesisch","Katalanisch"],c:1,cat:"Literatur",d:4,e:"Es gilt vielen als der erste moderne Roman der Weltliteratur."},
+{q:"Wer schrieb das Drama \"Woyzeck\", das unvollendet blieb?",a:["Georg Büchner","Friedrich Hebbel","Heinrich von Kleist","Gerhart Hauptmann"],c:0,cat:"Literatur",d:4,e:"Er starb bereits mit nur 23 Jahren an Typhus."},
+{q:"Wer malte \"Der Schrei\"?",a:["Edvard Munch","Gustav Klimt","Egon Schiele","Vincent van Gogh"],c:0,cat:"Kunst",d:4,e:"Es existieren mehrere Versionen des Gemäldes von seiner eigenen Hand."},
+{q:"In welchem Jahrhundert wirkte der Maler Jan Vermeer?",a:["15. Jahrhundert","16. Jahrhundert","17. Jahrhundert","18. Jahrhundert"],c:2,cat:"Kunst",d:4,e:"Von ihm sind heute nur etwa 35 Gemälde bekannt."},
+{q:"Wer schuf die Skulptur \"Pietà\" im Petersdom?",a:["Donatello","Michelangelo","Bernini","Canova"],c:1,cat:"Kunst",d:4,e:"Er signierte sie als einziges seiner Werke, angeblich weil er den wahren Schöpfer zunächst anzweifelte."},
+{q:"Welcher Kunststil wird mit Künstlern wie Wassily Kandinsky assoziiert, die als Pioniere der Abstraktion gelten?",a:["Realismus","Abstrakte Kunst","Naturalismus","Klassizismus"],c:1,cat:"Kunst",d:4,e:"Er gilt als einer der ersten Künstler, die vollständig gegenstandslos malten."},
+{q:"Wer malte das Deckenfresko \"Erschaffung Adams\"?",a:["Raffael","Michelangelo","Leonardo da Vinci","Tizian"],c:1,cat:"Kunst",d:4,e:"Die berührenden Finger von Gott und Adam gehören zu den bekanntesten Bildmotiven der Kunstgeschichte."},
+{q:"In welchem Museum hängt die \"Mona Lisa\" dauerhaft?",a:["Uffizien","Louvre","Prado","British Museum"],c:1,cat:"Kunst",d:4,e:"Sie hängt dort hinter Panzerglas und zieht Millionen Besucher jährlich an."},
+{q:"Welcher niederländische Maler schuf \"Das Mädchen mit dem Perlenohrring\"?",a:["Rembrandt","Johannes Vermeer","Frans Hals","Pieter Bruegel"],c:1,cat:"Kunst",d:4,e:"Das Gemälde wird manchmal auch als \"nordische Mona Lisa\" bezeichnet."},
+{q:"Wer gilt als Begründer des Impressionismus mit dem Werk \"Impression, Sonnenaufgang\"?",a:["Édouard Manet","Claude Monet","Edgar Degas","Camille Pissarro"],c:1,cat:"Kunst",d:4,e:"Der Name der Kunstrichtung geht direkt auf diesen Bildtitel zurück."},
+{q:"Welcher Bildhauer schuf die Freiheitsstatue in New York?",a:["Auguste Rodin","Frédéric Auguste Bartholdi","Gustave Eiffel","Antonio Canova"],c:1,cat:"Kunst",d:4,e:"Bartholdi entwarf die Statue, Gustave Eiffel konstruierte das innere Stahlgerüst."},
+{q:"In welcher Stadt befindet sich die Eremitage, eines der größten Kunstmuseen der Welt?",a:["Moskau","Sankt Petersburg","Kiew","Warschau"],c:1,cat:"Kunst",d:4,e:"Sie umfasst mehrere Gebäude, darunter den prunkvollen Winterpalast der Zaren."},
+{q:"Wer malte die Reihe \"Seerosen\" (Nymphéas)?",a:["Pierre-Auguste Renoir","Claude Monet","Paul Cézanne","Edgar Degas"],c:1,cat:"Kunst",d:4,e:"Er malte über 250 Gemälde dieses Motivs in seinem eigenen Garten in Giverny."},
+{q:"Welcher Kunststil wird mit zersplitterten, geometrischen Formen und Pablo Picasso assoziiert?",a:["Surrealismus","Kubismus","Fauvismus","Futurismus"],c:1,cat:"Kunst",d:4,e:"Objekte werden dabei aus mehreren Blickwinkeln gleichzeitig dargestellt."},
+{q:"Wer schuf das Gemälde \"Guernica\" als Reaktion auf die Bombardierung im Spanischen Bürgerkrieg?",a:["Salvador Dalí","Pablo Picasso","Joan Miró","Francisco de Goya"],c:1,cat:"Kunst",d:4,e:"Das riesige Gemälde ist fast 8 Meter breit und komplett in Grautönen gehalten."},
+{q:"Wer entwickelte die erste Impfung gegen Tollwut?",a:["Robert Koch","Louis Pasteur","Edward Jenner","Alexander Fleming"],c:1,cat:"Erfindungen",d:4,e:"Er gilt zugleich als einer der Begründer der modernen Mikrobiologie."},
+{q:"In welchem Jahrhundert wurde das Porzellan in Europa (Meißen) erstmals erfolgreich nachgebildet?",a:["16. Jahrhundert","17. Jahrhundert","18. Jahrhundert","19. Jahrhundert"],c:2,cat:"Erfindungen",d:4,e:"Zuvor war Porzellan ein streng gehütetes Geheimnis aus China."},
+{q:"Wer erfand den Blitzableiter?",a:["Benjamin Franklin","Thomas Edison","Nikola Tesla","James Watt"],c:0,cat:"Erfindungen",d:4,e:"Er soll die Idee durch seine berühmten Experimente mit einem Drachen bei Gewitter entwickelt haben."},
+{q:"Welches Land brachte die erste kommerzielle Eisenbahnstrecke der Welt hervor?",a:["USA","Deutschland","Großbritannien","Frankreich"],c:2,cat:"Erfindungen",d:4,e:"Die Strecke Stockton–Darlington eröffnete 1825 in England."},
+{q:"Wer entwickelte das erste praktikable Verfahren zur Fotografie (Daguerreotypie)?",a:["Nicéphore Niépce","Louis Daguerre","George Eastman","William Fox Talbot"],c:1,cat:"Erfindungen",d:4,e:"Frühe Belichtungszeiten dauerten dabei noch mehrere Minuten."},
+{q:"In welchem Jahr wurde das erste Patent für das Telefon von Alexander Graham Bell angemeldet?",a:["1866","1876","1886","1896"],c:1,cat:"Erfindungen",d:4,e:"Nur Stunden später reichte ein Konkurrent ein fast identisches Patent ein."},
+{q:"Wer erfand das moderne Periodensystem der Elemente?",a:["Marie Curie","Dmitri Mendelejew","Antoine Lavoisier","John Dalton"],c:1,cat:"Erfindungen",d:4,e:"Er ließ bewusst Lücken für damals noch unentdeckte Elemente frei."},
+{q:"Welches Unternehmen brachte den ersten kommerziellen Personal Computer erfolgreich in den Massenmarkt?",a:["Apple","IBM","Commodore","Xerox"],c:1,cat:"Erfindungen",d:4,e:"Der IBM PC von 1981 setzte den Standard für den Massenmarkt."},
+{q:"Wer erfand das Fahrrad in seiner ersten laufrad-ähnlichen Form (Draisine)?",a:["Karl Drais","John Kemp Starley","James Starley","Pierre Michaux"],c:0,cat:"Erfindungen",d:4,e:"Sein Gefährt hatte damals noch keine Pedale, man stieß sich mit den Füßen ab."},
+{q:"In welchem Jahrhundert wurde der Buchdruck mit beweglichen Lettern durch Gutenberg in Europa eingeführt?",a:["13. Jahrhundert","14. Jahrhundert","15. Jahrhundert","16. Jahrhundert"],c:2,cat:"Erfindungen",d:4,e:"Zu den ersten gedruckten Werken zählte die berühmte Gutenberg-Bibel."},
+{q:"Wer entwickelte den ersten künstlichen Herzschrittmacher, der implantierbar war?",a:["Willem Einthoven","Rune Elmqvist","Werner Forssmann","Christiaan Barnard"],c:1,cat:"Erfindungen",d:4,e:"Das erste Gerät funktionierte nur wenige Stunden, bevor es ausfiel."},
+{q:"Welches Material wurde erstmals 1907 von Leo Baekeland als vollsynthetischer Kunststoff entwickelt?",a:["Nylon","Bakelit","PVC","Polyester"],c:1,cat:"Erfindungen",d:4,e:"Es gilt als der erste vollständig synthetische Kunststoff der Geschichte."},
+{q:"Wer erfand die Glühlampe mit Kohlefaden in einer frühen, aber unpraktikablen Form vor Edison?",a:["Joseph Swan","Nikola Tesla","Werner von Siemens","Humphry Davy"],c:0,cat:"Erfindungen",d:4,e:"Joseph Swan entwickelte parallel zu Edison eine funktionierende Glühlampe."},
+{q:"Welches Land hat die meisten UNESCO-Weltkulturerbestätten der Welt (Stand meist zitierter Ranglisten)?",a:["Spanien","China","Italien","Deutschland"],c:2,cat:"Länder",d:4,e:"Dazu zählen unter anderem Rom, Venedig und Pompeji."},
+{q:"Welches Land war nie offiziell Kolonie einer europäischen Macht, blieb aber lange isoliert (in Afrika)?",a:["Äthiopien","Kenia","Ghana","Nigeria"],c:0,cat:"Länder",d:4,e:"Äthiopien konnte seine Unabhängigkeit (mit kurzer italienischer Besatzung 1936–41) weitgehend bewahren."},
+{q:"Welches Land besitzt die meisten Zeitzonen weltweit?",a:["Russland","USA","Frankreich","China"],c:2,cat:"Länder",d:4,e:"Frankreich kommt durch Überseegebiete auf 12 Zeitzonen, mehr als jedes andere Land."},
+{q:"Welches Land hat als einziges Land der Erde eine Fläche auf zwei verschiedenen Kontinenten mit bedeutendem Bevölkerungsanteil auf beiden?",a:["Russland","Türkei","Ägypten","Kasachstan"],c:1,cat:"Länder",d:4,e:"Istanbul selbst liegt auf zwei Kontinenten, getrennt durch den Bosporus."},
+{q:"Welches ist das am dünnsten besiedelte Land der Welt (nach Einwohnern pro km²)?",a:["Australien","Mongolei","Namibia","Kanada"],c:1,cat:"Länder",d:4,e:"Große Teile des Landes bestehen aus kaum besiedelter Steppe."},
+{q:"Welches Land erlangte 2011 nach einem Referendum als jüngster Staat der Welt (bis dahin) seine Unabhängigkeit?",a:["Kosovo","Osttimor","Südsudan","Eritrea"],c:2,cat:"Länder",d:4,e:"Es trennte sich damals vom Sudan."},
+{q:"Welches Land hat mit Abstand die meisten Zeitzonen-unabhängige Amtssprachen (11 offizielle Sprachen)?",a:["Indien","Südafrika","Schweiz","Papua-Neuguinea"],c:1,cat:"Länder",d:4,e:"Dazu zählen unter anderem Zulu, Xhosa, Afrikaans und Englisch."},
+{q:"Welches Binnenland Europas ist zugleich eine der letzten verbliebenen Diarchien (Doppelherrschaft) der Welt?",a:["Liechtenstein","Andorra","San Marino","Monaco"],c:1,cat:"Länder",d:4,e:"Andorra wird von zwei \"Fürsten\" gemeinsam regiert: dem Bischof von Urgell und dem Präsidenten Frankreichs."},
+{q:"Welches Land grenzt an genau 14 andere Staaten und teilt sich damit den Rekord?",a:["Brasilien","China","USA","Indien"],c:1,cat:"Länder",d:4,e:"Russland teilt sich mit ebenfalls 14 Nachbarn den Rekord."},
+{q:"Welches Land besitzt die Enklave Kaliningrad, getrennt vom restlichen Staatsgebiet?",a:["Polen","Russland","Litauen","Belarus"],c:1,cat:"Länder",d:4,e:"Das Gebiet liegt zwischen Polen und Litauen, ohne direkte Landverbindung zum Rest des Landes."},
+{q:"Welches Land ist der flächenmäßig größte Binnenstaat der Welt (ohne Meerzugang)?",a:["Mongolei","Kasachstan","Bolivien","Tschad"],c:1,cat:"Länder",d:4,e:"Es ist zugleich das größte Land, das vollständig von Land umgeben ist."},
+{q:"Welches afrikanische Land war nie durchgängig kolonialisiert und ist Gründungsmitglied des Völkerbundes?",a:["Liberia","Äthiopien","Ägypten","Marokko"],c:1,cat:"Länder",d:4,e:"Es konnte sich 1896 erfolgreich gegen eine italienische Invasion zur Wehr setzen."},
+{q:"Welches Land verfügt trotz relativ kleiner Fläche über die meisten aktiven Zeitzonen eines einzelnen zusammenhängenden Staatsgebiets (ohne Überseegebiete)?",a:["Russland","USA","China","Kanada"],c:0,cat:"Länder",d:4,e:"China nutzt trotz großer Ost-West-Ausdehnung offiziell nur eine einzige Zeitzone; Russland hat auf zusammenhängendem Gebiet 11 Zeitzonen."},
+{q:"Wie heißt die Hauptstadt von Australien (nicht Sydney)?",a:["Sydney","Canberra","Melbourne","Perth"],c:1,cat:"Hauptstädte",d:4,e:"Ihr Name bedeutet in der Sprache der Aborigines vermutlich \"Treffpunkt\"."},
+{q:"Wie heißt die Hauptstadt von Brasilien?",a:["Rio de Janeiro","São Paulo","Brasília","Salvador"],c:2,cat:"Hauptstädte",d:4,e:"Sie wurde 1960 als komplett neu geplante Stadt eröffnet."},
+{q:"Wie heißt die Hauptstadt der Elfenbeinküste (offiziell, nicht die größte Stadt)?",a:["Abidjan","Yamoussoukro","Bouaké","San Pedro"],c:1,cat:"Hauptstädte",d:4,e:"Yamoussoukro ist offizielle Hauptstadt, Abidjan die faktische Wirtschaftsmetropole und Regierungssitz."},
+{q:"Wie heißt die Hauptstadt von Bhutan?",a:["Kathmandu","Thimphu","Paro","Punakha"],c:1,cat:"Hauptstädte",d:4,e:"Bhutan misst seinen nationalen Fortschritt bekanntlich nicht nur am Bruttoinlandsprodukt, sondern auch am \"Bruttonationalglück\"."},
+{q:"Wie heißt die Hauptstadt von Turkmenistan?",a:["Aschgabat","Duschanbe","Bischkek","Taschkent"],c:0,cat:"Hauptstädte",d:4,e:"Die Stadt ist bekannt für ihre auffällig vielen weißen Marmorgebäude."},
+{q:"Wie heißt die Hauptstadt von Eritrea?",a:["Addis Abeba","Asmara","Dschibuti","Khartum"],c:1,cat:"Hauptstädte",d:4,e:"Ihre Altstadt mit Art-déco-Architektur ist UNESCO-Weltkulturerbe."},
+{q:"Wie heißt die Hauptstadt von Surinam?",a:["Georgetown","Paramaribo","Cayenne","Bridgetown"],c:1,cat:"Hauptstädte",d:4,e:"Ihre historische Altstadt zeigt bis heute niederländischen Kolonialstil."},
+{q:"Wie heißt die Hauptstadt von Niue (Freundschaftsinsel, assoziiertes Gebiet Neuseelands)?",a:["Alofi","Apia","Nuku'alofa","Avarua"],c:0,cat:"Hauptstädte",d:4,e:"Niue ist eine der kleinsten selbstverwalteten Inseln der Welt."},
+{q:"Wie heißt die Hauptstadt von Kiribati?",a:["Tarawa (South Tarawa)","Funafuti","Majuro","Nuku'alofa"],c:0,cat:"Hauptstädte",d:4,e:"Der Inselstaat verteilt sich über alle vier Hemisphären der Erde."},
+{q:"Wie heißt die Hauptstadt von Eswatini (ehemals Swasiland, Verwaltungssitz)?",a:["Mbabane","Lobamba","Manzini","Ezulwini"],c:0,cat:"Hauptstädte",d:4,e:"Mbabane ist Verwaltungshauptstadt, Lobamba königlicher und legislativer Sitz."},
+{q:"Wie heißt die Hauptstadt von Nauru (kleinster Inselstaat, kein offizieller Stadtstatus)?",a:["Yaren","Aiwo","Denigomodu","Meneng"],c:0,cat:"Hauptstädte",d:4,e:"Yaren gilt de facto als Regierungssitz, ohne offiziellen Hauptstadtstatus."},
+{q:"Wie heißt die Hauptstadt von Osttimor?",a:["Baucau","Dili","Suai","Maliana"],c:1,cat:"Hauptstädte",d:4,e:"Osttimor gehört zu den jüngsten Staaten der Welt, unabhängig erst seit 2002."},
+{q:"Wie heißt die Hauptstadt von Vanuatu?",a:["Port Vila","Honiara","Suva","Nouméa"],c:0,cat:"Hauptstädte",d:4,e:"Der Inselstaat besteht aus über 80 Inseln im Südpazifik."},
+{q:"Welches Land führte als erstes eine Trikolore als Nationalflagge ein (Vorbild für viele andere)?",a:["USA","Niederlande","Frankreich","Großbritannien"],c:2,cat:"Flaggen",d:4,e:"Die französische Trikolore von 1794 wurde zum Vorbild zahlreicher weiterer Flaggen."},
+{q:"Welches Land hat eine Flagge mit einem Löwen, der ein Schwert trägt (historisch Sri Lanka)?",a:["Sri Lanka","Myanmar","Bhutan","Kambodscha"],c:0,cat:"Flaggen",d:4,e:"Der Löwe steht symbolisch für das singhalesische Volk."},
+{q:"Welche zwei Farben dominieren die Flagge Polens?",a:["Rot und Gelb","Weiß und Rot","Blau und Weiß","Grün und Weiß"],c:1,cat:"Flaggen",d:4,e:"Die Farben gehen auf das historische Wappen des Landes zurück, den weißen Adler auf rotem Grund."},
+{q:"Welches Land hat als einziges Land der Welt zwei offizielle, unterschiedliche Nationalflaggen (Zivil- und Staatsflagge unterscheiden sich stark)?",a:["Paraguay","Bahrain","Katar","Oman"],c:0,cat:"Flaggen",d:4,e:"Paraguays Flagge zeigt auf Vorder- und Rückseite unterschiedliche Wappen."},
+{q:"Welches Land hat einen Vulkan auf seiner Nationalflagge abgebildet?",a:["Ecuador","El Salvador","Guatemala","Nicaragua"],c:1,cat:"Flaggen",d:4,e:"Die Flagge El Salvadors zeigt im Wappen fünf Vulkane symbolisch für Zentralamerika."},
+{q:"Welches Land nutzte von 1977 bis 2011 eine komplett einfarbige (grüne) Nationalflagge ohne jedes Symbol?",a:["Libyen","Marokko","Tunesien","Algerien"],c:0,cat:"Flaggen",d:4,e:"Nach dem politischen Umbruch 2011 kehrte das Land zu seiner alten Flagge zurück."},
+{q:"Welche Farbe hat der Halbmond auf der türkischen Flagge?",a:["Rot","Weiß","Gelb","Grün"],c:1,cat:"Flaggen",d:4,e:"Halbmond und Stern zählen zu den ältesten bekannten Symbolen der Region."},
+{q:"Welches Land führt eine Sonne mit Gesicht (\"Sonne von Mayo\") im Zentrum seiner Flagge?",a:["Uruguay","Argentinien","Peru","Bolivien"],c:1,cat:"Flaggen",d:4,e:"Das Symbol erinnert an ein historisches Inka-Sonnensymbol."},
+{q:"Welches Land hat als eines von wenigen eine quadratische statt rechteckige Nationalflagge?",a:["Schweiz","Vatikanstadt","Beide (Schweiz und Vatikanstadt)","Keines"],c:2,cat:"Flaggen",d:4,e:"Die Schweizer Flagge ist zudem eine der nur zwei quadratischen Nationalflaggen weltweit."},
+{q:"Welches Land führt einen roten Drachen auf seiner Flagge?",a:["Schottland","Wales","Irland","England"],c:1,cat:"Flaggen",d:4,e:"Der rote Drache gilt seit Jahrhunderten als Symbol des Landes."},
+{q:"Welches afrikanische Land hat die älteste ununterbrochen genutzte Nationalflagge des Kontinents?",a:["Äthiopien","Liberia","Südafrika","Ägypten"],c:0,cat:"Flaggen",d:4,e:"Ihre Farben inspirierten später die Flaggen vieler anderer afrikanischer Staaten."},
+{q:"Welche Farbe fehlt auf der Flagge Deutschlands im Vergleich zu Belgien (gleiche Farben, andere Anordnung)?",a:["Keine, gleiche Farben","Blau","Weiß","Grün"],c:0,cat:"Flaggen",d:4,e:"Beide Flaggen nutzen Schwarz-Rot-Gold/Gelb, nur die Anordnung (horizontal/vertikal) unterscheidet sich."},
+{q:"Welches Land führt einen Steppenadler und eine Sonne auf seiner Nationalflagge?",a:["Kirgisistan","Kasachstan","Turkmenistan","Usbekistan"],c:1,cat:"Flaggen",d:4,e:"Der Adler symbolisiert Freiheit und die weiten Steppen des Landes."},
+{q:"Welches Land gilt als Ursprungsort des Zen-Buddhismus in seiner heute bekannten Form?",a:["Indien","China","Japan","Thailand"],c:2,cat:"Kulturen",d:4,e:"Zen entwickelte sich aus dem chinesischen Chan-Buddhismus, erlangte aber seine bekannteste Form in Japan."},
+{q:"Welches Fest wird in Brasilien besonders aufwendig mit Umzügen und Samba gefeiert?",a:["Dia de los Muertos","Karneval","Songkran","Diwali"],c:1,cat:"Kulturen",d:4,e:"Die Feierlichkeiten in Rio de Janeiro zählen zu den größten der Welt."},
+{q:"In welcher Kultur ist der Haka ein traditioneller Kriegstanz?",a:["Aborigines (Australien)","Māori (Neuseeland)","Inuit","Massai"],c:1,cat:"Kulturen",d:4,e:"Er wird heute auch vor Rugby-Länderspielen von der neuseeländischen Nationalmannschaft aufgeführt."},
+{q:"Welches Land feiert das Neujahrsfest Songkran mit ausgiebigen Wasserschlachten?",a:["Vietnam","Thailand","Kambodscha","Laos"],c:1,cat:"Kulturen",d:4,e:"Das Wasser symbolisiert dabei die Reinigung von altem Unglück."},
+{q:"Welche Religion betrachtet den Ganges als heiligen Fluss?",a:["Buddhismus","Hinduismus","Sikhismus","Jainismus"],c:1,cat:"Kulturen",d:4,e:"Ein Bad in seinem Wasser gilt als spirituell reinigend."},
+{q:"In welchem Land ist die traditionelle Teezeremonie \"Gongfu Cha\" beheimatet?",a:["Japan","China","Taiwan","Korea"],c:1,cat:"Kulturen",d:4,e:"Der Name bedeutet sinngemäß \"Tee mit Geschick zubereiten\"."},
+{q:"Welches Volk ist für die traditionelle Kunstform der Ikebana (Blumensteckkunst) bekannt?",a:["Chinesen","Koreaner","Japaner","Thailänder"],c:2,cat:"Kulturen",d:4,e:"Bei dieser Kunstform zählt jede einzelne Linie und Lücke bewusst mit."},
+{q:"Welches Land feiert \"Nowruz\" als traditionelles Neujahrsfest zur Frühlings-Tagundnachtgleiche?",a:["Ägypten","Iran","Irak","Saudi-Arabien"],c:1,cat:"Kulturen",d:4,e:"Das Fest wird auch in mehreren zentralasiatischen Ländern gefeiert."},
+{q:"In welcher Kultur spielt das Digeridoo als traditionelles Musikinstrument eine zentrale Rolle?",a:["Māori","Aborigines","Inuit","Massai"],c:1,cat:"Kulturen",d:4,e:"Es zählt zu den ältesten Blasinstrumenten der Welt."},
+{q:"Welches Land ist Ursprungsort des traditionellen Tanzes Flamenco (Region Andalusien)?",a:["Portugal","Spanien","Italien","Marokko"],c:1,cat:"Kulturen",d:4,e:"Er vereint Gesang, Gitarrenspiel und rhythmisches Fußstampfen."},
+{q:"Welche Zeremonie ist im traditionellen Judentum die religiöse Mündigkeitsfeier für 13-jährige Jungen?",a:["Bar Mizwa","Bat Mizwa","Brit Mila","Pessach"],c:0,cat:"Kulturen",d:4,e:"Für Mädchen gibt es die entsprechende Feier meist mit 12 Jahren, die Bat Mizwa."},
+{q:"Welches Land praktiziert traditionell die Teezeremonie \"Chanoyu\"?",a:["China","Japan","Korea","Vietnam"],c:1,cat:"Kulturen",d:4,e:"Sie kann in ihrer vollen Form mehrere Stunden dauern."},
+{q:"In welcher Kultur ist der Tanz Tango als UNESCO-Kulturerbe anerkannt (gemeinsam mit einem Nachbarland)?",a:["Brasilien und Peru","Argentinien und Uruguay","Chile und Bolivien","Kolumbien und Venezuela"],c:1,cat:"Kulturen",d:4,e:"Beide Länder teilen sich das Ufer des Río de la Plata, wo der Tanz entstand."},
+{q:"Wie viele Elemente umfasst das aktuelle Periodensystem ungefähr?",a:["92","118","150","200"],c:1,cat:"Allgemeinwissen",d:4,e:"Die letzten Elemente wurden erst künstlich in Laboren erzeugt."},
+{q:"Wie nennt man die Angst vor der Zahl 13?",a:["Triskaidekaphobie","Arithmophobie","Numerophobie","Trypophobie"],c:0,cat:"Allgemeinwissen",d:4,e:"Manche Hochhäuser lassen aus diesem Aberglauben heraus sogar die 13. Etage im Nummerierungssystem aus."},
+{q:"Wie viele Saiten hat eine klassische Harfe ungefähr?",a:["Um die 20","Um die 30","Um die 47","Um die 70"],c:2,cat:"Allgemeinwissen",d:4,e:"Jede Saite erzeugt dabei einen eigenen festen Ton."},
+{q:"Welches ist das härteste natürlich vorkommende Mineral auf der Mohs-Skala?",a:["Korund","Topas","Diamant","Quarz"],c:2,cat:"Allgemeinwissen",d:4,e:"Er besteht wie Grafit ausschließlich aus Kohlenstoffatomen, nur anders kristallin angeordnet."},
+{q:"Wie viele Kontinente werden nach dem gängigsten Modell mit 7 Kontinenten gezählt, wenn man Europa und Asien zusammenfasst (Eurasien-Modell)?",a:["5","6","7","8"],c:1,cat:"Allgemeinwissen",d:4,e:"Geografisch gesehen bilden Europa und Asien tatsächlich eine zusammenhängende Landmasse."},
+{q:"Wie nennt man die Wissenschaft von den Erdbeben?",a:["Geologie","Seismologie","Vulkanologie","Meteorologie"],c:1,cat:"Allgemeinwissen",d:4,e:"Sie erforscht auch, wie sich seismische Wellen durch das Erdinnere ausbreiten."},
+{q:"Wie viele Zeichen umfasst das klassische chinesische Schriftsystem ungefähr (Gesamtbestand, nicht Alltagsgebrauch)?",a:["Etwa 5.000","Etwa 20.000","Über 50.000","Etwa 1.000"],c:2,cat:"Allgemeinwissen",d:4,e:"Im Alltag werden davon aber meist nur wenige Tausend tatsächlich verwendet."},
+{q:"Wie nennt man den siebten Planeten von der Sonne aus?",a:["Saturn","Uranus","Neptun","Jupiter"],c:1,cat:"Allgemeinwissen",d:4,e:"Er ist der einzige Planet, der praktisch seitlich um die Sonne rotiert."},
+{q:"Wie viele Grad Celsius entsprechen 100 Grad Fahrenheit ungefähr?",a:["Etwa 38 °C","Etwa 50 °C","Etwa 100 °C","Etwa 20 °C"],c:0,cat:"Allgemeinwissen",d:4,e:"Die Fahrenheit-Skala wird bis heute vor allem in den USA verwendet."},
+{q:"Wie nennt man die Lehre von der Bedeutung sprachlicher Zeichen?",a:["Syntax","Semantik","Phonetik","Pragmatik"],c:1,cat:"Allgemeinwissen",d:4,e:"Sie untersucht, wie Wörter und Sätze überhaupt zu ihrer Bedeutung kommen."},
+{q:"Wie viele Zeitzonen umfasst Russland auf seinem zusammenhängenden Staatsgebiet?",a:["9","11","13","15"],c:1,cat:"Allgemeinwissen",d:4,e:"Damit hat kein anderes Land der Welt mehr Zeitzonen auf zusammenhängendem Gebiet."},
+{q:"Wie nennt man das Zusammentreffen von Sonne, Erde und Mond auf einer Linie, bei dem der Mond die Sonne verdeckt?",a:["Mondfinsternis","Sonnenfinsternis","Supermond","Neumond"],c:1,cat:"Allgemeinwissen",d:4,e:"Eine totale Verdunkelung ist dabei jeweils nur von einem schmalen Streifen der Erde aus sichtbar."},
+{q:"Wie viele Buchstaben hat das kyrillische Alphabet in seiner russischen Variante?",a:["26","30","33","36"],c:2,cat:"Allgemeinwissen",d:4,e:"Es wird neben Russisch auch in vielen anderen slawischen Sprachen verwendet."},
+{q:"Wie lange kann ein Nilpferd die Luft unter Wasser anhalten (typisch, ohne Extremwerte)?",a:["30 Sekunden","2-5 Minuten","10 Minuten","30 Minuten"],c:1,cat:"Kurioses",d:4,e:"Selbst im Schlaf taucht es dafür automatisch regelmäßig zum Luftholen auf."},
+{q:"Welches Land verbrauchte historisch pro Kopf am meisten Schokolade (oft zitiertes Ranking)?",a:["Belgien","Deutschland","Schweiz","USA"],c:2,cat:"Kurioses",d:4,e:"Das Land zählt auch zu den bekanntesten Schokoladenproduzenten der Welt."},
+{q:"Wie viele Liter Speichel produziert ein Mensch ungefähr pro Tag?",a:["Etwa 0,1 Liter","Etwa 0,5 Liter","Etwa 1,5 Liter","Etwa 5 Liter"],c:2,cat:"Kurioses",d:4,e:"Speichel hilft unter anderem beim Verdauen und schützt die Zähne."},
+{q:"Welches Tier hat den längsten dokumentierten Winterschlaf unter Säugetieren?",a:["Braunbär","Sibirisches Erdhörnchen","Igel","Murmeltier"],c:1,cat:"Kurioses",d:4,e:"Manche arktischen Erdhörnchen halten bis zu 8 Monate Winterschlaf."},
+{q:"Wie viele Knochen verliert ein Mensch ungefähr vom Baby- zum Erwachsenenalter durch Verschmelzung?",a:["Etwa 30","Etwa 60","Etwa 94","Etwa 150"],c:2,cat:"Kurioses",d:4,e:"Babys haben ca. 300 Knochen, Erwachsene 206 – ein Großteil verschmilzt im Laufe des Wachstums."},
+{q:"Welches Land hat den höchsten dokumentierten Kaffeekonsum pro Kopf?",a:["Brasilien","Finnland","Italien","USA"],c:1,cat:"Kurioses",d:4,e:"Die nordischen Länder belegen bei diesem Ranking meist die vordersten Plätze."},
+{q:"Wie lange dauert es ungefähr, bis Licht von der Sonne die Erde erreicht?",a:["Etwa 8 Sekunden","Etwa 8 Minuten","Etwa 8 Stunden","Etwa 1 Minute"],c:1,cat:"Kurioses",d:4,e:"Würde die Sonne plötzlich erlöschen, würden wir das erst mit dieser Verzögerung bemerken."},
+{q:"Welches Tier hat proportional zum Körper das größte Gehirn im Tierreich?",a:["Mensch","Ameise","Delfin","Elefant"],c:1,cat:"Kurioses",d:4,e:"Manche Ameisenarten haben relativ zur Körpergröße eines der größten Gehirne im Tierreich."},
+{q:"Wie viele Muskeln benutzt man ungefähr für ein einziges Lächeln (oft zitierte, vereinfachte Zahl)?",a:["Etwa 5","Etwa 12","Etwa 30","Etwa 50"],c:1,cat:"Kurioses",d:4,e:"Für ein echtes, unwillkürliches Lächeln werden zusätzlich Muskeln rund um die Augen aktiviert."},
+{q:"Welches Land hat die höchste Dichte an Zeitzonen-Streitigkeiten wegen seiner Ost-West-Ausdehnung, nutzt aber nur eine offizielle Zeitzone?",a:["Russland","China","USA","Kanada"],c:1,cat:"Kurioses",d:4,e:"Im äußersten Westen des Landes geht die Sonne dadurch offiziell erst spätabends unter."},
+{q:"Wie viele Liter Blut pumpt ein menschliches Herz ungefähr pro Tag?",a:["Etwa 100 Liter","Etwa 1.000 Liter","Etwa 7.500 Liter","Etwa 50.000 Liter"],c:2,cat:"Kurioses",d:4,e:"Über ein ganzes Leben gerechnet kommen so mehrere Millionen Liter zusammen."},
+{q:"Welches ist das einzige Säugetier, das kein Sprung-Gelenk zum Springen einsetzen kann und daher generell nicht springt?",a:["Nilpferd","Elefant","Nashorn","Flusspferd und Elefant"],c:3,cat:"Kurioses",d:4,e:"Ihre Beinstruktur erlaubt es beiden schlicht nicht, alle vier Beine gleichzeitig vom Boden abzuheben."},
+{q:"Wie viele Gene hat ein Mensch ungefähr (Schätzung nach Humangenomprojekt)?",a:["Etwa 2.000","Etwa 20.000","Etwa 100.000","Etwa 500.000"],c:1,cat:"Kurioses",d:4,e:"Überraschend ist, dass ein Mensch damit kaum mehr Gene besitzt als manche deutlich einfachere Lebewesen."}
 ];
 
 /* ---------------------------- 2. RANGSYSTEM (zentral) ---------------------------- */
@@ -388,16 +821,19 @@ function getTimeLimit(score){
   return 10;
 }
 function getDifficultyWeights(score){
-  if(score < 1500) return [0.72, 0.24, 0.04];
-  if(score < 4000) return [0.35, 0.5, 0.15];
-  if(score < 8000) return [0.15, 0.45, 0.4];
-  return [0.05, 0.25, 0.7];
+  // [leicht, normal, schwer, extrem schwer]
+  if(score < 1500) return [0.65, 0.25, 0.09, 0.01];
+  if(score < 4000) return [0.30, 0.40, 0.25, 0.05];
+  if(score < 8000) return [0.10, 0.30, 0.40, 0.20];
+  if(score < 12000) return [0.03, 0.15, 0.42, 0.40];
+  return [0.0, 0.05, 0.30, 0.65];
 }
 function weightedDifficulty(weights){
   const r = Math.random();
   if(r < weights[0]) return 1;
   if(r < weights[0]+weights[1]) return 2;
-  return 3;
+  if(r < weights[0]+weights[1]+weights[2]) return 3;
+  return 4;
 }
 let recentQuestions = [];
 function pickQuestionsForRound(baseScore){
@@ -468,7 +904,7 @@ function renderMainMenu(){
       <p>Beweise dein Wissen. 5 Fragen. Immer schwieriger. Immer schneller.</p>
     </div>
     <div class="menu-grid">
-      <div class="mode-card" onclick="startSoloFlow()">
+      <div class="mode-card" onclick="startSoloMenu()">
         <div class="icon">🎯</div>
         <h3>SOLO</h3>
         <p>Spiele allein und verbessere deinen eigenen Punktestand und Rang.</p>
@@ -600,8 +1036,32 @@ function pickerCreateNew(){
    ============================================================================ */
 let solo = null;
 
+function startSoloMenu(){
+  renderApp(`
+    <div class="panel">
+      <div class="picker-title">SOLO</div>
+      <div class="picker-sub">Wie möchtest du allein spielen?</div>
+      <div class="menu-grid" style="grid-template-columns:1fr 1fr; margin-top:6px;">
+        <div class="mode-card" onclick="startSoloFlow()">
+          <div class="icon">🎯</div>
+          <h3>WISSENSTEST</h3>
+          <p>Der klassische Solo-Wissenstest: 5 Fragen, dein persönlicher Punktestand und Rang.</p>
+        </div>
+        <div class="mode-card" onclick="startSoloPartyFlow()">
+          <div class="icon">🎲</div>
+          <h3>PARTY-MODUS</h3>
+          <p>Spiele allein mehrere Runden mit wechselnden Modi: Wissenstest, Einordnen, Mehr oder Weniger.</p>
+        </div>
+      </div>
+      <div class="actions-row" style="margin-top:18px;">
+        <button class="btn btn-ghost" onclick="renderMainMenu()">ZURÜCK</button>
+      </div>
+    </div>
+  `);
+}
+
 function startSoloFlow(){
-  renderProfilePicker("WER SPIELT?", "Wähle dein Profil für den Solo-Modus.", [], beginSolo, "renderMainMenu");
+  renderProfilePicker("WER SPIELT?", "Wähle dein Profil für den Solo-Modus.", [], beginSolo, "startSoloMenu");
 }
 
 function beginSolo(profile){
@@ -1067,7 +1527,7 @@ function partyConnect(onOpen, onFail){
     onFail("Verbindung zum Server konnte nicht aufgebaut werden (" + err.message + "). Läuft der Server (node server.js) und ist diese Seite über seine http-Adresse geöffnet?");
     return;
   }
-  party = { ws, playerId:null, roomCode:null, isHost:false, room:null, myAnswered:false, myRankAnswered:false };
+  party = { ws, playerId:null, roomCode:null, isHost:false, room:null, myAnswered:false, myRankAnswered:false, selectedRankItemId:null, lastRankMsg:null };
 
   const timeout = setTimeout(() => {
     if(ws.readyState !== WebSocket.OPEN){
@@ -1082,8 +1542,9 @@ function partyConnect(onOpen, onFail){
   ws.onclose = () => {
     clearTimeout(timeout);
     const hadSession = party && party.roomCode;
+    const wasSolo = party && party.soloMode;
     party = null;
-    if(hadSession) renderPartyDisconnected();
+    if(hadSession) renderPartyDisconnected(wasSolo);
   };
   ws.onerror = () => {
     clearTimeout(timeout);
@@ -1091,12 +1552,12 @@ function partyConnect(onOpen, onFail){
   };
 }
 
-function renderPartyDisconnected(){
+function renderPartyDisconnected(wasSolo){
   renderApp(`
     <div class="panel party-waiting">
       <h2 style="color:var(--text); margin-bottom:8px;">Verbindung verloren</h2>
-      <p>Die Verbindung zum Party-Server wurde unterbrochen.</p>
-      <button class="btn btn-primary" style="margin-top:16px;" onclick="startPartyFlow()">ZURÜCK ZUR PARTY-AUSWAHL</button>
+      <p>Die Verbindung zum ${wasSolo ? 'Server' : 'Party-Server'} wurde unterbrochen.</p>
+      <button class="btn btn-primary" style="margin-top:16px;" onclick="${wasSolo ? 'startSoloMenu()' : 'startPartyFlow()'}">${wasSolo ? 'ZURÜCK ZU SOLO' : 'ZURÜCK ZUR PARTY-AUSWAHL'}</button>
     </div>
   `);
 }
@@ -1127,6 +1588,89 @@ function partyJoinRoom(){
 }
 function partySend(msg){ if(party && party.ws) party.ws.send(JSON.stringify(msg)); }
 function partyLeave(){ if(party && party.ws) party.ws.close(); party = null; renderMainMenu(); }
+function restartSoloParty(){ if(party && party.ws) party.ws.close(); party = null; startSoloPartyFlow(); }
+
+/* ---------- Solo-Party (Party-Engine allein gespielt, ohne Lobby/Bots) ---------- */
+function startSoloPartyFlow(){
+  partyConnect(
+    () => { party.soloMode = true; party.ws.send(JSON.stringify({ action:"createRoom", name:"Du" })); },
+    (msg) => {
+      renderApp(`
+        <div class="panel">
+          <div class="picker-title">SOLO PARTY</div>
+          <div class="explanation" style="border-color:var(--danger); color:var(--text);">${msg}</div>
+          <div class="actions-row" style="margin-top:18px;">
+            <button class="btn btn-ghost" onclick="startSoloMenu()">ZURÜCK</button>
+          </div>
+        </div>
+      `);
+    }
+  );
+}
+
+/* ---------- Wiederverwendbare Bausteine: Rundenanzahl & Rundenplan ---------- */
+function roundCountChipsHtml(room){
+  return `
+    <div class="settings-row">
+      <span class="label">Anzahl Runden</span>
+      <div class="chip-group">
+        ${[5,10,15,20].map(n=>`<div class="chip-btn ${room.roundCount===n?'active':''}" onclick="partySetRoundCount(${n})">${n}</div>`).join("")}
+      </div>
+    </div>
+  `;
+}
+function roundPlanBlockHtml(room, returnTo){
+  if(room.roundMode === 'random'){
+    return `
+      <div class="settings-row"><span class="label">Runden</span>
+        <button class="btn btn-ghost" style="padding:8px 14px; font-size:12px;" onclick="partyRandomizeRounds()">NEU MISCHEN</button>
+      </div>
+      <div class="round-plan-list">
+        ${room.roundDefs.map((r,i)=>`<div class="round-plan-item"><span class="idx">${i+1}</span>${r ? r.label : '…'}</div>`).join("")}
+      </div>
+    `;
+  }
+  const chosen = room.roundDefs.filter(Boolean).length;
+  return `
+    <div class="settings-row">
+      <span class="label">Eigene Runden</span>
+      <button class="btn btn-ghost" style="padding:8px 14px; font-size:12px;" onclick="openRoundBuilder('${returnTo}')">
+        RUNDEN ZUSAMMENSTELLEN (${chosen}/${room.roundCount})
+      </button>
+    </div>
+    <div class="round-plan-list">
+      ${room.roundDefs.map((r,i)=>`<div class="round-plan-item"><span class="idx">${i+1}</span>${r ? r.label : '<span style="color:var(--text-dim)">Noch nicht gewählt</span>'}</div>`).join("")}
+    </div>
+  `;
+}
+function roundPlanReady(room){
+  return room.roundMode !== 'custom' || (room.roundDefs.length === room.roundCount && room.roundDefs.every(Boolean));
+}
+
+function renderSoloPartyConfig(){
+  const room = party.room;
+  renderApp(`
+    <div class="panel">
+      <div class="picker-title">SOLO PARTY</div>
+      <div class="picker-sub">Stelle deine Runden zusammen und leg los – ganz ohne Mitspieler oder Bots.</div>
+
+      ${roundCountChipsHtml(room)}
+      <div class="settings-row">
+        <span class="label">Rundenauswahl</span>
+        <div class="chip-group">
+          <div class="chip-btn ${room.roundMode==='random'?'active':''}" onclick="partySetRoundMode('random')">Zufallsrunde</div>
+          <div class="chip-btn ${room.roundMode==='custom'?'active':''}" onclick="partySetRoundMode('custom')">Spiel erstellen</div>
+        </div>
+      </div>
+      ${roundPlanBlockHtml(room, 'renderSoloPartyConfig')}
+
+      <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="partySend({action:'startGame'})" ${roundPlanReady(room)?'':'disabled'}>LOS GEHT'S</button>
+      <div class="actions-row" style="margin-top:10px;">
+        <button class="btn btn-ghost" onclick="partyLeave()">ABBRECHEN</button>
+      </div>
+    </div>
+  `);
+}
 
 function partyHandleMessage(msg){
   if(!party) return;
@@ -1141,10 +1685,16 @@ function partyHandleMessage(msg){
       break;
     case "roomUpdate":
       party.room = msg;
-      if(msg.phase === "lobby") renderPartyLobby();
+      if(msg.phase === "lobby"){
+        if(party.soloMode) renderSoloPartyConfig();
+        else renderPartyLobby();
+      }
       break;
     case "roundStart":
       party.myAnswered = false;
+      party.selectedRankItemId = null;
+      if(party.soloMode && msg.kind === "knowledgeQuiz") party.soloQuizLives = 3;
+      else party.soloQuizLives = undefined;
       renderPartyRoundIntro(msg);
       break;
     case "quizQuestion":
@@ -1152,6 +1702,18 @@ function partyHandleMessage(msg){
       renderPartyQuiz(msg);
       break;
     case "quizReveal":
+      if(party.soloMode && typeof party.soloQuizLives === "number"){
+        const mine = msg.results.find(r => r.playerId === party.playerId);
+        if(mine && !mine.correct){
+          party.soloQuizLives--;
+          if(party.soloQuizLives <= 0){
+            if(party.ws) party.ws.close(); // sofort trennen, damit keine weitere Frage mehr nachkommt
+            renderSoloQuizGameOver(msg);
+            party = null; // verhindert, dass das spätere close-Event den Bildschirm überschreibt
+            break;
+          }
+        }
+      }
       renderPartyQuizReveal(msg);
       break;
     case "rankState":
@@ -1240,13 +1802,7 @@ function renderPartyHostSettings(room){
   const n = room.players.length;
 
   return `
-    <div class="settings-row">
-      <span class="label">Anzahl Runden</span>
-      <div class="chip-group">
-        <div class="chip-btn ${room.roundCount===5?'active':''}" onclick="partySetRoundCount(5)">5</div>
-        <div class="chip-btn ${room.roundCount===10?'active':''}" onclick="partySetRoundCount(10)">10</div>
-      </div>
-    </div>
+    ${roundCountChipsHtml(room)}
     <div class="settings-row">
       <span class="label">Rundenauswahl</span>
       <div class="chip-group">
@@ -1254,27 +1810,7 @@ function renderPartyHostSettings(room){
         <div class="chip-btn ${room.roundMode==='custom'?'active':''}" onclick="partySetRoundMode('custom')">Spiel erstellen</div>
       </div>
     </div>
-    ${room.roundMode === 'random' ? `
-      <div class="settings-row"><span class="label">Runden</span>
-        <button class="btn btn-ghost" style="padding:8px 14px; font-size:12px;" onclick="partyRandomizeRounds()">NEU MISCHEN</button>
-      </div>
-      <div class="round-plan-list">
-        ${room.roundDefs.map((r,i)=>`<div class="round-plan-item"><span class="idx">${i+1}</span>${r.label}</div>`).join("")}
-      </div>
-    ` : `
-      <div class="round-plan-list">
-        ${Array.from({length:room.roundCount}).map((_,i)=>{
-          const current = room.roundDefs[i] ? room.roundDefs[i].id : room.availableRoundDefs[0].id;
-          return `
-          <div class="round-plan-item">
-            <span class="idx">${i+1}</span>
-            <select onchange="partySetRoundDef(${i}, this.value)">
-              ${room.availableRoundDefs.map(d=>`<option value="${d.id}" ${d.id===current?'selected':''}>${d.label}</option>`).join("")}
-            </select>
-          </div>`;
-        }).join("")}
-      </div>
-    `}
+    ${roundPlanBlockHtml(room, 'renderPartyLobby')}
 
     <div class="settings-row">
       <span class="label">Teams</span>
@@ -1308,7 +1844,7 @@ function renderPartyHostSettings(room){
       </div>
     </div>
 
-    <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="partySend({action:'startGame'})">SPIEL STARTEN</button>
+    <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="partySend({action:'startGame'})" ${roundPlanReady(room)?'':'disabled'}>SPIEL STARTEN</button>
   `;
 }
 
@@ -1316,6 +1852,175 @@ function partySetRoundCount(n){ partySend({action:'setRoundCount', count:n}); }
 function partySetRoundMode(mode){ partySend({action:'setRoundMode', mode}); }
 function partyRandomizeRounds(){ partySend({action:'randomizeRounds'}); }
 function partySetRoundDef(index, defId){ partySend({action:'setRoundDef', index, defId}); }
+
+/* ---------- Eigene Spielrunde zusammenstellen (Round-Builder) ---------- */
+const PARTY_MODE_META = {
+  knowledgeQuiz: "Wissenstest",
+  orderingGame: "Einordnen",
+  higherLowerGame: "Mehr oder Weniger"
+};
+function builderCategoryLabel(def){
+  const idx = def.label.indexOf(": ");
+  return idx === -1 ? def.label : def.label.slice(idx + 2);
+}
+function builderModes(){
+  const kinds = [...new Set(party.room.availableRoundDefs.map(d => d.kind))];
+  return kinds.map(k => ({ kind: k, label: PARTY_MODE_META[k] || k }));
+}
+
+function openRoundBuilder(returnTo){
+  const room = party.room;
+  party.roundBuilder = {
+    returnTo,
+    targetCount: room.roundCount,
+    rounds: room.roundDefs.filter(Boolean).map(r => ({ id: r.id, kind: r.kind, label: r.label })),
+    modeSearch: "",
+    selectedKind: null,
+    categorySearch: "",
+    selectedDefId: null,
+    editingIndex: null
+  };
+  renderRoundBuilder();
+}
+
+function renderRoundBuilder(){
+  const b = party.roundBuilder;
+  const room = party.room;
+  const modeQuery = (b.modeSearch || "").toLowerCase();
+  const modes = builderModes().filter(m => m.label.toLowerCase().includes(modeQuery));
+
+  const needsCategory = b.selectedKind && b.selectedKind !== "knowledgeQuiz";
+  const catQuery = (b.categorySearch || "").toLowerCase();
+  const categories = needsCategory
+    ? room.availableRoundDefs.filter(d => d.kind === b.selectedKind && builderCategoryLabel(d).toLowerCase().includes(catQuery))
+    : [];
+
+  const atCapacity = b.editingIndex === null && b.rounds.length >= b.targetCount;
+  const missingCategory = needsCategory && !b.selectedDefId;
+  const addDisabled = !b.selectedKind || missingCategory || atCapacity;
+
+  renderApp(`
+    <div class="panel">
+      <div class="picker-title">EIGENE SPIELRUNDE${b.editingIndex !== null ? ' – Runde bearbeiten' : ''}</div>
+      <div class="picker-sub">${b.rounds.length} / ${b.targetCount} Runden ausgewählt</div>
+
+      <div class="settings-row" style="display:block; border-bottom:none; padding-bottom:6px;">
+        <span class="label">🔍 Spielmodus suchen</span>
+        <input type="text" class="builder-search" placeholder="z.B. Einordnen" value="${b.modeSearch}" oninput="builderSetModeSearch(this.value)">
+        <div class="chip-group" style="margin-top:8px;">
+          ${modes.length ? modes.map(m => `<div class="chip-btn ${b.selectedKind===m.kind?'active':''}" onclick="builderSelectMode('${m.kind}')">${m.label}</div>`).join("")
+            : `<span style="color:var(--text-dim); font-size:13px;">Kein Spielmodus gefunden</span>`}
+        </div>
+      </div>
+
+      ${needsCategory ? `
+        <div class="settings-row" style="display:block; border-bottom:none; margin-top:12px; padding-bottom:6px;">
+          <span class="label">🔍 Kategorie suchen</span>
+          <input type="text" class="builder-search" placeholder="z.B. Gebäude" value="${b.categorySearch}" oninput="builderSetCategorySearch(this.value)">
+          <div class="builder-category-list">
+            ${categories.length ? categories.map(d => `<div class="builder-category-item ${b.selectedDefId===d.id?'active':''}" onclick="builderSelectCategory('${d.id}')">${builderCategoryLabel(d)}</div>`).join("")
+              : `<span style="color:var(--text-dim); font-size:13px;">Keine Kategorie gefunden</span>`}
+          </div>
+        </div>
+      ` : ``}
+
+      <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="builderAddOrUpdateRound()" ${addDisabled?'disabled':''}>
+        ${b.editingIndex !== null ? '✓ ÄNDERUNG ÜBERNEHMEN' : '+ RUNDE HINZUFÜGEN'}
+      </button>
+      ${b.editingIndex !== null ? `<button class="btn btn-ghost btn-block" style="margin-top:8px;" onclick="builderCancelEdit()">Bearbeitung abbrechen</button>` : ``}
+
+      <div class="picker-title" style="font-size:16px; margin-top:24px;">MEINE SPIELRUNDE</div>
+      ${b.rounds.length === 0 ? `<p style="color:var(--text-dim); font-size:13px;">Noch keine Runden hinzugefügt.</p>` : `
+        <div class="round-plan-list">
+          ${b.rounds.map((r,i) => `
+            <div class="round-plan-item" style="align-items:center; padding:10px 12px;">
+              <span class="idx">${i+1}</span>
+              <span style="flex:1;">${PARTY_MODE_META[r.kind]||r.kind}<br><span style="color:var(--text-dim); font-size:11px;">${builderCategoryLabel(r)}</span></span>
+              <button class="bot-remove-btn" style="border-color:var(--line); color:var(--text);" onclick="builderEditRound(${i})" title="Bearbeiten">✏️</button>
+              <button class="bot-remove-btn" onclick="builderRemoveRound(${i})" title="Entfernen">🗑️</button>
+            </div>
+          `).join("")}
+        </div>
+      `}
+
+      <div class="actions-row" style="margin-top:18px;">
+        <button class="btn btn-primary" onclick="builderApply()" ${b.rounds.length===b.targetCount ? '' : 'disabled'}>EIGENE SPIELRUNDE ÜBERNEHMEN</button>
+        <button class="btn btn-ghost" onclick="builderCancel()">ABBRECHEN</button>
+      </div>
+    </div>
+  `);
+}
+
+function builderSetModeSearch(v){ party.roundBuilder.modeSearch = v; renderRoundBuilder(); }
+function builderSetCategorySearch(v){ party.roundBuilder.categorySearch = v; renderRoundBuilder(); }
+function builderSelectMode(kind){
+  const b = party.roundBuilder;
+  b.selectedKind = kind;
+  b.categorySearch = "";
+  b.selectedDefId = null;
+  if(kind === "knowledgeQuiz"){
+    const quizDef = party.room.availableRoundDefs.find(d => d.kind === "knowledgeQuiz");
+    b.selectedDefId = quizDef ? quizDef.id : null;
+  }
+  renderRoundBuilder();
+}
+function builderSelectCategory(defId){ party.roundBuilder.selectedDefId = defId; renderRoundBuilder(); }
+
+function builderAddOrUpdateRound(){
+  const b = party.roundBuilder;
+  const def = party.room.availableRoundDefs.find(d => d.id === b.selectedDefId);
+  if(!def) return;
+  const entry = { id: def.id, kind: def.kind, label: def.label };
+  if(b.editingIndex !== null){
+    b.rounds[b.editingIndex] = entry;
+    b.editingIndex = null;
+  } else {
+    if(b.rounds.length >= b.targetCount) return;
+    b.rounds.push(entry);
+  }
+  b.selectedKind = null;
+  b.selectedDefId = null;
+  b.modeSearch = "";
+  b.categorySearch = "";
+  renderRoundBuilder();
+}
+function builderEditRound(index){
+  const b = party.roundBuilder;
+  const r = b.rounds[index];
+  b.editingIndex = index;
+  b.selectedKind = r.kind;
+  b.selectedDefId = r.id;
+  b.modeSearch = "";
+  b.categorySearch = "";
+  renderRoundBuilder();
+}
+function builderCancelEdit(){
+  const b = party.roundBuilder;
+  b.editingIndex = null;
+  b.selectedKind = null;
+  b.selectedDefId = null;
+  renderRoundBuilder();
+}
+function builderRemoveRound(index){
+  const b = party.roundBuilder;
+  b.rounds.splice(index, 1);
+  if(b.editingIndex === index) b.editingIndex = null;
+  else if(b.editingIndex !== null && b.editingIndex > index) b.editingIndex--;
+  renderRoundBuilder();
+}
+function builderApply(){
+  const b = party.roundBuilder;
+  if(!b || b.rounds.length !== b.targetCount) return;
+  renderApp(`<div class="panel party-waiting"><p>Runden werden übernommen …</p></div>`);
+  if(party.room.roundMode !== "custom") partySend({action:'setRoundMode', mode:'custom'});
+  b.rounds.forEach((r, i) => partySend({action:'setRoundDef', index:i, defId:r.id}));
+  party.roundBuilder = null;
+}
+function builderCancel(){
+  const returnTo = party.roundBuilder ? party.roundBuilder.returnTo : "renderMainMenu";
+  party.roundBuilder = null;
+  if(typeof window[returnTo] === "function") window[returnTo](); else renderMainMenu();
+}
 function partySetTeamMode(teamMode){ partySend({action:'setTeamMode', teamMode}); }
 function partyAssignTeam(playerId, teamId){ partySend({action:'assignTeam', playerId, teamId}); }
 function partySetPointSystem(system){ partySend({action:'setPointSystem', system}); }
@@ -1333,8 +2038,15 @@ function renderPartyRoundIntro(msg){
 /* ---------- Quiz ---------- */
 function renderPartyQuiz(msg){
   const letters = ["A","B","C","D"];
+  const livesHtml = (party.soloMode && typeof party.soloQuizLives === "number") ? `
+    <div class="lives-row" style="margin-bottom:14px;">
+      <span>Leben</span>
+      <div class="hearts">${Array.from({length:3}).map((_,i)=>`<span class="heart ${i<party.soloQuizLives?'on':''}">❤</span>`).join("")}</div>
+    </div>
+  ` : ``;
   renderApp(`
     <div class="panel">
+      ${livesHtml}
       <div class="qmeta">
         <div class="qcount">Frage ${msg.index+1} von ${msg.total}</div>
         <div class="qcat">${msg.cat}</div>
@@ -1358,6 +2070,19 @@ function partyAnswerQuiz(idx){
   if(status){ status.classList.remove("hidden"); status.textContent = "Antwort gesendet – warte auf die anderen Spieler …"; }
   partySend({action:'quizAnswer', selectedIndex: idx});
 }
+function renderSoloQuizGameOver(msg){
+  const letters = ["A","B","C","D"];
+  renderApp(`
+    <div class="panel">
+      <div class="result-title">GAME OVER</div>
+      <div class="result-sub">3 falsche Antworten – die Leben sind aufgebraucht.</div>
+      <div class="explanation" style="margin-bottom:18px;">Richtige Antwort war: ${letters[msg.correctIndex]}${msg.explanation ? ' – ' + msg.explanation : ''}</div>
+      <div class="actions-row">
+        <button class="btn btn-primary" onclick="partyLeave()">ZURÜCK ZUM HAUPTMENÜ</button>
+      </div>
+    </div>
+  `);
+}
 function renderPartyQuizReveal(msg){
   const letters = ["A","B","C","D"];
   renderApp(`
@@ -1379,6 +2104,7 @@ function renderPartyQuizReveal(msg){
 
 /* ---------- Einordnen / Mehr oder Weniger ---------- */
 function renderPartyRank(msg){
+  party.lastRankMsg = msg;
   const myTeamId = party.room.players.find(p=>p.id===party.playerId)?.teamId;
   const myTurn = msg.turnTeamId === myTeamId;
   const turnTeam = party.room.teams.find(t=>t.id===msg.turnTeamId);
@@ -1389,6 +2115,17 @@ function renderPartyRank(msg){
     return `<div class="lives-row"><span>${team?.name || teamId}${msg.eliminated.includes(teamId)?' (raus)':''}</span><div class="hearts">${hearts}</div></div>`;
   }).join("");
 
+  // Bei "Mehr oder Weniger" bleibt es beim einzelnen gezogenen Element.
+  // Bei "Einordnen" ist der komplette Pool sichtbar; erst wenn ein Element
+  // angetippt wurde, erscheinen die Positions-Buttons dafür.
+  let activeItem = null;
+  if(!msg.freeChoice){
+    activeItem = msg.currentItem;
+  } else if(party.selectedRankItemId){
+    activeItem = (msg.pool || []).find(it => it.id === party.selectedRankItemId) || null;
+    if(!activeItem) party.selectedRankItemId = null; // wurde inzwischen von jemand anderem verbraucht
+  }
+
   renderApp(`
     <div class="panel">
       <div class="picker-title">${msg.label}</div>
@@ -1396,31 +2133,48 @@ function renderPartyRank(msg){
 
       <div class="turn-banner">${myTurn ? 'IHR SEID DRAN!' : (turnTeam?.name || '...') + ' ist dran'}</div>
 
-      ${msg.currentItem ? `
+      ${msg.freeChoice && !activeItem ? `
+        <div style="color:var(--text-dim); font-size:12px; margin-bottom:8px;">
+          ${myTurn ? 'Wählt ein Element aus, das ihr einordnen wollt:' : 'Noch nicht eingeordnete Elemente:'}
+        </div>
+        <div class="chip-group" style="margin-bottom:18px;">
+          ${(msg.pool || []).map(it => `
+            <div class="chip-btn ${myTurn ? '' : ''}" ${myTurn ? `onclick="partySelectRankItem('${it.id}')"` : ''} style="${myTurn ? '' : 'opacity:.6;'}">${it.name}</div>
+          `).join("")}
+        </div>
+      ` : ``}
+
+      ${activeItem ? `
         <div class="current-item-card">
-          <div style="color:var(--text-dim); font-size:12px;">Aktuelles Element</div>
-          <div class="name">${msg.currentItem.name}</div>
+          <div style="color:var(--text-dim); font-size:12px;">${msg.freeChoice ? 'Ausgewähltes Element' : 'Aktuelles Element'}</div>
+          <div class="name">${activeItem.name}</div>
         </div>
       ` : ``}
 
       <div class="rank-board">
-        ${myTurn && msg.currentItem ? `<button class="insert-btn" onclick="partyRankPlace(0)">Hier einordnen (an erster Stelle)</button>` : ``}
+        ${myTurn && activeItem ? `<button class="insert-btn" onclick="partyRankPlace('${activeItem.id}', 0)">Hier einordnen (an erster Stelle)</button>` : ``}
         ${msg.placed.map((item, i) => `
           <div class="rank-item-row">
             <span>${item.name}</span>
             ${item.value !== undefined ? `<span class="val">${item.value}</span>` : ``}
           </div>
-          ${myTurn && msg.currentItem ? `<button class="insert-btn" onclick="partyRankPlace(${i+1})">Hier einordnen</button>` : ``}
+          ${myTurn && activeItem ? `<button class="insert-btn" onclick="partyRankPlace('${activeItem.id}', ${i+1})">Hier einordnen</button>` : ``}
         `).join("")}
       </div>
+      ${myTurn && msg.freeChoice && activeItem ? `<button class="btn btn-ghost" style="margin-top:10px;" onclick="partySelectRankItem(null)">Andere Auswahl</button>` : ``}
 
       <div style="margin-top:18px;">${livesHtml}</div>
     </div>
   `);
 }
-function partyRankPlace(insertIndex){
+function partySelectRankItem(itemId){
+  party.selectedRankItemId = itemId;
+  if(party.lastRankMsg) renderPartyRank(party.lastRankMsg);
+}
+function partyRankPlace(itemId, insertIndex){
   document.querySelectorAll(".insert-btn").forEach(b=>b.disabled = true);
-  partySend({action:'rankPlace', insertIndex});
+  party.selectedRankItemId = null;
+  partySend({action:'rankPlace', itemId, insertIndex});
 }
 function renderPartyRankAttempt(msg){
   const team = party.room.teams.find(t=>t.id===msg.teamId);
@@ -1484,8 +2238,13 @@ function renderPartyGameEnd(msg){
         </div>
       `).join("")}
       <div class="actions-row" style="margin-top:14px;">
-        ${party.isHost ? `<button class="btn btn-primary" onclick="partySend({action:'restartLobby'})">ZURÜCK ZUM WARTERAUM</button>` : ``}
-        <button class="btn btn-ghost" onclick="partyLeave()">RAUM VERLASSEN</button>
+        ${party.soloMode ? `
+          <button class="btn btn-primary" onclick="restartSoloParty()">NOCH EINMAL</button>
+          <button class="btn btn-ghost" onclick="partyLeave()">HAUPTMENÜ</button>
+        ` : `
+          ${party.isHost ? `<button class="btn btn-primary" onclick="partySend({action:'restartLobby'})">ZURÜCK ZUM WARTERAUM</button>` : ``}
+          <button class="btn btn-ghost" onclick="partyLeave()">RAUM VERLASSEN</button>
+        `}
       </div>
     </div>
   `);
