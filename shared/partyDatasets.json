@@ -1,133 +1,1588 @@
 {
-  "ordering": {
-    "wm_titel": {
-      "label": "Einordnen: Fußball-Weltmeister (Titel)",
-      "unit": "Titel",
-      "order": "desc",
-      "items": [
-        {"id":"bra","name":"🇧🇷 Brasilien","value":5},
-        {"id":"deu","name":"🇩🇪 Deutschland","value":4},
-        {"id":"ita","name":"🇮🇹 Italien","value":4},
-        {"id":"arg","name":"🇦🇷 Argentinien","value":3},
-        {"id":"fra","name":"🇫🇷 Frankreich","value":2},
-        {"id":"ury","name":"🇺🇾 Uruguay","value":2},
-        {"id":"esp","name":"🇪🇸 Spanien","value":1},
-        {"id":"eng","name":"🏴 England","value":1}
-      ]
+ "ordering": {
+  "wm_titel": {
+   "label": "Einordnen: Fußball-Weltmeister (Jahr des ersten WM-Titels)",
+   "unit": "Jahr des ersten Titels",
+   "order": "asc",
+   "items": [
+    {
+     "id": "ury",
+     "name": "🇺🇾 Uruguay",
+     "value": 1930
     },
-    "gebaeude": {
-      "label": "Einordnen: Gebäude (Höhe)",
-      "unit": "m",
-      "order": "desc",
-      "items": [
-        {"id":"burj","name":"🏙️ Burj Khalifa (Dubai)","value":828},
-        {"id":"merdeka","name":"🏙️ Merdeka 118 (Kuala Lumpur)","value":679},
-        {"id":"shanghai","name":"🏙️ Shanghai Tower","value":632},
-        {"id":"makkah","name":"🏙️ Abraj Al-Bait Clock Tower (Mekka)","value":601},
-        {"id":"pingan","name":"🏙️ Ping An Finance Centre (Shenzhen)","value":599},
-        {"id":"lotte","name":"🏙️ Lotte World Tower (Seoul)","value":555},
-        {"id":"owtc","name":"🏙️ One World Trade Center (New York)","value":541},
-        {"id":"citic","name":"🏙️ CITIC Tower (Peking)","value":528}
-      ]
+    {
+     "id": "ita",
+     "name": "🇮🇹 Italien",
+     "value": 1934
     },
-    "filme": {
-      "label": "Einordnen: Filme (Welteinspielergebnis)",
-      "unit": "Mrd. USD (ca.)",
-      "order": "desc",
-      "items": [
-        {"id":"avatar","name":"🎬 Avatar","value":2.9},
-        {"id":"avatar2","name":"🎬 Avatar: The Way of Water","value":2.32},
-        {"id":"endgame","name":"🎬 Avengers: Endgame","value":2.8},
-        {"id":"titanic","name":"🎬 Titanic","value":2.26},
-        {"id":"starwars7","name":"🎬 Star Wars: Das Erwachen der Macht","value":2.07},
-        {"id":"infinitywar","name":"🎬 Avengers: Infinity War","value":2.05},
-        {"id":"lionking","name":"🎬 Der König der Löwen (2019)","value":1.66},
-        {"id":"jurassicworld","name":"🎬 Jurassic World","value":1.67}
-      ]
+    {
+     "id": "deu",
+     "name": "🇩🇪 Deutschland",
+     "value": 1954
+    },
+    {
+     "id": "bra",
+     "name": "🇧🇷 Brasilien",
+     "value": 1958
+    },
+    {
+     "id": "eng",
+     "name": "🏴 England",
+     "value": 1966
+    },
+    {
+     "id": "arg",
+     "name": "🇦🇷 Argentinien",
+     "value": 1978
+    },
+    {
+     "id": "fra",
+     "name": "🇫🇷 Frankreich",
+     "value": 1998
+    },
+    {
+     "id": "esp",
+     "name": "🇪🇸 Spanien",
+     "value": 2010
     }
+   ]
   },
-  "higherLower": {
-    "einwohner": {
-      "label": "Mehr oder Weniger: Einwohner",
-      "unit": "Einwohner (ca.)",
-      "order": "desc",
-      "seedId": "deu",
-      "items": [
-        {"id":"deu","name":"🇩🇪 Deutschland","value":84000000},
-        {"id":"fra","name":"🇫🇷 Frankreich","value":68000000},
-        {"id":"ita","name":"🇮🇹 Italien","value":59000000},
-        {"id":"esp","name":"🇪🇸 Spanien","value":47000000},
-        {"id":"jpn","name":"🇯🇵 Japan","value":124000000},
-        {"id":"usa","name":"🇺🇸 USA","value":335000000},
-        {"id":"ind","name":"🇮🇳 Indien","value":1428000000},
-        {"id":"bra","name":"🇧🇷 Brasilien","value":216000000},
-        {"id":"gbr","name":"🇬🇧 Vereinigtes Königreich","value":67000000},
-        {"id":"nga","name":"🇳🇬 Nigeria","value":223000000}
-      ]
+  "gebaeude": {
+   "label": "Einordnen: Gebäude (Höhe)",
+   "unit": "m",
+   "order": "desc",
+   "items": [
+    {
+     "id": "burj",
+     "name": "🏙️ Burj Khalifa (Dubai)",
+     "value": 828
     },
-    "musik": {
-      "label": "Mehr oder Weniger: Musik (Streams)",
-      "unit": "Mio. Streams (ca.)",
-      "order": "desc",
-      "seedId": "shapeofyou",
-      "items": [
-        {"id":"shapeofyou","name":"🎵 Ed Sheeran – Shape of You","value":4000},
-        {"id":"blinding","name":"🎵 The Weeknd – Blinding Lights","value":4700},
-        {"id":"dance","name":"🎵 Lady Gaga – Shallow","value":1800},
-        {"id":"rockstar","name":"🎵 Post Malone – rockstar","value":2500},
-        {"id":"sunflower","name":"🎵 Post Malone & Swae Lee – Sunflower","value":2900},
-        {"id":"seeyou","name":"🎵 Lewis Capaldi – Someone You Loved","value":2750},
-        {"id":"despacito","name":"🎵 Luis Fonsi – Despacito","value":3700},
-        {"id":"stayed","name":"🎵 The Kid LAROI & Justin Bieber – Stay","value":2400}
-      ]
+    {
+     "id": "merdeka",
+     "name": "🏙️ Merdeka 118 (Kuala Lumpur)",
+     "value": 679
     },
-    "serien": {
-      "label": "Mehr oder Weniger: Serien (Episodenanzahl)",
-      "unit": "Episoden",
-      "order": "desc",
-      "seedId": "friends",
-      "items": [
-        {"id":"friends","name":"📺 Friends","value":236},
-        {"id":"simpsons","name":"📺 Die Simpsons","value":750},
-        {"id":"greys","name":"📺 Grey's Anatomy","value":430},
-        {"id":"office","name":"📺 The Office (US)","value":201},
-        {"id":"got","name":"📺 Game of Thrones","value":73},
-        {"id":"breakingbad","name":"📺 Breaking Bad","value":62},
-        {"id":"strangerthings","name":"📺 Stranger Things","value":42},
-        {"id":"sherlock","name":"📺 Sherlock","value":13}
-      ]
+    {
+     "id": "shanghai",
+     "name": "🏙️ Shanghai Tower",
+     "value": 632
     },
-    "gehalt": {
-      "label": "Mehr oder Weniger: Berufe (Durchschnittsgehalt)",
-      "unit": "€ brutto/Jahr (ca.)",
-      "order": "desc",
-      "seedId": "arzt",
-      "items": [
-        {"id":"arzt","name":"👨‍⚕️ Facharzt/Fachärztin","value":95000},
-        {"id":"pilot","name":"✈️ Verkehrspilot/in","value":110000},
-        {"id":"anwalt","name":"⚖️ Rechtsanwalt/anwältin","value":75000},
-        {"id":"lehrer","name":"👩‍🏫 Lehrer/in","value":58000},
-        {"id":"ingenieur","name":"⚙️ Ingenieur/in","value":68000},
-        {"id":"krankenpfleger","name":"🩺 Krankenpfleger/in","value":38000},
-        {"id":"polizist","name":"👮 Polizist/in","value":48000},
-        {"id":"bäcker","name":"🥐 Bäcker/in","value":30000}
-      ]
+    {
+     "id": "makkah",
+     "name": "🏙️ Abraj Al-Bait Clock Tower (Mekka)",
+     "value": 601
     },
-    "kaderwert": {
-      "label": "Mehr oder Weniger: Fußball (Kaderwert)",
-      "unit": "Mio. € (ca.)",
-      "order": "desc",
-      "seedId": "mancity",
-      "items": [
-        {"id":"mancity","name":"⚽ Manchester City","value":1300},
-        {"id":"realmadrid","name":"⚽ Real Madrid","value":1100},
-        {"id":"arsenal","name":"⚽ FC Arsenal","value":1080},
-        {"id":"psg","name":"⚽ Paris Saint-Germain","value":1050},
-        {"id":"liverpool","name":"⚽ FC Liverpool","value":980},
-        {"id":"fcbarcelona","name":"⚽ FC Barcelona","value":950},
-        {"id":"fcbayern","name":"⚽ FC Bayern München","value":850},
-        {"id":"dortmund","name":"⚽ Borussia Dortmund","value":450}
-      ]
+    {
+     "id": "pingan",
+     "name": "🏙️ Ping An Finance Centre (Shenzhen)",
+     "value": 599
+    },
+    {
+     "id": "lotte",
+     "name": "🏙️ Lotte World Tower (Seoul)",
+     "value": 555
+    },
+    {
+     "id": "owtc",
+     "name": "🏙️ One World Trade Center (New York)",
+     "value": 541
+    },
+    {
+     "id": "citic",
+     "name": "🏙️ CITIC Tower (Peking)",
+     "value": 528
     }
+   ]
+  },
+  "filme": {
+   "label": "Einordnen: Filme (Welteinspielergebnis)",
+   "unit": "Mrd. USD (ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "avatar",
+     "name": "🎬 Avatar",
+     "value": 2.9
+    },
+    {
+     "id": "avatar2",
+     "name": "🎬 Avatar: The Way of Water",
+     "value": 2.32
+    },
+    {
+     "id": "endgame",
+     "name": "🎬 Avengers: Endgame",
+     "value": 2.8
+    },
+    {
+     "id": "titanic",
+     "name": "🎬 Titanic",
+     "value": 2.26
+    },
+    {
+     "id": "starwars7",
+     "name": "🎬 Star Wars: Das Erwachen der Macht",
+     "value": 2.07
+    },
+    {
+     "id": "infinitywar",
+     "name": "🎬 Avengers: Infinity War",
+     "value": 2.05
+    },
+    {
+     "id": "lionking",
+     "name": "🎬 Der König der Löwen (2019)",
+     "value": 1.66
+    },
+    {
+     "id": "jurassicworld",
+     "name": "🎬 Jurassic World",
+     "value": 1.67
+    }
+   ]
+  },
+  "laender_flaeche": {
+   "label": "Einordnen: Länder (Fläche)",
+   "unit": "km²",
+   "order": "desc",
+   "items": [
+    {
+     "id": "rus",
+     "name": "🇷🇺 Russland",
+     "value": 17098242
+    },
+    {
+     "id": "can",
+     "name": "🇨🇦 Kanada",
+     "value": 9984670
+    },
+    {
+     "id": "usa",
+     "name": "🇺🇸 USA",
+     "value": 9833517
+    },
+    {
+     "id": "chn",
+     "name": "🇨🇳 China",
+     "value": 9596961
+    },
+    {
+     "id": "bra",
+     "name": "🇧🇷 Brasilien",
+     "value": 8515767
+    },
+    {
+     "id": "aus",
+     "name": "🇦🇺 Australien",
+     "value": 7692024
+    },
+    {
+     "id": "ind",
+     "name": "🇮🇳 Indien",
+     "value": 3287263
+    },
+    {
+     "id": "arg",
+     "name": "🇦🇷 Argentinien",
+     "value": 2780400
+    }
+   ]
+  },
+  "staedte_einwohner": {
+   "label": "Einordnen: Städte (Einwohnerzahl)",
+   "unit": "Einwohner (Ballungsraum, ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "tokio",
+     "name": "🏯 Tokio",
+     "value": 37000000
+    },
+    {
+     "id": "delhi",
+     "name": "🕌 Delhi",
+     "value": 32000000
+    },
+    {
+     "id": "shanghai",
+     "name": "🏙️ Shanghai",
+     "value": 29000000
+    },
+    {
+     "id": "saopaulo",
+     "name": "🌆 São Paulo",
+     "value": 21800000
+    },
+    {
+     "id": "mexicocity",
+     "name": "🌵 Mexiko-Stadt",
+     "value": 22200000
+    },
+    {
+     "id": "kairo",
+     "name": "🏛️ Kairo",
+     "value": 20900000
+    },
+    {
+     "id": "mumbai",
+     "name": "🕌 Mumbai",
+     "value": 21500000
+    },
+    {
+     "id": "peking",
+     "name": "🏮 Peking",
+     "value": 20000000
+    }
+   ]
+  },
+  "unternehmen_boersenwert": {
+   "label": "Einordnen: Unternehmen (Börsenwert)",
+   "unit": "Mrd. USD (ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "apple",
+     "name": "🍎 Apple",
+     "value": 3400
+    },
+    {
+     "id": "microsoft",
+     "name": "🪟 Microsoft",
+     "value": 3100
+    },
+    {
+     "id": "nvidia",
+     "name": "🖥️ Nvidia",
+     "value": 3000
+    },
+    {
+     "id": "alphabet",
+     "name": "🔍 Alphabet (Google)",
+     "value": 2100
+    },
+    {
+     "id": "amazon",
+     "name": "📦 Amazon",
+     "value": 1900
+    },
+    {
+     "id": "saudiaramco",
+     "name": "🛢️ Saudi Aramco",
+     "value": 1800
+    },
+    {
+     "id": "meta",
+     "name": "📘 Meta",
+     "value": 1300
+    },
+    {
+     "id": "tesla",
+     "name": "🚗 Tesla",
+     "value": 800
+    }
+   ]
+  },
+  "formel1_siege": {
+   "label": "Einordnen: Formel 1 (Anzahl der Siege)",
+   "unit": "Rennsiege (Fahrer, ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "hamilton",
+     "name": "🏎️ Lewis Hamilton",
+     "value": 105
+    },
+    {
+     "id": "schumacher",
+     "name": "🏎️ Michael Schumacher",
+     "value": 91
+    },
+    {
+     "id": "verstappen",
+     "name": "🏎️ Max Verstappen",
+     "value": 65
+    },
+    {
+     "id": "vettel",
+     "name": "🏎️ Sebastian Vettel",
+     "value": 53
+    },
+    {
+     "id": "prost",
+     "name": "🏎️ Alain Prost",
+     "value": 51
+    },
+    {
+     "id": "senna",
+     "name": "🏎️ Ayrton Senna",
+     "value": 41
+    },
+    {
+     "id": "alonso",
+     "name": "🏎️ Fernando Alonso",
+     "value": 32
+    },
+    {
+     "id": "mansell",
+     "name": "🏎️ Nigel Mansell",
+     "value": 31
+    }
+   ]
+  },
+  "olympia_gold": {
+   "label": "Einordnen: Olympia (Goldmedaillen, Sommerspiele, Land)",
+   "unit": "Goldmedaillen (gesamt, ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "usa",
+     "name": "🇺🇸 USA",
+     "value": 1180
+    },
+    {
+     "id": "chn",
+     "name": "🇨🇳 China",
+     "value": 280
+    },
+    {
+     "id": "gbr",
+     "name": "🇬🇧 Großbritannien",
+     "value": 285
+    },
+    {
+     "id": "fra",
+     "name": "🇫🇷 Frankreich",
+     "value": 235
+    },
+    {
+     "id": "ita",
+     "name": "🇮🇹 Italien",
+     "value": 225
+    },
+    {
+     "id": "deu",
+     "name": "🇩🇪 Deutschland",
+     "value": 200
+    },
+    {
+     "id": "jpn",
+     "name": "🇯🇵 Japan",
+     "value": 180
+    },
+    {
+     "id": "aus",
+     "name": "🇦🇺 Australien",
+     "value": 160
+    }
+   ]
+  },
+  "fluesse_laenge": {
+   "label": "Einordnen: Flüsse (Länge)",
+   "unit": "km",
+   "order": "desc",
+   "items": [
+    {
+     "id": "nil",
+     "name": "🌊 Nil",
+     "value": 6650
+    },
+    {
+     "id": "amazonas",
+     "name": "🌊 Amazonas",
+     "value": 6400
+    },
+    {
+     "id": "jangtse",
+     "name": "🌊 Jangtse",
+     "value": 6300
+    },
+    {
+     "id": "mississippi",
+     "name": "🌊 Mississippi-Missouri",
+     "value": 6275
+    },
+    {
+     "id": "jenissei",
+     "name": "🌊 Jenissei",
+     "value": 5539
+    },
+    {
+     "id": "huanghe",
+     "name": "🌊 Gelber Fluss (Huang He)",
+     "value": 5464
+    },
+    {
+     "id": "ob",
+     "name": "🌊 Ob",
+     "value": 5410
+    },
+    {
+     "id": "kongo",
+     "name": "🌊 Kongo",
+     "value": 4700
+    }
+   ]
+  },
+  "berge_hoehe": {
+   "label": "Einordnen: Berge (Höhe)",
+   "unit": "m",
+   "order": "desc",
+   "items": [
+    {
+     "id": "everest",
+     "name": "⛰️ Mount Everest",
+     "value": 8849
+    },
+    {
+     "id": "k2",
+     "name": "⛰️ K2",
+     "value": 8611
+    },
+    {
+     "id": "kangchenjunga",
+     "name": "⛰️ Kangchenjunga",
+     "value": 8586
+    },
+    {
+     "id": "lhotse",
+     "name": "⛰️ Lhotse",
+     "value": 8516
+    },
+    {
+     "id": "makalu",
+     "name": "⛰️ Makalu",
+     "value": 8485
+    },
+    {
+     "id": "choyu",
+     "name": "⛰️ Cho Oyu",
+     "value": 8188
+    },
+    {
+     "id": "denali",
+     "name": "⛰️ Denali",
+     "value": 6190
+    },
+    {
+     "id": "kilimandscharo",
+     "name": "⛰️ Kilimandscharo",
+     "value": 5895
+    }
+   ]
+  },
+  "filme_animation": {
+   "label": "Einordnen: Filme – Animation (Welteinspielergebnis)",
+   "unit": "Mrd. USD (ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "lionking2019",
+     "name": "🎬 Der König der Löwen (2019)",
+     "value": 1.66
+    },
+    {
+     "id": "frozen2",
+     "name": "🎬 Die Eiskönigin II",
+     "value": 1.45
+    },
+    {
+     "id": "mariobrosfilm",
+     "name": "🎬 Der Super Mario Bros. Film",
+     "value": 1.36
+    },
+    {
+     "id": "frozen1",
+     "name": "🎬 Die Eiskönigin",
+     "value": 1.28
+    },
+    {
+     "id": "minions",
+     "name": "🎬 Minions",
+     "value": 1.16
+    },
+    {
+     "id": "toystory4",
+     "name": "🎬 Toy Story 4",
+     "value": 1.07
+    },
+    {
+     "id": "findetdorie",
+     "name": "🎬 Findet Dorie",
+     "value": 1.03
+    },
+    {
+     "id": "zoomania",
+     "name": "🎬 Zoomania",
+     "value": 1.02
+    }
+   ]
+  },
+  "trashtv_staffeln": {
+   "label": "Einordnen: Trash-TV Deutschland (Anzahl der Staffeln)",
+   "unit": "Staffeln (Stand 2026, ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "dschungelcamp",
+     "name": "🌴 Ich bin ein Star – Holt mich hier raus!",
+     "value": 19
+    },
+    {
+     "id": "bachelor",
+     "name": "🌹 Der Bachelor",
+     "value": 16
+    },
+    {
+     "id": "bigbrother",
+     "name": "🏠 Big Brother",
+     "value": 13
+    },
+    {
+     "id": "promibigbrother",
+     "name": "🏠 Promi Big Brother",
+     "value": 12
+    },
+    {
+     "id": "loveisland",
+     "name": "💋 Love Island",
+     "value": 11
+    },
+    {
+     "id": "kampfrealitystars",
+     "name": "🏝️ Kampf der Realitystars",
+     "value": 9
+    },
+    {
+     "id": "temptationisland",
+     "name": "🏖️ Temptation Island",
+     "value": 8
+    },
+    {
+     "id": "areyoutheone",
+     "name": "💑 Are You The One",
+     "value": 4
+    }
+   ]
   }
+ },
+ "higherLower": {
+  "einwohner": {
+   "label": "Mehr oder Weniger: Einwohner",
+   "unit": "Einwohner (ca.)",
+   "order": "desc",
+   "seedId": "deu",
+   "items": [
+    {
+     "id": "deu",
+     "name": "🇩🇪 Deutschland",
+     "value": 84000000
+    },
+    {
+     "id": "fra",
+     "name": "🇫🇷 Frankreich",
+     "value": 68000000
+    },
+    {
+     "id": "ita",
+     "name": "🇮🇹 Italien",
+     "value": 59000000
+    },
+    {
+     "id": "esp",
+     "name": "🇪🇸 Spanien",
+     "value": 47000000
+    },
+    {
+     "id": "jpn",
+     "name": "🇯🇵 Japan",
+     "value": 124000000
+    },
+    {
+     "id": "usa",
+     "name": "🇺🇸 USA",
+     "value": 335000000
+    },
+    {
+     "id": "ind",
+     "name": "🇮🇳 Indien",
+     "value": 1428000000
+    },
+    {
+     "id": "bra",
+     "name": "🇧🇷 Brasilien",
+     "value": 216000000
+    },
+    {
+     "id": "gbr",
+     "name": "🇬🇧 Vereinigtes Königreich",
+     "value": 67000000
+    },
+    {
+     "id": "nga",
+     "name": "🇳🇬 Nigeria",
+     "value": 223000000
+    }
+   ]
+  },
+  "musik": {
+   "label": "Mehr oder Weniger: Musik (Streams)",
+   "unit": "Mio. Streams (ca.)",
+   "order": "desc",
+   "seedId": "shapeofyou",
+   "items": [
+    {
+     "id": "shapeofyou",
+     "name": "🎵 Ed Sheeran – Shape of You",
+     "value": 4000
+    },
+    {
+     "id": "blinding",
+     "name": "🎵 The Weeknd – Blinding Lights",
+     "value": 4700
+    },
+    {
+     "id": "dance",
+     "name": "🎵 Lady Gaga – Shallow",
+     "value": 1800
+    },
+    {
+     "id": "rockstar",
+     "name": "🎵 Post Malone – rockstar",
+     "value": 2500
+    },
+    {
+     "id": "sunflower",
+     "name": "🎵 Post Malone & Swae Lee – Sunflower",
+     "value": 2900
+    },
+    {
+     "id": "seeyou",
+     "name": "🎵 Lewis Capaldi – Someone You Loved",
+     "value": 2750
+    },
+    {
+     "id": "despacito",
+     "name": "🎵 Luis Fonsi – Despacito",
+     "value": 3700
+    },
+    {
+     "id": "stayed",
+     "name": "🎵 The Kid LAROI & Justin Bieber – Stay",
+     "value": 2400
+    }
+   ]
+  },
+  "serien": {
+   "label": "Mehr oder Weniger: Serien (Episodenanzahl)",
+   "unit": "Episoden",
+   "order": "desc",
+   "seedId": "friends",
+   "items": [
+    {
+     "id": "friends",
+     "name": "📺 Friends",
+     "value": 236
+    },
+    {
+     "id": "simpsons",
+     "name": "📺 Die Simpsons",
+     "value": 750
+    },
+    {
+     "id": "greys",
+     "name": "📺 Grey's Anatomy",
+     "value": 430
+    },
+    {
+     "id": "office",
+     "name": "📺 The Office (US)",
+     "value": 201
+    },
+    {
+     "id": "got",
+     "name": "📺 Game of Thrones",
+     "value": 73
+    },
+    {
+     "id": "breakingbad",
+     "name": "📺 Breaking Bad",
+     "value": 62
+    },
+    {
+     "id": "strangerthings",
+     "name": "📺 Stranger Things",
+     "value": 42
+    },
+    {
+     "id": "sherlock",
+     "name": "📺 Sherlock",
+     "value": 13
+    }
+   ]
+  },
+  "gehalt": {
+   "label": "Mehr oder Weniger: Berufe (Durchschnittsgehalt)",
+   "unit": "€ brutto/Jahr (ca.)",
+   "order": "desc",
+   "seedId": "arzt",
+   "items": [
+    {
+     "id": "arzt",
+     "name": "👨‍⚕️ Facharzt/Fachärztin",
+     "value": 95000
+    },
+    {
+     "id": "pilot",
+     "name": "✈️ Verkehrspilot/in",
+     "value": 110000
+    },
+    {
+     "id": "anwalt",
+     "name": "⚖️ Rechtsanwalt/anwältin",
+     "value": 75000
+    },
+    {
+     "id": "lehrer",
+     "name": "👩‍🏫 Lehrer/in",
+     "value": 58000
+    },
+    {
+     "id": "ingenieur",
+     "name": "⚙️ Ingenieur/in",
+     "value": 68000
+    },
+    {
+     "id": "krankenpfleger",
+     "name": "🩺 Krankenpfleger/in",
+     "value": 38000
+    },
+    {
+     "id": "polizist",
+     "name": "👮 Polizist/in",
+     "value": 48000
+    },
+    {
+     "id": "bäcker",
+     "name": "🥐 Bäcker/in",
+     "value": 30000
+    }
+   ]
+  },
+  "kaderwert": {
+   "label": "Mehr oder Weniger: Fußball (Kaderwert)",
+   "unit": "Mio. € (ca.)",
+   "order": "desc",
+   "seedId": "mancity",
+   "items": [
+    {
+     "id": "mancity",
+     "name": "⚽ Manchester City",
+     "value": 1300
+    },
+    {
+     "id": "realmadrid",
+     "name": "⚽ Real Madrid",
+     "value": 1100
+    },
+    {
+     "id": "arsenal",
+     "name": "⚽ FC Arsenal",
+     "value": 1080
+    },
+    {
+     "id": "psg",
+     "name": "⚽ Paris Saint-Germain",
+     "value": 1050
+    },
+    {
+     "id": "liverpool",
+     "name": "⚽ FC Liverpool",
+     "value": 980
+    },
+    {
+     "id": "fcbarcelona",
+     "name": "⚽ FC Barcelona",
+     "value": 950
+    },
+    {
+     "id": "fcbayern",
+     "name": "⚽ FC Bayern München",
+     "value": 850
+    },
+    {
+     "id": "dortmund",
+     "name": "⚽ Borussia Dortmund",
+     "value": 450
+    }
+   ]
+  },
+  "immobilien_preis": {
+   "label": "Mehr oder Weniger: Immobilien (Quadratmeterpreis)",
+   "unit": "€/m² (Stadtdurchschnitt, ca.)",
+   "order": "desc",
+   "seedId": "berlin",
+   "items": [
+    {
+     "id": "berlin",
+     "name": "🏠 Berlin",
+     "value": 6000
+    },
+    {
+     "id": "monaco",
+     "name": "🏠 Monaco",
+     "value": 47000
+    },
+    {
+     "id": "hongkong",
+     "name": "🏠 Hongkong",
+     "value": 28000
+    },
+    {
+     "id": "london",
+     "name": "🏠 London",
+     "value": 19000
+    },
+    {
+     "id": "newyork",
+     "name": "🏠 New York",
+     "value": 16000
+    },
+    {
+     "id": "paris",
+     "name": "🏠 Paris",
+     "value": 11000
+    },
+    {
+     "id": "zuerich",
+     "name": "🏠 Zürich",
+     "value": 16500
+    },
+    {
+     "id": "singapur",
+     "name": "🏠 Singapur",
+     "value": 22000
+    }
+   ]
+  },
+  "apps_downloads": {
+   "label": "Mehr oder Weniger: Apps (Downloads)",
+   "unit": "Mrd. Downloads (ca.)",
+   "order": "desc",
+   "seedId": "spotify",
+   "items": [
+    {
+     "id": "spotify",
+     "name": "📱 Spotify",
+     "value": 1.0
+    },
+    {
+     "id": "whatsapp",
+     "name": "📱 WhatsApp",
+     "value": 6.5
+    },
+    {
+     "id": "tiktok",
+     "name": "📱 TikTok",
+     "value": 4.5
+    },
+    {
+     "id": "instagram",
+     "name": "📱 Instagram",
+     "value": 4.0
+    },
+    {
+     "id": "facebook",
+     "name": "📱 Facebook",
+     "value": 6.0
+    },
+    {
+     "id": "messenger",
+     "name": "📱 Messenger",
+     "value": 4.8
+    },
+    {
+     "id": "snapchat",
+     "name": "📱 Snapchat",
+     "value": 1.8
+    },
+    {
+     "id": "zoom",
+     "name": "📱 Zoom",
+     "value": 1.1
+    }
+   ]
+  },
+  "videospiele_verkaeufe": {
+   "label": "Mehr oder Weniger: Videospiele (Verkaufszahlen)",
+   "unit": "Mio. verkaufte Einheiten (ca.)",
+   "order": "desc",
+   "seedId": "mariokart8",
+   "items": [
+    {
+     "id": "mariokart8",
+     "name": "🎮 Mario Kart 8 (Deluxe)",
+     "value": 68
+    },
+    {
+     "id": "minecraft",
+     "name": "🎮 Minecraft",
+     "value": 300
+    },
+    {
+     "id": "gtav",
+     "name": "🎮 Grand Theft Auto V",
+     "value": 210
+    },
+    {
+     "id": "tetris",
+     "name": "🎮 Tetris (alle Versionen)",
+     "value": 100
+    },
+    {
+     "id": "wiisports",
+     "name": "🎮 Wii Sports",
+     "value": 82
+    },
+    {
+     "id": "pubg",
+     "name": "🎮 PUBG: Battlegrounds",
+     "value": 75
+    },
+    {
+     "id": "supermario",
+     "name": "🎮 Super Mario Bros. (1985)",
+     "value": 40
+    },
+    {
+     "id": "pokemonrb",
+     "name": "🎮 Pokémon Rot/Blau",
+     "value": 31
+    }
+   ]
+  },
+  "buecher_verkaeufe": {
+   "label": "Mehr oder Weniger: Bücher (verkaufte Exemplare)",
+   "unit": "Mio. verkaufte Exemplare (ca.)",
+   "order": "desc",
+   "seedId": "alchemist",
+   "items": [
+    {
+     "id": "alchemist",
+     "name": "📖 Der Alchimist (Paulo Coelho)",
+     "value": 65
+    },
+    {
+     "id": "hobbit",
+     "name": "📖 Der Hobbit",
+     "value": 140
+    },
+    {
+     "id": "lotr",
+     "name": "📖 Der Herr der Ringe",
+     "value": 150
+    },
+    {
+     "id": "harrypotter1",
+     "name": "📖 Harry Potter und der Stein der Weisen",
+     "value": 120
+    },
+    {
+     "id": "littleprince",
+     "name": "📖 Der kleine Prinz",
+     "value": 200
+    },
+    {
+     "id": "donquijote",
+     "name": "📖 Don Quijote",
+     "value": 500
+    },
+    {
+     "id": "davincicode",
+     "name": "📖 Sakrileg (Dan Brown)",
+     "value": 80
+    },
+    {
+     "id": "agathachristie",
+     "name": "📖 Und dann gab's keines mehr (Agatha Christie)",
+     "value": 100
+    }
+   ]
+  },
+  "prominente_follower": {
+   "label": "Mehr oder Weniger: Prominente (Social-Media-Follower)",
+   "unit": "Mio. Follower (eine Plattform, ca.)",
+   "order": "desc",
+   "seedId": "ronaldo",
+   "items": [
+    {
+     "id": "ronaldo",
+     "name": "⚽ Cristiano Ronaldo",
+     "value": 630
+    },
+    {
+     "id": "messi",
+     "name": "⚽ Lionel Messi",
+     "value": 500
+    },
+    {
+     "id": "selenagomez",
+     "name": "🎤 Selena Gomez",
+     "value": 420
+    },
+    {
+     "id": "kyliejenner",
+     "name": "💄 Kylie Jenner",
+     "value": 400
+    },
+    {
+     "id": "therock",
+     "name": "🎬 Dwayne Johnson",
+     "value": 390
+    },
+    {
+     "id": "arianagrande",
+     "name": "🎤 Ariana Grande",
+     "value": 380
+    },
+    {
+     "id": "kimkardashian",
+     "name": "💄 Kim Kardashian",
+     "value": 360
+    },
+    {
+     "id": "beyonce",
+     "name": "🎤 Beyoncé",
+     "value": 320
+    }
+   ]
+  },
+  "basketball_gehalt": {
+   "label": "Mehr oder Weniger: Basketball (Jahresgehalt)",
+   "unit": "Mio. USD/Jahr (ca.)",
+   "order": "desc",
+   "seedId": "curry",
+   "items": [
+    {
+     "id": "curry",
+     "name": "🏀 Stephen Curry",
+     "value": 55
+    },
+    {
+     "id": "lebron",
+     "name": "🏀 LeBron James",
+     "value": 52
+    },
+    {
+     "id": "durant",
+     "name": "🏀 Kevin Durant",
+     "value": 50
+    },
+    {
+     "id": "giannis",
+     "name": "🏀 Giannis Antetokounmpo",
+     "value": 48
+    },
+    {
+     "id": "embiid",
+     "name": "🏀 Joel Embiid",
+     "value": 51
+    },
+    {
+     "id": "doncic",
+     "name": "🏀 Luka Dončić",
+     "value": 43
+    },
+    {
+     "id": "tatum",
+     "name": "🏀 Jayson Tatum",
+     "value": 35
+    },
+    {
+     "id": "morant",
+     "name": "🏀 Ja Morant",
+     "value": 34
+    }
+   ]
+  },
+  "autos_speed": {
+   "label": "Mehr oder Weniger: Autos (Höchstgeschwindigkeit)",
+   "unit": "km/h",
+   "order": "desc",
+   "seedId": "golf8",
+   "items": [
+    {
+     "id": "golf8",
+     "name": "🚗 VW Golf 8 (Basismodell)",
+     "value": 198
+    },
+    {
+     "id": "bugattichiron",
+     "name": "🚗 Bugatti Chiron Super Sport",
+     "value": 440
+    },
+    {
+     "id": "ssctuatara",
+     "name": "🚗 SSC Tuatara",
+     "value": 455
+    },
+    {
+     "id": "koenigseggjesko",
+     "name": "🚗 Koenigsegg Jesko Absolut",
+     "value": 480
+    },
+    {
+     "id": "venom",
+     "name": "🚗 Hennessey Venom F5",
+     "value": 484
+    },
+    {
+     "id": "porsche911",
+     "name": "🚗 Porsche 911 Carrera",
+     "value": 293
+    },
+    {
+     "id": "teslamodels",
+     "name": "🚗 Tesla Model S Plaid",
+     "value": 322
+    },
+    {
+     "id": "mclarenf1",
+     "name": "🚗 McLaren F1",
+     "value": 386
+    }
+   ]
+  },
+  "kaderwert_bundesliga": {
+   "label": "Mehr oder Weniger: Fußball – Bundesliga (Kaderwert)",
+   "unit": "Mio. € (ca.)",
+   "order": "desc",
+   "seedId": "bayern",
+   "items": [
+    {
+     "id": "bayern",
+     "name": "⚽ FC Bayern München",
+     "value": 800
+    },
+    {
+     "id": "leverkusen",
+     "name": "⚽ Bayer Leverkusen",
+     "value": 550
+    },
+    {
+     "id": "dortmund",
+     "name": "⚽ Borussia Dortmund",
+     "value": 450
+    },
+    {
+     "id": "leipzig",
+     "name": "⚽ RB Leipzig",
+     "value": 400
+    },
+    {
+     "id": "frankfurt",
+     "name": "⚽ Eintracht Frankfurt",
+     "value": 280
+    },
+    {
+     "id": "stuttgart",
+     "name": "⚽ VfB Stuttgart",
+     "value": 250
+    },
+    {
+     "id": "gladbach",
+     "name": "⚽ Borussia Mönchengladbach",
+     "value": 180
+    },
+    {
+     "id": "bremen",
+     "name": "⚽ SV Werder Bremen",
+     "value": 140
+    }
+   ]
+  },
+  "kaderwert_2liga": {
+   "label": "Mehr oder Weniger: Fußball – 2. Bundesliga (Kaderwert)",
+   "unit": "Mio. € (ca.)",
+   "order": "desc",
+   "seedId": "schalke",
+   "items": [
+    {
+     "id": "schalke",
+     "name": "⚽ FC Schalke 04",
+     "value": 40
+    },
+    {
+     "id": "hsv",
+     "name": "⚽ Hamburger SV",
+     "value": 45
+    },
+    {
+     "id": "koeln",
+     "name": "⚽ 1. FC Köln",
+     "value": 38
+    },
+    {
+     "id": "hannover",
+     "name": "⚽ Hannover 96",
+     "value": 30
+    },
+    {
+     "id": "duesseldorf",
+     "name": "⚽ Fortuna Düsseldorf",
+     "value": 25
+    },
+    {
+     "id": "stpauli",
+     "name": "⚽ FC St. Pauli",
+     "value": 35
+    },
+    {
+     "id": "paderborn",
+     "name": "⚽ SC Paderborn 07",
+     "value": 15
+    },
+    {
+     "id": "karlsruhe",
+     "name": "⚽ Karlsruher SC",
+     "value": 12
+    }
+   ]
+  },
+  "kaderwert_laliga": {
+   "label": "Mehr oder Weniger: Fußball – La Liga (Kaderwert)",
+   "unit": "Mio. € (ca.)",
+   "order": "desc",
+   "seedId": "realmadrid2",
+   "items": [
+    {
+     "id": "realmadrid2",
+     "name": "⚽ Real Madrid",
+     "value": 1100
+    },
+    {
+     "id": "barcelona2",
+     "name": "⚽ FC Barcelona",
+     "value": 950
+    },
+    {
+     "id": "atletico",
+     "name": "⚽ Atlético Madrid",
+     "value": 500
+    },
+    {
+     "id": "villarreal",
+     "name": "⚽ FC Villarreal",
+     "value": 205
+    },
+    {
+     "id": "realsociedad",
+     "name": "⚽ Real Sociedad",
+     "value": 220
+    },
+    {
+     "id": "athletic",
+     "name": "⚽ Athletic Bilbao",
+     "value": 195
+    },
+    {
+     "id": "betis",
+     "name": "⚽ Real Betis",
+     "value": 180
+    },
+    {
+     "id": "sevilla",
+     "name": "⚽ FC Sevilla",
+     "value": 170
+    }
+   ]
+  },
+  "kaderwert_premierleague": {
+   "label": "Mehr oder Weniger: Fußball – Premier League (Kaderwert)",
+   "unit": "Mio. € (ca.)",
+   "order": "desc",
+   "seedId": "mancity2",
+   "items": [
+    {
+     "id": "mancity2",
+     "name": "⚽ Manchester City",
+     "value": 1300
+    },
+    {
+     "id": "arsenal2",
+     "name": "⚽ FC Arsenal",
+     "value": 1080
+    },
+    {
+     "id": "liverpool2",
+     "name": "⚽ FC Liverpool",
+     "value": 980
+    },
+    {
+     "id": "chelsea",
+     "name": "⚽ FC Chelsea",
+     "value": 900
+    },
+    {
+     "id": "manutd",
+     "name": "⚽ Manchester United",
+     "value": 750
+    },
+    {
+     "id": "tottenham",
+     "name": "⚽ Tottenham Hotspur",
+     "value": 650
+    },
+    {
+     "id": "newcastle",
+     "name": "⚽ Newcastle United",
+     "value": 500
+    },
+    {
+     "id": "astonvilla",
+     "name": "⚽ Aston Villa",
+     "value": 450
+    }
+   ]
+  },
+  "musik_rock": {
+   "label": "Mehr oder Weniger: Musik – Rock (Streams)",
+   "unit": "Mio. Streams (ca.)",
+   "order": "desc",
+   "seedId": "bohemianrhapsody",
+   "items": [
+    {
+     "id": "bohemianrhapsody",
+     "name": "🎸 Queen – Bohemian Rhapsody",
+     "value": 2200
+    },
+    {
+     "id": "hotelcalifornia",
+     "name": "🎸 Eagles – Hotel California",
+     "value": 1900
+    },
+    {
+     "id": "sweetchild",
+     "name": "🎸 Guns N' Roses – Sweet Child O' Mine",
+     "value": 1850
+    },
+    {
+     "id": "numb",
+     "name": "🎸 Linkin Park – Numb",
+     "value": 1800
+    },
+    {
+     "id": "smellslikespirit",
+     "name": "🎸 Nirvana – Smells Like Teen Spirit",
+     "value": 1500
+    },
+    {
+     "id": "entersandman",
+     "name": "🎸 Metallica – Enter Sandman",
+     "value": 1400
+    },
+    {
+     "id": "highwaytohell",
+     "name": "🎸 AC/DC – Highway to Hell",
+     "value": 1300
+    },
+    {
+     "id": "livinonaprayer",
+     "name": "🎸 Bon Jovi – Livin' on a Prayer",
+     "value": 1150
+    }
+   ]
+  },
+  "musik_hiphop": {
+   "label": "Mehr oder Weniger: Musik – HipHop (Streams)",
+   "unit": "Mio. Streams (ca.)",
+   "order": "desc",
+   "seedId": "godsplan",
+   "items": [
+    {
+     "id": "godsplan",
+     "name": "🎤 Drake – God's Plan",
+     "value": 2300
+    },
+    {
+     "id": "sickomode",
+     "name": "🎤 Travis Scott – SICKO MODE",
+     "value": 2100
+    },
+    {
+     "id": "oldtownroad",
+     "name": "🎤 Lil Nas X – Old Town Road",
+     "value": 2000
+    },
+    {
+     "id": "humble",
+     "name": "🎤 Kendrick Lamar – HUMBLE.",
+     "value": 1900
+    },
+    {
+     "id": "loseyourself",
+     "name": "🎤 Eminem – Lose Yourself",
+     "value": 1800
+    },
+    {
+     "id": "hotlinebling",
+     "name": "🎤 Drake – Hotline Bling",
+     "value": 1400
+    },
+    {
+     "id": "indacluv",
+     "name": "🎤 50 Cent – In Da Club",
+     "value": 1200
+    },
+    {
+     "id": "empirestate",
+     "name": "🎤 Jay-Z ft. Alicia Keys – Empire State of Mind",
+     "value": 1000
+    }
+   ]
+  },
+  "musik_klassik": {
+   "label": "Mehr oder Weniger: Musik – Klassik (Streams)",
+   "unit": "Mio. Streams (ca.)",
+   "order": "desc",
+   "seedId": "clairdelune",
+   "items": [
+    {
+     "id": "clairdelune",
+     "name": "🎻 Debussy – Clair de Lune",
+     "value": 500
+    },
+    {
+     "id": "moonlightsonata",
+     "name": "🎻 Beethoven – Mondscheinsonate",
+     "value": 420
+    },
+    {
+     "id": "fuerelise",
+     "name": "🎻 Beethoven – Für Elise",
+     "value": 450
+    },
+    {
+     "id": "fourseasons",
+     "name": "🎻 Vivaldi – Der Frühling (Die vier Jahreszeiten)",
+     "value": 380
+    },
+    {
+     "id": "canonind",
+     "name": "🎻 Pachelbel – Kanon in D",
+     "value": 400
+    },
+    {
+     "id": "kleinenachtmusik",
+     "name": "🎻 Mozart – Eine kleine Nachtmusik",
+     "value": 350
+    },
+    {
+     "id": "nocturne",
+     "name": "🎻 Chopin – Nocturne Op. 9 Nr. 2",
+     "value": 300
+    },
+    {
+     "id": "avemaria",
+     "name": "🎻 Schubert – Ave Maria",
+     "value": 250
+    }
+   ]
+  },
+  "serien_anime": {
+   "label": "Mehr oder Weniger: Serien – Anime (Episodenanzahl)",
+   "unit": "Episoden (ca.)",
+   "order": "desc",
+   "seedId": "onepiece",
+   "items": [
+    {
+     "id": "onepiece",
+     "name": "📺 One Piece",
+     "value": 1100
+    },
+    {
+     "id": "pokemon",
+     "name": "📺 Pokémon",
+     "value": 1200
+    },
+    {
+     "id": "conan",
+     "name": "📺 Detektiv Conan",
+     "value": 1130
+    },
+    {
+     "id": "naruto",
+     "name": "📺 Naruto (inkl. Shippuden)",
+     "value": 720
+    },
+    {
+     "id": "bleach",
+     "name": "📺 Bleach",
+     "value": 410
+    },
+    {
+     "id": "dbz",
+     "name": "📺 Dragon Ball Z",
+     "value": 291
+    },
+    {
+     "id": "aot",
+     "name": "📺 Attack on Titan",
+     "value": 94
+    },
+    {
+     "id": "opm",
+     "name": "📺 One Punch Man",
+     "value": 36
+    }
+   ]
+  },
+  "manga_verkaeufe": {
+   "label": "Mehr oder Weniger: Manga (verkaufte Bände)",
+   "unit": "Mio. verkaufte Bände (ca.)",
+   "order": "desc",
+   "seedId": "onepiecemanga",
+   "items": [
+    {
+     "id": "onepiecemanga",
+     "name": "📖 One Piece",
+     "value": 520
+    },
+    {
+     "id": "conanmanga",
+     "name": "📖 Detektiv Conan",
+     "value": 270
+    },
+    {
+     "id": "dragonballmanga",
+     "name": "📖 Dragon Ball",
+     "value": 260
+    },
+    {
+     "id": "narutomanga",
+     "name": "📖 Naruto",
+     "value": 250
+    },
+    {
+     "id": "demonslayermanga",
+     "name": "📖 Demon Slayer",
+     "value": 155
+    },
+    {
+     "id": "aotmanga",
+     "name": "📖 Attack on Titan",
+     "value": 145
+    },
+    {
+     "id": "mhamanga",
+     "name": "📖 My Hero Academia",
+     "value": 85
+    },
+    {
+     "id": "deathnotemanga",
+     "name": "📖 Death Note",
+     "value": 47
+    }
+   ]
+  }
+ }
 }
