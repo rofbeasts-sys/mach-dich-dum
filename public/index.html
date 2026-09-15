@@ -50,6 +50,11 @@
   .panel{ background:linear-gradient(180deg,var(--panel),var(--panel-2)); border:1px solid var(--line); border-radius:18px; padding:22px; }
 
   /* Hauptmenü */
+  .lang-switcher{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-top:10px; }
+  .lang-chip{ background:var(--bg-alt); border:1.5px solid var(--line); border-radius:999px; padding:6px 12px; font-size:11px; font-weight:800; color:var(--text-dim); cursor:pointer; letter-spacing:0.5px; }
+  .lang-chip.active{ color:var(--text); border-color:var(--accent); background:color-mix(in srgb, var(--accent) 18%, var(--bg-alt)); }
+  .account-bar{ text-align:center; margin-top:10px; font-size:13px; color:var(--text-dim); }
+  .account-link{ background:none; border:none; color:var(--accent-2); font-size:13px; font-weight:700; cursor:pointer; padding:0; font-family:inherit; text-decoration:underline; }
   .menu-hero{ text-align:center; margin: 30px 0 26px; }
   .menu-hero h1{
     font-size:42px; margin:0 0 8px; letter-spacing:-1px;
@@ -57,8 +62,7 @@
     -webkit-background-clip:text; background-clip:text; color:transparent;
   }
   .menu-hero p{ color:var(--text-dim); margin:0; font-size:14px; }
-  .menu-grid{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:14px; }
-  @media (max-width:900px){ .menu-grid{ grid-template-columns:1fr 1fr; } }
+  .menu-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
   @media (max-width:600px){ .menu-grid{ grid-template-columns:1fr; } }
   .mode-card{
     background:var(--bg-alt); border:1.5px solid var(--line); border-radius:16px;
@@ -224,6 +228,12 @@
   .insert-btn{ width:100%; background:transparent; border:1.5px dashed var(--line); border-radius:10px; padding:8px; color:var(--text-dim); font-size:12px; font-weight:700; cursor:pointer; }
   .insert-btn:hover{ border-color:var(--accent); color:var(--text); }
   .current-item-card{ text-align:center; padding:22px; background:var(--bg-alt); border:1.5px solid var(--accent); border-radius:14px; margin-bottom:16px; }
+  .guess-points-badge{ text-align:center; font-size:22px; font-weight:800; color:var(--accent-2); margin-bottom:10px; }
+  .guess-image-wrap{ display:flex; align-items:center; justify-content:center; background:var(--bg-alt); border:1.5px solid var(--line); border-radius:16px; padding:30px; margin-bottom:14px; min-height:160px; }
+  .guess-image{ transition:filter 0.15s linear; }
+  .guess-image img{ max-width:100%; max-height:220px; border-radius:10px; display:block; }
+  .guess-emoji{ font-size:110px; line-height:1; }
+  .guess-attempts-feed{ display:flex; flex-direction:column; gap:6px; margin-top:14px; }
   .current-item-card .name{ font-size:20px; font-weight:800; margin-top:6px; }
   .lives-row{ display:flex; align-items:center; justify-content:space-between; background:var(--bg-alt); border:1px solid var(--line); border-radius:10px; padding:8px 14px; margin-bottom:8px; font-size:13px; }
   .party-waiting{ text-align:center; padding:60px 20px; color:var(--text-dim); }
@@ -877,9 +887,110 @@ function createProfile(name){
 function applyPoints(profile, delta){
   profile.score = Math.max(0, profile.score + delta);
   profile.bestScore = Math.max(profile.bestScore, profile.score);
+  if(profile.isAccount) return; // Account-Profile werden am Rundenende zum Server synchronisiert
   saveProfiles();
 }
 loadProfiles();
+
+/* ------------------------------ 5. BENUTZERKONTEN (online, optional) ---------------------------- */
+const ACCOUNT_TOKEN_KEY = "wq_account_token";
+let account = null; // { token, profile } oder null
+
+async function apiCall(endpoint, body){
+  try{
+    const res = await fetch(endpoint, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body||{}) });
+    return await res.json();
+  }catch(e){
+    return { ok:false, error:"Verbindung zum Server fehlgeschlagen." };
+  }
+}
+
+async function restoreAccountSession(){
+  const token = localStorage.getItem(ACCOUNT_TOKEN_KEY);
+  if(!token) return;
+  const result = await apiCall("/api/session", { token });
+  if(result.ok){ account = { token, profile: result.profile }; }
+  else { localStorage.removeItem(ACCOUNT_TOKEN_KEY); }
+}
+
+function accountIndicatorHtml(){
+  if(account){
+    return `<div class="account-bar">👤 ${account.profile.username} · <button class="account-link" onclick="logoutAccount()">Abmelden</button></div>`;
+  }
+  return `<div class="account-bar"><button class="account-link" onclick="renderAccountAuth('login')">Anmelden</button></div>`;
+}
+
+function renderAccountAuth(mode){
+  renderApp(`
+    <div class="panel">
+      <div class="picker-title">${mode==='login' ? 'ANMELDEN' : 'KONTO ERSTELLEN'}</div>
+      <div class="picker-sub">${mode==='login' ? 'Melde dich mit deinem Benutzernamen an.' : 'Wähle einen Benutzernamen und ein Passwort (mind. 6 Zeichen).'}</div>
+      <div class="picker-form" style="flex-direction:column; gap:10px;">
+        <input id="authUsername" type="text" placeholder="Benutzername" maxlength="20" autocomplete="username">
+        <input id="authPassword" type="password" placeholder="Passwort" maxlength="60" autocomplete="${mode==='login'?'current-password':'new-password'}" onkeydown="if(event.key==='Enter')submitAccountAuth('${mode}')">
+      </div>
+      <div id="authError" class="explanation hidden" style="border-color:var(--danger); margin-top:10px;"></div>
+      <button class="btn btn-primary btn-block" id="authSubmitBtn" style="margin-top:16px;" onclick="submitAccountAuth('${mode}')">${mode==='login' ? 'ANMELDEN' : 'KONTO ERSTELLEN'}</button>
+      <p style="text-align:center; margin-top:14px; font-size:13px; color:var(--text-dim);">
+        ${mode==='login' ? 'Noch kein Konto?' : 'Schon ein Konto?'}
+        <a href="javascript:void(0)" onclick="renderAccountAuth('${mode==='login'?'register':'login'}')" style="color:var(--accent-2);">${mode==='login' ? 'Konto erstellen' : 'Anmelden'}</a>
+      </p>
+      <div class="actions-row" style="margin-top:10px;">
+        <button class="btn btn-ghost" onclick="renderMainMenu()">ZURÜCK</button>
+      </div>
+    </div>
+  `);
+}
+
+async function submitAccountAuth(mode){
+  const username = (document.getElementById("authUsername").value || "").trim();
+  const password = document.getElementById("authPassword").value || "";
+  const errBox = document.getElementById("authError");
+  const btn = document.getElementById("authSubmitBtn");
+  errBox.classList.add("hidden");
+  btn.disabled = true;
+  btn.textContent = "…";
+  const result = await apiCall(mode==='login' ? "/api/login" : "/api/register", { username, password });
+  if(!result.ok){
+    errBox.textContent = result.error || "Etwas ist schiefgelaufen.";
+    errBox.classList.remove("hidden");
+    btn.disabled = false;
+    btn.textContent = mode==='login' ? 'ANMELDEN' : 'KONTO ERSTELLEN';
+    return;
+  }
+  account = { token: result.token, profile: result.profile };
+  try{ localStorage.setItem(ACCOUNT_TOKEN_KEY, result.token); }catch(e){}
+  renderMainMenu();
+}
+
+async function logoutAccount(){
+  if(account) await apiCall("/api/logout", { token: account.token });
+  account = null;
+  try{ localStorage.removeItem(ACCOUNT_TOKEN_KEY); }catch(e){}
+  renderMainMenu();
+}
+
+function accountAsProfile(){
+  const p = account.profile;
+  return {
+    id: "account:" + p.username, name: p.username,
+    score: p.score, roundsPlayed: p.roundsPlayed, wins: p.wins, losses: p.losses,
+    correctAnswers: p.correctAnswers, wrongAnswers: p.wrongAnswers, bestScore: p.bestScore,
+    isAccount: true
+  };
+}
+
+async function syncAccountStats(profile){
+  if(!account) return;
+  const result = await apiCall("/api/save-stats", {
+    token: account.token,
+    stats: {
+      score: profile.score, roundsPlayed: profile.roundsPlayed, wins: profile.wins, losses: profile.losses,
+      correctAnswers: profile.correctAnswers, wrongAnswers: profile.wrongAnswers, bestScore: profile.bestScore
+    }
+  });
+  if(result.ok) account.profile = result.profile;
+}
 
 /* ------------------------------ 6. RENDER-HELFER ---------------------------- */
 function renderApp(html){ document.getElementById("app").innerHTML = html; }
@@ -897,34 +1008,137 @@ function statusbarHtml(score){
 /* ============================================================================
    HAUPTMENÜ
    ============================================================================ */
+
+/* ============================================================================
+   SPRACHE / I18N
+   ============================================================================ */
+let currentLang = localStorage.getItem("wq_lang") || "de";
+const AVAILABLE_LANGS = [
+  {code:"de", label:"DE", name:"Deutsch"},
+  {code:"en", label:"EN", name:"English"},
+  {code:"ja", label:"JA", name:"日本語"},
+  {code:"zh", label:"ZH", name:"中文"},
+  {code:"fr", label:"FR", name:"Français"},
+  {code:"it", label:"IT", name:"Italiano"},
+  {code:"es", label:"ES", name:"Español"}
+];
+function setLang(code){
+  currentLang = code;
+  try{ localStorage.setItem("wq_lang", code); }catch(e){}
+  renderMainMenu();
+}
+function langSwitcherHtml(){
+  return `
+    <div class="lang-switcher">
+      ${AVAILABLE_LANGS.map(l => `<button class="lang-chip ${currentLang===l.code?'active':''}" onclick="setLang('${l.code}')" title="${l.name}">${l.label}</button>`).join("")}
+    </div>
+  `;
+}
+
+const I18N = {
+  app_title: {de:"WISSENSDUELL", en:"KNOWLEDGE DUEL", ja:"知識バトル", zh:"知识对决", fr:"DUEL DE CONNAISSANCES", it:"DUELLO DI CULTURA", es:"DUELO DE CONOCIMIENTOS"},
+  app_tagline: {de:"Beweise dein Wissen. 5 Fragen. Immer schwieriger. Immer schneller.", en:"Prove your knowledge. 5 questions. Ever harder. Ever faster.", ja:"あなたの知識を証明しよう。5問。どんどん難しく、どんどん速く。", zh:"证明你的知识。5道题。越来越难，越来越快。", fr:"Prouve tes connaissances. 5 questions. Toujours plus difficile. Toujours plus rapide.", it:"Dimostra la tua cultura. 5 domande. Sempre più difficile. Sempre più veloce.", es:"Demuestra tus conocimientos. 5 preguntas. Cada vez más difícil. Cada vez más rápido."},
+  lang_picker_label: {de:"Sprache", en:"Language", ja:"言語", zh:"语言", fr:"Langue", it:"Lingua", es:"Idioma"},
+
+  menu_solo_title: {de:"SOLO", en:"SOLO", ja:"ソロ", zh:"单人", fr:"SOLO", it:"SOLO", es:"SOLO"},
+  menu_solo_desc: {de:"Spiele allein und verbessere deinen eigenen Punktestand und Rang.", en:"Play alone and improve your own score and rank.", ja:"一人でプレイして、自分のスコアとランクを上げよう。", zh:"独自游戏，提升你自己的分数和段位。", fr:"Joue seul et améliore ton propre score et ton rang.", it:"Gioca da solo e migliora il tuo punteggio e il tuo grado.", es:"Juega solo y mejora tu propia puntuación y rango."},
+  menu_party_title: {de:"PARTY (WLAN)", en:"PARTY (WIFI)", ja:"パーティー（Wi-Fi）", zh:"聚会模式（WiFi）", fr:"SOIRÉE (WIFI)", it:"PARTY (WIFI)", es:"FIESTA (WIFI)"},
+  menu_party_desc: {de:"Bis zu 6 Spieler auf eigenen Geräten im selben WLAN, mit Teams und mehreren Spielmodi.", en:"Up to 6 players on their own devices on the same network, with teams and multiple game modes.", ja:"同じネットワーク上で最大6人がそれぞれの端末で参加。チームと複数のゲームモード。", zh:"最多6名玩家在同一网络下用各自设备游玩，支持组队和多种模式。", fr:"Jusqu'à 6 joueurs sur leurs propres appareils sur le même réseau, avec équipes et plusieurs modes de jeu.", it:"Fino a 6 giocatori sui propri dispositivi nella stessa rete, con squadre e più modalità di gioco.", es:"Hasta 6 jugadores en sus propios dispositivos en la misma red, con equipos y varios modos de juego."},
+  menu_ranking: {de:"RANKING", en:"RANKING", ja:"ランキング", zh:"排行榜", fr:"CLASSEMENT", it:"CLASSIFICA", es:"CLASIFICACIÓN"},
+  menu_stats: {de:"STATISTIK", en:"STATISTICS", ja:"統計", zh:"统计", fr:"STATISTIQUES", it:"STATISTICHE", es:"ESTADÍSTICAS"},
+  menu_footer: {de:"Alle Daten werden lokal in deinem Browser gespeichert.", en:"All data is stored locally in your browser.", ja:"すべてのデータはブラウザにローカル保存されます。", zh:"所有数据均存储在你的浏览器本地。", fr:"Toutes les données sont stockées localement dans ton navigateur.", it:"Tutti i dati sono salvati localmente nel tuo browser.", es:"Todos los datos se guardan localmente en tu navegador."},
+
+  solo_menu_title: {de:"SOLO", en:"SOLO", ja:"ソロ", zh:"单人", fr:"SOLO", it:"SOLO", es:"SOLO"},
+  solo_menu_sub: {de:"Wie möchtest du allein spielen?", en:"How do you want to play alone?", ja:"どのように一人でプレイしますか？", zh:"你想如何单人游玩？", fr:"Comment veux-tu jouer seul ?", it:"Come vuoi giocare da solo?", es:"¿Cómo quieres jugar solo?"},
+  solo_quiz_title: {de:"WISSENSTEST", en:"QUIZ", ja:"クイズ", zh:"知识问答", fr:"QUIZ", it:"QUIZ", es:"CUESTIONARIO"},
+  solo_quiz_desc: {de:"Der klassische Solo-Wissenstest: 5 Fragen, dein persönlicher Punktestand und Rang.", en:"The classic solo quiz: 5 questions, your personal score and rank.", ja:"定番のソロクイズ：5問、あなた自身のスコアとランク。", zh:"经典单人问答：5道题，你的个人分数与段位。", fr:"Le quiz solo classique : 5 questions, ton score et ton rang personnels.", it:"Il classico quiz in solitaria: 5 domande, il tuo punteggio e grado personali.", es:"El clásico cuestionario en solitario: 5 preguntas, tu puntuación y rango personales."},
+  solo_quiz_locked: {de:"Der Wissenstest ist aktuell nur auf Deutsch verfügbar (545 deutsche Fragen). Wechsle die Sprache oben auf Deutsch, um ihn zu spielen.", en:"The quiz is currently only available in German (545 German questions). Switch the language above to German to play it.", ja:"クイズは現在ドイツ語のみ対応しています（545問のドイツ語の問題）。プレイするには上の言語をドイツ語に切り替えてください。", zh:"该问答目前仅支持德语（545道德语题目）。请将上方语言切换为德语后再游玩。", fr:"Le quiz n'est actuellement disponible qu'en allemand (545 questions en allemand). Passe la langue ci-dessus à l'allemand pour y jouer.", it:"Il quiz è attualmente disponibile solo in tedesco (545 domande in tedesco). Cambia la lingua qui sopra in tedesco per giocarci.", es:"El cuestionario solo está disponible en alemán por ahora (545 preguntas en alemán). Cambia el idioma de arriba a alemán para jugarlo."},
+  solo_party_title: {de:"PARTY-MODUS", en:"PARTY MODE", ja:"パーティーモード", zh:"聚会模式", fr:"MODE SOIRÉE", it:"MODALITÀ PARTY", es:"MODO FIESTA"},
+  solo_party_desc: {de:"Spiele allein mehrere Runden mit wechselnden Modi: Wissenstest, Einordnen, Mehr oder Weniger.", en:"Play several rounds alone with changing modes: quiz, ordering, higher-or-lower.", ja:"クイズ、並べ替え、オーバー・アンダーなど、モードを変えながら一人で複数ラウンドをプレイ。", zh:"独自游玩多轮不同模式：问答、排序、大小猜谜。", fr:"Joue seul plusieurs manches avec des modes variés : quiz, classement, plus ou moins.", it:"Gioca da solo più round con modalità diverse: quiz, ordinamento, più o meno.", es:"Juega varias rondas solo con modos variados: cuestionario, ordenar, más o menos."},
+
+  btn_back: {de:"ZURÜCK", en:"BACK", ja:"戻る", zh:"返回", fr:"RETOUR", it:"INDIETRO", es:"ATRÁS"},
+  btn_cancel: {de:"ABBRECHEN", en:"CANCEL", ja:"キャンセル", zh:"取消", fr:"ANNULER", it:"ANNULLA", es:"CANCELAR"},
+  btn_leave_room: {de:"RAUM VERLASSEN", en:"LEAVE ROOM", ja:"ルームを退出", zh:"离开房间", fr:"QUITTER LA SALLE", it:"ABBANDONA STANZA", es:"SALIR DE LA SALA"},
+  btn_confirm: {de:"BESTÄTIGEN", en:"CONFIRM", ja:"確定", zh:"确认", fr:"CONFIRMER", it:"CONFERMA", es:"CONFIRMAR"},
+
+  party_entry_title: {de:"PARTY (WLAN)", en:"PARTY (WIFI)", ja:"パーティー（Wi-Fi）", zh:"聚会模式（WiFi）", fr:"SOIRÉE (WIFI)", it:"PARTY (WIFI)", es:"FIESTA (WIFI)"},
+  party_entry_sub: {de:"Alle Geräte müssen im selben WLAN sein und diese Seite über die Adresse des Hosts geöffnet haben.", en:"All devices must be on the same network and have opened this page via the host's address.", ja:"すべての端末が同じネットワークに接続し、ホストのアドレスでこのページを開いている必要があります。", zh:"所有设备必须在同一网络下，并通过主机地址打开此页面。", fr:"Tous les appareils doivent être sur le même réseau et avoir ouvert cette page via l'adresse de l'hôte.", it:"Tutti i dispositivi devono essere sulla stessa rete e aver aperto questa pagina tramite l'indirizzo dell'host.", es:"Todos los dispositivos deben estar en la misma red y haber abierto esta página con la dirección del anfitrión."},
+  party_name_placeholder: {de:"Dein Name", en:"Your name", ja:"あなたの名前", zh:"你的名字", fr:"Ton nom", it:"Il tuo nome", es:"Tu nombre"},
+  party_create_room: {de:"RAUM ERSTELLEN", en:"CREATE ROOM", ja:"ルームを作成", zh:"创建房间", fr:"CRÉER UNE SALLE", it:"CREA STANZA", es:"CREAR SALA"},
+  party_join_existing: {de:"Oder einem bestehenden Raum beitreten:", en:"Or join an existing room:", ja:"または既存のルームに参加：", zh:"或加入现有房间：", fr:"Ou rejoins une salle existante :", it:"Oppure unisciti a una stanza esistente:", es:"O únete a una sala existente:"},
+  party_code_placeholder: {de:"Raum-Code", en:"Room code", ja:"ルームコード", zh:"房间代码", fr:"Code de la salle", it:"Codice stanza", es:"Código de sala"},
+  party_join: {de:"BEITRETEN", en:"JOIN", ja:"参加", zh:"加入", fr:"REJOINDRE", it:"UNISCITI", es:"UNIRSE"},
+
+  lobby_title: {de:"WARTERAUM", en:"WAITING ROOM", ja:"待機ルーム", zh:"等候室", fr:"SALLE D'ATTENTE", it:"SALA D'ATTESA", es:"SALA DE ESPERA"},
+  lobby_sub: {de:"Andere Geräte treten mit dem Code bei, sobald sie diese Seite im selben WLAN geöffnet haben.", en:"Other devices join with the code once they've opened this page on the same network.", ja:"他の端末は同じネットワークでこのページを開き、コードで参加できます。", zh:"其他设备在同一网络打开此页面后，可用代码加入。", fr:"Les autres appareils rejoignent avec le code une fois qu'ils ont ouvert cette page sur le même réseau.", it:"Gli altri dispositivi si uniscono con il codice una volta aperta questa pagina sulla stessa rete.", es:"Otros dispositivos se unen con el código una vez que abran esta página en la misma red."},
+  lobby_participants: {de:"Teilnehmer", en:"Participants", ja:"参加者", zh:"参与者", fr:"Participants", it:"Partecipanti", es:"Participantes"},
+  lobby_add_bot: {de:"+ BOT HINZUFÜGEN", en:"+ ADD BOT", ja:"+ ボットを追加", zh:"+ 添加机器人", fr:"+ AJOUTER UN BOT", it:"+ AGGIUNGI BOT", es:"+ AÑADIR BOT"},
+  lobby_bot_note: {de:"Bots sind optional. Du kannst auch allein eine Party starten und mehrere Bots als Gegner hinzufügen.", en:"Bots are optional. You can also start a party alone and add several bots as opponents.", ja:"ボットは任意です。一人でパーティーを開始し、複数のボットを対戦相手として追加することもできます。", zh:"机器人为可选项。你也可以独自开一局并添加多个机器人作为对手。", fr:"Les bots sont optionnels. Tu peux aussi démarrer une soirée seul et ajouter plusieurs bots comme adversaires.", it:"I bot sono opzionali. Puoi anche avviare un party da solo e aggiungere più bot come avversari.", es:"Los bots son opcionales. También puedes iniciar una fiesta solo y añadir varios bots como oponentes."},
+  lobby_rounds_label: {de:"Anzahl Runden", en:"Number of rounds", ja:"ラウンド数", zh:"轮数", fr:"Nombre de manches", it:"Numero di round", es:"Número de rondas"},
+  lobby_round_selection: {de:"Rundenauswahl", en:"Round selection", ja:"ラウンド選択", zh:"轮次选择", fr:"Sélection des manches", it:"Selezione dei round", es:"Selección de rondas"},
+  lobby_random: {de:"Zufallsrunde", en:"Random round", ja:"ランダムラウンド", zh:"随机轮次", fr:"Manche aléatoire", it:"Round casuale", es:"Ronda aleatoria"},
+  lobby_custom: {de:"Spiel erstellen", en:"Create game", ja:"ゲームを作成", zh:"自定义游戏", fr:"Créer une partie", it:"Crea partita", es:"Crear partida"},
+  lobby_reshuffle: {de:"NEU MISCHEN", en:"RESHUFFLE", ja:"再シャッフル", zh:"重新随机", fr:"REMÉLANGER", it:"RIMESCOLA", es:"REMEZCLAR"},
+  lobby_build_rounds: {de:"RUNDEN ZUSAMMENSTELLEN", en:"BUILD ROUNDS", ja:"ラウンドを組み立てる", zh:"组建轮次", fr:"COMPOSER LES MANCHES", it:"COMPONI I ROUND", es:"CONFIGURAR RONDAS"},
+  lobby_not_chosen: {de:"Noch nicht gewählt", en:"Not chosen yet", ja:"未選択", zh:"尚未选择", fr:"Pas encore choisi", it:"Non ancora scelto", es:"Aún sin elegir"},
+  lobby_teams: {de:"Teams", en:"Teams", ja:"チーム", zh:"队伍", fr:"Équipes", it:"Squadre", es:"Equipos"},
+  lobby_point_system: {de:"Punktesystem", en:"Point system", ja:"得点システム", zh:"计分系统", fr:"Système de points", it:"Sistema punti", es:"Sistema de puntos"},
+  lobby_start_game: {de:"SPIEL STARTEN", en:"START GAME", ja:"ゲーム開始", zh:"开始游戏", fr:"DÉMARRER LA PARTIE", it:"AVVIA PARTITA", es:"INICIAR PARTIDA"},
+  lobby_waiting_host: {de:"Warte auf den Host …", en:"Waiting for the host…", ja:"ホストを待っています…", zh:"等待房主中…", fr:"En attente de l'hôte…", it:"In attesa dell'host…", es:"Esperando al anfitrión…"},
+
+  round_of: {de:"RUNDE", en:"ROUND", ja:"ラウンド", zh:"第", fr:"MANCHE", it:"ROUND", es:"RONDA"},
+  round_of_mid: {de:"VON", en:"OF", ja:"／", zh:"轮，共", fr:"SUR", it:"DI", es:"DE"},
+  round_over: {de:"BEENDET", en:"FINISHED", ja:"終了", zh:"轮已结束", fr:"TERMINÉE", it:"TERMINATO", es:"TERMINADA"},
+  next_round: {de:"NÄCHSTE RUNDE", en:"NEXT ROUND", ja:"次のラウンド", zh:"下一轮", fr:"MANCHE SUIVANTE", it:"PROSSIMO ROUND", es:"SIGUIENTE RONDA"},
+  final_eval: {de:"ZUR ENDAUSWERTUNG", en:"FINAL RESULTS", ja:"最終結果へ", zh:"前往最终结算", fr:"RÉSULTATS FINAUX", it:"RISULTATI FINALI", es:"RESULTADOS FINALES"},
+  game_over: {de:"SPIEL BEENDET", en:"GAME OVER", ja:"ゲーム終了", zh:"游戏结束", fr:"PARTIE TERMINÉE", it:"PARTITA TERMINATA", es:"PARTIDA TERMINADA"},
+  play_again: {de:"NOCH EINMAL", en:"PLAY AGAIN", ja:"もう一度", zh:"再来一局", fr:"REJOUER", it:"GIOCA ANCORA", es:"JUGAR DE NUEVO"},
+  main_menu: {de:"HAUPTMENÜ", en:"MAIN MENU", ja:"メインメニュー", zh:"主菜单", fr:"MENU PRINCIPAL", it:"MENU PRINCIPALE", es:"MENÚ PRINCIPAL"},
+  team_ffa: {de:"Alle gegen alle", en:"Free for all", ja:"個人戦", zh:"混战模式", fr:"Chacun pour soi", it:"Tutti contro tutti", es:"Todos contra todos"},
+  round_points: {de:"Punkte diese Runde", en:"Points this round", ja:"今ラウンドの得点", zh:"本轮得分", fr:"Points cette manche", it:"Punti in questo round", es:"Puntos esta ronda"},
+  total_points: {de:"Punkte gesamt", en:"Total points", ja:"合計得点", zh:"总分", fr:"Points totaux", it:"Punti totali", es:"Puntos totales"},
+  solo_round_done: {de:"Geschafft – weiter geht's!", en:"Done – onward!", ja:"クリア！次へ！", zh:"完成——继续前进！", fr:"Réussi – on continue !", it:"Fatto – si continua!", es:"¡Hecho, sigamos!"},
+  solo_finished_title: {de:"GESCHAFFT!", en:"DONE!", ja:"クリア！", zh:"完成！", fr:"RÉUSSI !", it:"FATTO!", es:"¡HECHO!"},
+  solo_finished_sub: {de:"Das war deine Solo-Party.", en:"That was your solo party.", ja:"これがあなたのソロパーティーでした。", zh:"这就是你的单人聚会。", fr:"C'était ta soirée en solo.", it:"Questo era il tuo party in solitaria.", es:"Esa fue tu fiesta en solitario."},
+  round_points_short: {de:"Rundenpunkte", en:"Round points", ja:"ラウンド得点", zh:"轮次得分", fr:"Points de la manche", it:"Punti del round", es:"Puntos de la ronda"},
+  total_short: {de:"Gesamt", en:"Total", ja:"合計", zh:"总计", fr:"Total", it:"Totale", es:"Total"},
+  points_word: {de:"Punkte", en:"Points", ja:"ポイント", zh:"分数", fr:"Points", it:"Punti", es:"Puntos"},
+  back_to_waiting_room: {de:"ZURÜCK ZUM WARTERAUM", en:"BACK TO WAITING ROOM", ja:"待機ルームに戻る", zh:"返回等候室", fr:"RETOUR À LA SALLE D'ATTENTE", it:"TORNA ALLA SALA D'ATTESA", es:"VOLVER A LA SALA DE ESPERA"},
+  solo_party_config_sub: {de:"Stelle deine Runden zusammen und leg los – ganz ohne Mitspieler oder Bots.", en:"Put together your rounds and go – with no other players or bots.", ja:"ラウンドを組み立てて、そのままスタート——他のプレイヤーもボットも不要です。", zh:"组建你的轮次并开始——完全没有其他玩家或机器人。", fr:"Compose tes manches et lance-toi – sans autre joueur ni bot.", it:"Componi i tuoi round e parti – senza altri giocatori o bot.", es:"Configura tus rondas y empieza, sin otros jugadores ni bots."},
+  lets_go: {de:"LOS GEHT'S", en:"LET'S GO", ja:"スタート", zh:"开始吧", fr:"C'EST PARTI", it:"VIA!", es:"¡VAMOS!"}
+};
+
+function t(key){
+  const entry = I18N[key];
+  if(!entry) return key;
+  return entry[currentLang] || entry.de || key;
+}
+
 function renderMainMenu(){
   renderApp(`
+    ${langSwitcherHtml()}
+    ${accountIndicatorHtml()}
     <div class="menu-hero">
-      <h1>WISSENSDUELL</h1>
-      <p>Beweise dein Wissen. 5 Fragen. Immer schwieriger. Immer schneller.</p>
+      <h1>${t('app_title')}</h1>
+      <p>${t('app_tagline')}</p>
     </div>
     <div class="menu-grid">
       <div class="mode-card" onclick="startSoloMenu()">
         <div class="icon">🎯</div>
-        <h3>SOLO</h3>
-        <p>Spiele allein und verbessere deinen eigenen Punktestand und Rang.</p>
-      </div>
-      <div class="mode-card" onclick="startMPFlow()">
-        <div class="icon">👥</div>
-        <h3>LOKALER MULTIPLAYER</h3>
-        <p>2–4 Spieler an einem Gerät treten nacheinander gegeneinander an.</p>
+        <h3>${t('menu_solo_title')}</h3>
+        <p>${t('menu_solo_desc')}</p>
       </div>
       <div class="mode-card" onclick="startPartyFlow()">
         <div class="icon">🌐</div>
-        <h3>PARTY (WLAN)</h3>
-        <p>Bis zu 6 Spieler auf eigenen Geräten im selben WLAN, mit Teams und mehreren Spielmodi.</p>
+        <h3>${t('menu_party_title')}</h3>
+        <p>${t('menu_party_desc')}</p>
       </div>
     </div>
     <div class="menu-secondary">
-      <button class="btn btn-ghost" onclick="renderRanking()">RANKING</button>
-      <button class="btn btn-ghost" onclick="renderStatistik()">STATISTIK</button>
+      <button class="btn btn-ghost" onclick="renderRanking()">${t('menu_ranking')}</button>
+      <button class="btn btn-ghost" onclick="renderStatistik()">${t('menu_stats')}</button>
     </div>
-    <footer>Alle Daten werden lokal in deinem Browser gespeichert.</footer>
+    <footer>${t('menu_footer')}</footer>
   `);
 }
 
@@ -1037,30 +1251,32 @@ function pickerCreateNew(){
 let solo = null;
 
 function startSoloMenu(){
+  const quizLocked = currentLang !== "de";
   renderApp(`
     <div class="panel">
-      <div class="picker-title">SOLO</div>
-      <div class="picker-sub">Wie möchtest du allein spielen?</div>
+      <div class="picker-title">${t('solo_menu_title')}</div>
+      <div class="picker-sub">${t('solo_menu_sub')}</div>
       <div class="menu-grid" style="grid-template-columns:1fr 1fr; margin-top:6px;">
-        <div class="mode-card" onclick="startSoloFlow()">
+        <div class="mode-card" style="${quizLocked?'opacity:.45; cursor:default;':''}" onclick="${quizLocked?'':'startSoloFlow()'}">
           <div class="icon">🎯</div>
-          <h3>WISSENSTEST</h3>
-          <p>Der klassische Solo-Wissenstest: 5 Fragen, dein persönlicher Punktestand und Rang.</p>
+          <h3>${t('solo_quiz_title')}</h3>
+          <p>${quizLocked ? t('solo_quiz_locked') : t('solo_quiz_desc')}</p>
         </div>
         <div class="mode-card" onclick="startSoloPartyFlow()">
           <div class="icon">🎲</div>
-          <h3>PARTY-MODUS</h3>
-          <p>Spiele allein mehrere Runden mit wechselnden Modi: Wissenstest, Einordnen, Mehr oder Weniger.</p>
+          <h3>${t('solo_party_title')}</h3>
+          <p>${t('solo_party_desc')}</p>
         </div>
       </div>
       <div class="actions-row" style="margin-top:18px;">
-        <button class="btn btn-ghost" onclick="renderMainMenu()">ZURÜCK</button>
+        <button class="btn btn-ghost" onclick="renderMainMenu()">${t('btn_back')}</button>
       </div>
     </div>
   `);
 }
 
 function startSoloFlow(){
+  if(account){ beginSolo(accountAsProfile()); return; }
   renderProfilePicker("WER SPIELT?", "Wähle dein Profil für den Solo-Modus.", [], beginSolo, "startSoloMenu");
 }
 
@@ -1182,7 +1398,8 @@ function endSoloRound(){
   solo.profile.correctAnswers += solo.correct;
   solo.profile.wrongAnswers += solo.wrong;
   if(roundWon) solo.profile.wins++; else solo.profile.losses++;
-  saveProfiles();
+  if(solo.profile.isAccount) syncAccountStats(solo.profile);
+  else saveProfiles();
 
   const rankBefore = getRank(solo.startScore);
   const rankAfter = getRank(solo.profile.score);
@@ -1482,22 +1699,22 @@ function startPartyFlow(){
   }
   renderApp(`
     <div class="panel">
-      <div class="picker-title">PARTY (WLAN)</div>
-      <div class="picker-sub">Alle Geräte müssen im selben WLAN sein und diese Seite über die Adresse des Hosts geöffnet haben.</div>
+      <div class="picker-title">${t('party_entry_title')}</div>
+      <div class="picker-sub">${t('party_entry_sub')}</div>
       <div class="picker-form" style="margin-bottom:14px;">
-        <input id="partyName" type="text" placeholder="Dein Name" maxlength="20">
+        <input id="partyName" type="text" placeholder="${t('party_name_placeholder')}" maxlength="20">
       </div>
       <div id="partyEntryError" class="explanation hidden" style="border-color:var(--danger);"></div>
       <div class="actions-row" style="margin-bottom:18px;">
-        <button id="partyCreateBtn" class="btn btn-primary" onclick="partyCreateRoom()">RAUM ERSTELLEN</button>
+        <button id="partyCreateBtn" class="btn btn-primary" onclick="partyCreateRoom()">${t('party_create_room')}</button>
       </div>
-      <div class="picker-sub">Oder einem bestehenden Raum beitreten:</div>
+      <div class="picker-sub">${t('party_join_existing')}</div>
       <div class="picker-form">
-        <input id="partyCode" type="text" placeholder="Raum-Code" maxlength="4" style="text-transform:uppercase;">
-        <button id="partyJoinBtn" class="btn btn-primary" onclick="partyJoinRoom()">BEITRETEN</button>
+        <input id="partyCode" type="text" placeholder="${t('party_code_placeholder')}" maxlength="4" style="text-transform:uppercase;">
+        <button id="partyJoinBtn" class="btn btn-primary" onclick="partyJoinRoom()">${t('party_join')}</button>
       </div>
       <div class="actions-row" style="margin-top:18px;">
-        <button class="btn btn-ghost" onclick="renderMainMenu()">ZURÜCK</button>
+        <button class="btn btn-ghost" onclick="renderMainMenu()">${t('btn_back')}</button>
       </div>
     </div>
   `);
@@ -1569,7 +1786,7 @@ function partyCreateRoom(){
   const box = document.getElementById("partyEntryError");
   if(box) box.classList.add("hidden");
   partyConnect(
-    () => party.ws.send(JSON.stringify({ action:"createRoom", name })),
+    () => party.ws.send(JSON.stringify({ action:"createRoom", name, language: currentLang })),
     (msg) => partyShowEntryError(msg)
   );
 }
@@ -1589,18 +1806,19 @@ function partyJoinRoom(){
 function partySend(msg){ if(party && party.ws) party.ws.send(JSON.stringify(msg)); }
 function partyLeave(){ if(party && party.ws) party.ws.close(); party = null; renderMainMenu(); }
 function restartSoloParty(){ if(party && party.ws) party.ws.close(); party = null; startSoloPartyFlow(); }
+function partySetLanguage(lang){ currentLang = lang; try{ localStorage.setItem("wq_lang", lang); }catch(e){} partySend({action:'setLanguage', language: lang}); }
 
 /* ---------- Solo-Party (Party-Engine allein gespielt, ohne Lobby/Bots) ---------- */
 function startSoloPartyFlow(){
   partyConnect(
-    () => { party.soloMode = true; party.ws.send(JSON.stringify({ action:"createRoom", name:"Du" })); },
+    () => { party.soloMode = true; party.ws.send(JSON.stringify({ action:"createRoom", name:"Du", language: currentLang })); },
     (msg) => {
       renderApp(`
         <div class="panel">
-          <div class="picker-title">SOLO PARTY</div>
+          <div class="picker-title">${t('solo_party_title')}</div>
           <div class="explanation" style="border-color:var(--danger); color:var(--text);">${msg}</div>
           <div class="actions-row" style="margin-top:18px;">
-            <button class="btn btn-ghost" onclick="startSoloMenu()">ZURÜCK</button>
+            <button class="btn btn-ghost" onclick="startSoloMenu()">${t('btn_back')}</button>
           </div>
         </div>
       `);
@@ -1612,7 +1830,7 @@ function startSoloPartyFlow(){
 function roundCountChipsHtml(room){
   return `
     <div class="settings-row">
-      <span class="label">Anzahl Runden</span>
+      <span class="label">${t('lobby_rounds_label')}</span>
       <div class="chip-group">
         ${[5,10,15,20].map(n=>`<div class="chip-btn ${room.roundCount===n?'active':''}" onclick="partySetRoundCount(${n})">${n}</div>`).join("")}
       </div>
@@ -1622,8 +1840,8 @@ function roundCountChipsHtml(room){
 function roundPlanBlockHtml(room, returnTo){
   if(room.roundMode === 'random'){
     return `
-      <div class="settings-row"><span class="label">Runden</span>
-        <button class="btn btn-ghost" style="padding:8px 14px; font-size:12px;" onclick="partyRandomizeRounds()">NEU MISCHEN</button>
+      <div class="settings-row"><span class="label">${t('lobby_rounds_label')}</span>
+        <button class="btn btn-ghost" style="padding:8px 14px; font-size:12px;" onclick="partyRandomizeRounds()">${t('lobby_reshuffle')}</button>
       </div>
       <div class="round-plan-list">
         ${room.roundDefs.map((r,i)=>`<div class="round-plan-item"><span class="idx">${i+1}</span>${r ? r.label : '…'}</div>`).join("")}
@@ -1633,13 +1851,13 @@ function roundPlanBlockHtml(room, returnTo){
   const chosen = room.roundDefs.filter(Boolean).length;
   return `
     <div class="settings-row">
-      <span class="label">Eigene Runden</span>
+      <span class="label">${t('lobby_custom')}</span>
       <button class="btn btn-ghost" style="padding:8px 14px; font-size:12px;" onclick="openRoundBuilder('${returnTo}')">
-        RUNDEN ZUSAMMENSTELLEN (${chosen}/${room.roundCount})
+        ${t('lobby_build_rounds')} (${chosen}/${room.roundCount})
       </button>
     </div>
     <div class="round-plan-list">
-      ${room.roundDefs.map((r,i)=>`<div class="round-plan-item"><span class="idx">${i+1}</span>${r ? r.label : '<span style="color:var(--text-dim)">Noch nicht gewählt</span>'}</div>`).join("")}
+      ${room.roundDefs.map((r,i)=>`<div class="round-plan-item"><span class="idx">${i+1}</span>${r ? r.label : '<span style="color:var(--text-dim)">'+t('lobby_not_chosen')+'</span>'}</div>`).join("")}
     </div>
   `;
 }
@@ -1651,22 +1869,28 @@ function renderSoloPartyConfig(){
   const room = party.room;
   renderApp(`
     <div class="panel">
-      <div class="picker-title">SOLO PARTY</div>
-      <div class="picker-sub">Stelle deine Runden zusammen und leg los – ganz ohne Mitspieler oder Bots.</div>
+      <div class="picker-title">${t('solo_party_title')}</div>
+      <div class="picker-sub">${t('solo_party_config_sub')}</div>
 
+      <div class="settings-row">
+        <span class="label">${t('lang_picker_label')}</span>
+        <div class="chip-group">
+          ${AVAILABLE_LANGS.map(l => `<div class="chip-btn ${room.language===l.code?'active':''}" onclick="partySetLanguage('${l.code}')">${l.label}</div>`).join("")}
+        </div>
+      </div>
       ${roundCountChipsHtml(room)}
       <div class="settings-row">
-        <span class="label">Rundenauswahl</span>
+        <span class="label">${t('lobby_round_selection')}</span>
         <div class="chip-group">
-          <div class="chip-btn ${room.roundMode==='random'?'active':''}" onclick="partySetRoundMode('random')">Zufallsrunde</div>
-          <div class="chip-btn ${room.roundMode==='custom'?'active':''}" onclick="partySetRoundMode('custom')">Spiel erstellen</div>
+          <div class="chip-btn ${room.roundMode==='random'?'active':''}" onclick="partySetRoundMode('random')">${t('lobby_random')}</div>
+          <div class="chip-btn ${room.roundMode==='custom'?'active':''}" onclick="partySetRoundMode('custom')">${t('lobby_custom')}</div>
         </div>
       </div>
       ${roundPlanBlockHtml(room, 'renderSoloPartyConfig')}
 
-      <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="partySend({action:'startGame'})" ${roundPlanReady(room)?'':'disabled'}>LOS GEHT'S</button>
+      <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="partySend({action:'startGame'})" ${roundPlanReady(room)?'':'disabled'}>${t('lets_go')}</button>
       <div class="actions-row" style="margin-top:10px;">
-        <button class="btn btn-ghost" onclick="partyLeave()">ABBRECHEN</button>
+        <button class="btn btn-ghost" onclick="partyLeave()">${t('btn_cancel')}</button>
       </div>
     </div>
   `);
@@ -1725,6 +1949,30 @@ function partyHandleMessage(msg){
     case "rankReveal":
       renderPartyRankReveal(msg);
       break;
+    case "guessItem":
+      party.guessAttempts = [];
+      renderPartyGuessItem(msg);
+      break;
+    case "guessAttempt":
+      handlePartyGuessAttempt(msg);
+      break;
+    case "guessResolved":
+      renderPartyGuessResolved(msg);
+      break;
+    case "slfRoundStart":
+      party.slfSubmitted = false;
+      renderSlfAnswering(msg);
+      break;
+    case "slfReveal":
+      renderSlfReveal(msg);
+      break;
+    case "slfChallengeUpdate":
+      party.slfChallenges = msg.challenges;
+      updateSlfChallengeUI();
+      break;
+    case "slfFinalReveal":
+      renderSlfFinal(msg);
+      break;
     case "roundEnd":
       renderPartyRoundEnd(msg);
       break;
@@ -1740,15 +1988,26 @@ function renderPartyLobby(){
   const me = room.players.find(p => p.id === party.playerId);
   const isHost = party.isHost;
 
-  const teamModeLabels = { ffa:"Alle gegen alle", "2v2":"2 gegen 2", "3v3":"3 gegen 3", "2v2v2":"2 gegen 2 gegen 2" };
+  const teamModeLabels = { ffa:t('team_ffa'), "2v2":"2 vs 2", "3v3":"3 vs 3", "2v2v2":"2 vs 2 vs 2" };
 
   renderApp(`
     <div class="panel">
-      <div class="picker-title">WARTERAUM</div>
-      <div class="picker-sub">Andere Geräte treten mit dem Code bei, sobald sie diese Seite im selben WLAN geöffnet haben.</div>
+      <div class="picker-title">${t('lobby_title')}</div>
+      <div class="picker-sub">${t('lobby_sub')}</div>
       <div class="code-display">${room.code}</div>
 
-      <div class="settings-row"><span class="label">Teilnehmer</span><span>${room.players.length} / ${room.maxParticipants}</span></div>
+      ${isHost ? `
+        <div class="settings-row">
+          <span class="label">${t('lang_picker_label')}</span>
+          <div class="chip-group">
+            ${AVAILABLE_LANGS.map(l => `<div class="chip-btn ${room.language===l.code?'active':''}" onclick="partySetLanguage('${l.code}')">${l.label}</div>`).join("")}
+          </div>
+        </div>
+      ` : `
+        <div class="settings-row"><span class="label">${t('lang_picker_label')}</span><span>${(AVAILABLE_LANGS.find(l=>l.code===room.language)||{}).name || room.language}</span></div>
+      `}
+
+      <div class="settings-row"><span class="label">${t('lobby_participants')}</span><span>${room.players.length} / ${room.maxParticipants}</span></div>
 
       <div class="party-players">
         ${room.players.map(p => `
@@ -1768,21 +2027,21 @@ function renderPartyLobby(){
 
       ${isHost ? `
         <div class="actions-row" style="margin-bottom:6px;">
-          <button class="btn btn-ghost" style="padding:9px 16px; font-size:13px;" onclick="partyAddBot()" ${room.players.length>=room.maxParticipants?'disabled':''}>+ BOT HINZUFÜGEN</button>
+          <button class="btn btn-ghost" style="padding:9px 16px; font-size:13px;" onclick="partyAddBot()" ${room.players.length>=room.maxParticipants?'disabled':''}>${t('lobby_add_bot')}</button>
         </div>
-        <p class="picker-sub" style="margin-bottom:16px;">Bots sind optional. Du kannst auch allein eine Party starten und mehrere Bots als Gegner hinzufügen.</p>
+        <p class="picker-sub" style="margin-bottom:16px;">${t('lobby_bot_note')}</p>
       ` : ``}
 
       ${isHost ? renderPartyHostSettings(room) : `
-        <div class="settings-row"><span class="label">Runden</span><span>${room.roundCount}</span></div>
-        <div class="settings-row"><span class="label">Modus-Auswahl</span><span>${room.roundMode === 'random' ? 'Zufallsrunde' : 'Spiel erstellen'}</span></div>
-        <div class="settings-row"><span class="label">Teams</span><span>${teamModeLabels[room.teamMode]}</span></div>
-        <div class="settings-row"><span class="label">Punktesystem</span><span>${room.pointSystem}</span></div>
-        <p style="color:var(--text-dim); text-align:center; margin-top:16px;">Warte auf den Host …</p>
+        <div class="settings-row"><span class="label">${t('lobby_rounds_label')}</span><span>${room.roundCount}</span></div>
+        <div class="settings-row"><span class="label">${t('lobby_round_selection')}</span><span>${room.roundMode === 'random' ? t('lobby_random') : t('lobby_custom')}</span></div>
+        <div class="settings-row"><span class="label">${t('lobby_teams')}</span><span>${teamModeLabels[room.teamMode]}</span></div>
+        <div class="settings-row"><span class="label">${t('lobby_point_system')}</span><span>${room.pointSystem}</span></div>
+        <p style="color:var(--text-dim); text-align:center; margin-top:16px;">${t('lobby_waiting_host')}</p>
       `}
 
       <div class="actions-row" style="margin-top:18px;">
-        <button class="btn btn-ghost" onclick="partyLeave()">RAUM VERLASSEN</button>
+        <button class="btn btn-ghost" onclick="partyLeave()">${t('btn_leave_room')}</button>
       </div>
     </div>
   `);
@@ -1794,28 +2053,28 @@ function partySetBotTier(botId, tier){ partySend({action:'setBotTier', botId, ti
 
 function renderPartyHostSettings(room){
   const teamOptions = [
-    {id:'ffa', label:'Alle gegen alle', min:1, max:6},
-    {id:'2v2', label:'2 gegen 2', min:4, max:4},
-    {id:'3v3', label:'3 gegen 3', min:6, max:6},
-    {id:'2v2v2', label:'2 gegen 2 gegen 2', min:6, max:6}
+    {id:'ffa', label:t('team_ffa'), min:1, max:6},
+    {id:'2v2', label:'2 vs 2', min:4, max:4},
+    {id:'3v3', label:'3 vs 3', min:6, max:6},
+    {id:'2v2v2', label:'2 vs 2 vs 2', min:6, max:6}
   ];
   const n = room.players.length;
 
   return `
     ${roundCountChipsHtml(room)}
     <div class="settings-row">
-      <span class="label">Rundenauswahl</span>
+      <span class="label">${t('lobby_round_selection')}</span>
       <div class="chip-group">
-        <div class="chip-btn ${room.roundMode==='random'?'active':''}" onclick="partySetRoundMode('random')">Zufallsrunde</div>
-        <div class="chip-btn ${room.roundMode==='custom'?'active':''}" onclick="partySetRoundMode('custom')">Spiel erstellen</div>
+        <div class="chip-btn ${room.roundMode==='random'?'active':''}" onclick="partySetRoundMode('random')">${t('lobby_random')}</div>
+        <div class="chip-btn ${room.roundMode==='custom'?'active':''}" onclick="partySetRoundMode('custom')">${t('lobby_custom')}</div>
       </div>
     </div>
     ${roundPlanBlockHtml(room, 'renderPartyLobby')}
 
     <div class="settings-row">
-      <span class="label">Teams</span>
+      <span class="label">${t('lobby_teams')}</span>
       <div class="chip-group">
-        ${teamOptions.map(t => `<div class="chip-btn ${room.teamMode===t.id?'active':''} ${n<t.min||n>t.max?'':''}" onclick="partySetTeamMode('${t.id}')">${t.label}</div>`).join("")}
+        ${teamOptions.map(opt => `<div class="chip-btn ${room.teamMode===opt.id?'active':''} ${n<opt.min||n>opt.max?'':''}" onclick="partySetTeamMode('${opt.id}')">${opt.label}</div>`).join("")}
       </div>
     </div>
     ${room.teamMode !== 'ffa' ? `
@@ -1836,15 +2095,15 @@ function renderPartyHostSettings(room){
     ` : ``}
 
     <div class="settings-row">
-      <span class="label">Punktesystem</span>
+      <span class="label">${t('lobby_point_system')}</span>
       <div class="chip-group">
-        <div class="chip-btn ${room.pointSystem===1?'active':''}" onclick="partySetPointSystem(1)">1: Runde (+1)</div>
-        <div class="chip-btn ${room.pointSystem===2?'active':''}" onclick="partySetPointSystem(2)">2: Steigend</div>
-        <div class="chip-btn ${room.pointSystem===3?'active':''}" onclick="partySetPointSystem(3)">3: Punkteabzug</div>
+        <div class="chip-btn ${room.pointSystem===1?'active':''}" onclick="partySetPointSystem(1)">1: ${t('round_of')} (+1)</div>
+        <div class="chip-btn ${room.pointSystem===2?'active':''}" onclick="partySetPointSystem(2)">2: ↑</div>
+        <div class="chip-btn ${room.pointSystem===3?'active':''}" onclick="partySetPointSystem(3)">3: −</div>
       </div>
     </div>
 
-    <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="partySend({action:'startGame'})" ${roundPlanReady(room)?'':'disabled'}>SPIEL STARTEN</button>
+    <button class="btn btn-primary btn-block" style="margin-top:18px;" onclick="partySend({action:'startGame'})" ${roundPlanReady(room)?'':'disabled'}>${t('lobby_start_game')}</button>
   `;
 }
 
@@ -1857,8 +2116,12 @@ function partySetRoundDef(index, defId){ partySend({action:'setRoundDef', index,
 const PARTY_MODE_META = {
   knowledgeQuiz: "Wissenstest",
   orderingGame: "Einordnen",
-  higherLowerGame: "Mehr oder Weniger"
+  chronologyGame: "Chronologie",
+  higherLowerGame: "Mehr oder Weniger",
+  guessPicture: "Bild erraten",
+  stadtLandFluss: "Stadt Land Fluss"
 };
+const SLF_SUGGESTED_CATEGORIES = ["Stadt","Land","Fluss","Name","Tier","Beruf","Pflanze","Farbe","Automarke","Filmtitel","Promi","Getränk","Sportart"];
 function builderCategoryLabel(def){
   const idx = def.label.indexOf(": ");
   return idx === -1 ? def.label : def.label.slice(idx + 2);
@@ -1873,11 +2136,13 @@ function openRoundBuilder(returnTo){
   party.roundBuilder = {
     returnTo,
     targetCount: room.roundCount,
-    rounds: room.roundDefs.filter(Boolean).map(r => ({ id: r.id, kind: r.kind, label: r.label })),
+    rounds: room.roundDefs.filter(Boolean).map(r => ({ id: r.id, kind: r.kind, label: r.label, categories: r.categories })),
     modeSearch: "",
     selectedKind: null,
     categorySearch: "",
     selectedDefId: null,
+    slfMode: null,
+    slfCategories: [],
     editingIndex: null
   };
   renderRoundBuilder();
@@ -1889,14 +2154,16 @@ function renderRoundBuilder(){
   const modeQuery = (b.modeSearch || "").toLowerCase();
   const modes = builderModes().filter(m => m.label.toLowerCase().includes(modeQuery));
 
-  const needsCategory = b.selectedKind && b.selectedKind !== "knowledgeQuiz";
+  const isSlf = b.selectedKind === "stadtLandFluss";
+  const needsCategory = b.selectedKind && b.selectedKind !== "knowledgeQuiz" && !isSlf;
   const catQuery = (b.categorySearch || "").toLowerCase();
   const categories = needsCategory
     ? room.availableRoundDefs.filter(d => d.kind === b.selectedKind && builderCategoryLabel(d).toLowerCase().includes(catQuery))
     : [];
 
+  const slfReady = isSlf && (b.selectedDefId === "slf_original" || (b.slfMode === "custom" && b.slfCategories.length > 0));
   const atCapacity = b.editingIndex === null && b.rounds.length >= b.targetCount;
-  const missingCategory = needsCategory && !b.selectedDefId;
+  const missingCategory = (needsCategory && !b.selectedDefId) || (isSlf && !slfReady);
   const addDisabled = !b.selectedKind || missingCategory || atCapacity;
 
   renderApp(`
@@ -1921,6 +2188,28 @@ function renderRoundBuilder(){
             ${categories.length ? categories.map(d => `<div class="builder-category-item ${b.selectedDefId===d.id?'active':''}" onclick="builderSelectCategory('${d.id}')">${builderCategoryLabel(d)}</div>`).join("")
               : `<span style="color:var(--text-dim); font-size:13px;">Keine Kategorie gefunden</span>`}
           </div>
+        </div>
+      ` : ``}
+
+      ${isSlf ? `
+        <div class="settings-row" style="display:block; border-bottom:none; margin-top:12px; padding-bottom:6px;">
+          <span class="label">Kategorien-Auswahl</span>
+          <div class="chip-group" style="margin-top:8px;">
+            <div class="chip-btn ${b.selectedDefId==='slf_original'?'active':''}" onclick="builderSlfChooseOriginal()">🎲 Original (${SLF_DEFAULT_CATEGORIES_CLIENT.join(', ')})</div>
+            <div class="chip-btn ${b.slfMode==='custom'?'active':''}" onclick="builderSlfChooseCustom()">✏️ Eigene Kategorien</div>
+          </div>
+          ${b.slfMode === 'custom' ? `
+            <div style="margin-top:12px;">
+              <div class="chip-group">
+                ${SLF_SUGGESTED_CATEGORIES.map(cat => `<div class="chip-btn ${b.slfCategories.includes(cat)?'active':''}" onclick="builderSlfToggleCategory('${cat}')">${cat}</div>`).join("")}
+              </div>
+              <div class="picker-form" style="margin-top:10px;">
+                <input type="text" id="slfCustomCatInput" class="builder-search" style="margin-top:0;" placeholder="Eigene Kategorie eintippen …" maxlength="20" onkeydown="if(event.key==='Enter'){event.preventDefault();builderSlfAddCustomCategory();}">
+                <button class="btn btn-ghost" onclick="builderSlfAddCustomCategory()">+ Hinzufügen</button>
+              </div>
+              ${b.slfCategories.length ? `<div class="picker-sub" style="margin-top:8px;">Ausgewählt: ${b.slfCategories.join(', ')}</div>` : `<div class="picker-sub" style="margin-top:8px;">Mindestens eine Kategorie auswählen oder eintippen.</div>`}
+            </div>
+          ` : ``}
         </div>
       ` : ``}
 
@@ -1950,6 +2239,7 @@ function renderRoundBuilder(){
     </div>
   `);
 }
+const SLF_DEFAULT_CATEGORIES_CLIENT = ["Stadt","Land","Fluss","Name","Tier","Beruf","Pflanze"];
 
 function builderSetModeSearch(v){ party.roundBuilder.modeSearch = v; renderRoundBuilder(); }
 function builderSetCategorySearch(v){ party.roundBuilder.categorySearch = v; renderRoundBuilder(); }
@@ -1958,6 +2248,8 @@ function builderSelectMode(kind){
   b.selectedKind = kind;
   b.categorySearch = "";
   b.selectedDefId = null;
+  b.slfMode = null;
+  b.slfCategories = [];
   if(kind === "knowledgeQuiz"){
     const quizDef = party.room.availableRoundDefs.find(d => d.kind === "knowledgeQuiz");
     b.selectedDefId = quizDef ? quizDef.id : null;
@@ -1965,12 +2257,47 @@ function builderSelectMode(kind){
   renderRoundBuilder();
 }
 function builderSelectCategory(defId){ party.roundBuilder.selectedDefId = defId; renderRoundBuilder(); }
+function builderSlfChooseOriginal(){
+  const b = party.roundBuilder;
+  b.slfMode = null;
+  b.slfCategories = [];
+  const orig = party.room.availableRoundDefs.find(d => d.id === "slf_original");
+  b.selectedDefId = orig ? orig.id : "slf_original";
+  renderRoundBuilder();
+}
+function builderSlfChooseCustom(){
+  const b = party.roundBuilder;
+  b.slfMode = "custom";
+  b.selectedDefId = null;
+  renderRoundBuilder();
+}
+function builderSlfToggleCategory(cat){
+  const b = party.roundBuilder;
+  const idx = b.slfCategories.indexOf(cat);
+  if(idx === -1) b.slfCategories.push(cat); else b.slfCategories.splice(idx,1);
+  renderRoundBuilder();
+}
+function builderSlfAddCustomCategory(){
+  const b = party.roundBuilder;
+  const input = document.getElementById("slfCustomCatInput");
+  const val = (input.value || "").trim();
+  if(val && !b.slfCategories.includes(val) && b.slfCategories.length < 8){
+    b.slfCategories.push(val);
+    input.value = "";
+  }
+  renderRoundBuilder();
+}
 
 function builderAddOrUpdateRound(){
   const b = party.roundBuilder;
-  const def = party.room.availableRoundDefs.find(d => d.id === b.selectedDefId);
-  if(!def) return;
-  const entry = { id: def.id, kind: def.kind, label: def.label };
+  let entry;
+  if(b.selectedKind === "stadtLandFluss" && b.slfMode === "custom" && b.slfCategories.length > 0){
+    entry = { id:"slf_custom", kind:"stadtLandFluss", label:"Stadt Land Fluss: Eigene Kategorien (" + b.slfCategories.join(", ") + ")", categories:[...b.slfCategories] };
+  } else {
+    const def = party.room.availableRoundDefs.find(d => d.id === b.selectedDefId);
+    if(!def) return;
+    entry = { id: def.id, kind: def.kind, label: def.label };
+  }
   if(b.editingIndex !== null){
     b.rounds[b.editingIndex] = entry;
     b.editingIndex = null;
@@ -1980,6 +2307,8 @@ function builderAddOrUpdateRound(){
   }
   b.selectedKind = null;
   b.selectedDefId = null;
+  b.slfMode = null;
+  b.slfCategories = [];
   b.modeSearch = "";
   b.categorySearch = "";
   renderRoundBuilder();
@@ -1990,6 +2319,8 @@ function builderEditRound(index){
   b.editingIndex = index;
   b.selectedKind = r.kind;
   b.selectedDefId = r.id;
+  b.slfMode = r.categories ? "custom" : null;
+  b.slfCategories = r.categories ? [...r.categories] : [];
   b.modeSearch = "";
   b.categorySearch = "";
   renderRoundBuilder();
@@ -1999,6 +2330,8 @@ function builderCancelEdit(){
   b.editingIndex = null;
   b.selectedKind = null;
   b.selectedDefId = null;
+  b.slfMode = null;
+  b.slfCategories = [];
   renderRoundBuilder();
 }
 function builderRemoveRound(index){
@@ -2013,7 +2346,10 @@ function builderApply(){
   if(!b || b.rounds.length !== b.targetCount) return;
   renderApp(`<div class="panel party-waiting"><p>Runden werden übernommen …</p></div>`);
   if(party.room.roundMode !== "custom") partySend({action:'setRoundMode', mode:'custom'});
-  b.rounds.forEach((r, i) => partySend({action:'setRoundDef', index:i, defId:r.id}));
+  b.rounds.forEach((r, i) => {
+    if(r.categories) partySend({action:'setSlfCustomRoundDef', index:i, categories:r.categories});
+    else partySend({action:'setRoundDef', index:i, defId:r.id});
+  });
   party.roundBuilder = null;
 }
 function builderCancel(){
@@ -2029,7 +2365,7 @@ function partySetPointSystem(system){ partySend({action:'setPointSystem', system
 function renderPartyRoundIntro(msg){
   renderApp(`
     <div class="panel pass-card">
-      <h2>RUNDE ${msg.roundNumber} VON ${msg.totalRounds}</h2>
+      <h2>${t('round_of')} ${msg.roundNumber} ${t('round_of_mid')} ${msg.totalRounds}</h2>
       <p>${msg.label}</p>
     </div>
   `);
@@ -2109,11 +2445,17 @@ function renderPartyRank(msg){
   const myTurn = msg.turnTeamId === myTeamId;
   const turnTeam = party.room.teams.find(t=>t.id===msg.turnTeamId);
 
-  const livesHtml = Object.entries(msg.lives).map(([teamId, lives]) => {
-    const team = party.room.teams.find(t=>t.id===teamId);
-    const hearts = Array.from({length:3}).map((_,i)=>`<span class="heart ${i<lives?'on':''}">❤</span>`).join("");
-    return `<div class="lives-row"><span>${team?.name || teamId}${msg.eliminated.includes(teamId)?' (raus)':''}</span><div class="hearts">${hearts}</div></div>`;
-  }).join("");
+  const livesHtml = party.soloMode
+    ? (() => {
+        const lives = msg.lives[myTeamId] ?? 3;
+        const hearts = Array.from({length:3}).map((_,i)=>`<span class="heart ${i<lives?'on':''}">❤</span>`).join("");
+        return `<div class="lives-row"><span>Deine Leben</span><div class="hearts">${hearts}</div></div>`;
+      })()
+    : Object.entries(msg.lives).map(([teamId, lives]) => {
+        const team = party.room.teams.find(t=>t.id===teamId);
+        const hearts = Array.from({length:3}).map((_,i)=>`<span class="heart ${i<lives?'on':''}">❤</span>`).join("");
+        return `<div class="lives-row"><span>${team?.name || teamId}${msg.eliminated.includes(teamId)?' (raus)':''}</span><div class="hearts">${hearts}</div></div>`;
+      }).join("");
 
   // Bei "Mehr oder Weniger" bleibt es beim einzelnen gezogenen Element.
   // Bei "Einordnen" ist der komplette Pool sichtbar; erst wenn ein Element
@@ -2131,11 +2473,11 @@ function renderPartyRank(msg){
       <div class="picker-title">${msg.label}</div>
       <div class="picker-sub">${msg.unit} · ${msg.order === 'desc' ? 'Höchster Wert zuerst' : 'Niedrigster Wert zuerst'}</div>
 
-      <div class="turn-banner">${myTurn ? 'IHR SEID DRAN!' : (turnTeam?.name || '...') + ' ist dran'}</div>
+      ${party.soloMode ? `` : `<div class="turn-banner">${myTurn ? 'IHR SEID DRAN!' : (turnTeam?.name || '...') + ' ist dran'}</div>`}
 
       ${msg.freeChoice && !activeItem ? `
         <div style="color:var(--text-dim); font-size:12px; margin-bottom:8px;">
-          ${myTurn ? 'Wählt ein Element aus, das ihr einordnen wollt:' : 'Noch nicht eingeordnete Elemente:'}
+          ${myTurn ? 'Wähle ein Element aus, das du einordnen willst:' : 'Noch nicht eingeordnete Elemente:'}
         </div>
         <div class="chip-group" style="margin-bottom:18px;">
           ${(msg.pool || []).map(it => `
@@ -2199,52 +2541,326 @@ function renderPartyRankReveal(msg){
   `);
 }
 
+/* ---------- Bild erraten ---------- */
+function renderPartyGuessItem(msg){
+  party.guessMsg = msg;
+  party.guessAnswered = false;
+  const letters = ["A","B","C","D"]; // ungenutzt, nur Konsistenz
+  renderApp(`
+    <div class="panel">
+      <div class="qmeta">
+        <div class="qcount">${msg.index+1} von ${msg.total}</div>
+        <div class="qcat">${msg.label}</div>
+      </div>
+      <div class="guess-points-badge" id="guessPointsBadge">5 Punkte</div>
+      <div class="guess-image-wrap">
+        <div class="guess-image ${msg.promptType==='emoji' ? 'guess-emoji' : ''}" id="guessImage">
+          ${msg.promptType === 'emoji' ? msg.promptValue : `<img src="${msg.promptValue}" alt="Errate das Bild">`}
+        </div>
+      </div>
+      <div class="timer-wrap">
+        <div class="timer-bar"><div id="guessTimerFill" class="timer-fill" style="width:100%"></div></div>
+      </div>
+      <div class="picker-form" style="margin-top:14px;">
+        <input type="text" id="guessInput" class="builder-search" style="margin-top:0;" placeholder="Was ist das?" autocomplete="off" onkeydown="if(event.key==='Enter')submitPartyGuess()">
+        <button class="btn btn-primary" onclick="submitPartyGuess()">RATEN</button>
+      </div>
+      <div id="guessAttemptsFeed" class="guess-attempts-feed"></div>
+    </div>
+  `);
+  startGuessTicker(msg);
+}
+
+function startGuessTicker(msg){
+  if(party.guessTickerId) clearInterval(party.guessTickerId);
+  const badge = document.getElementById("guessPointsBadge");
+  const fill = document.getElementById("guessTimerFill");
+  const img = document.getElementById("guessImage");
+  party.guessTickerId = setInterval(() => {
+    const elapsed = Date.now() - msg.startedAt;
+    const remaining = Math.max(0, msg.durationMs - elapsed);
+    if(fill) fill.style.width = Math.max(0, (remaining / msg.durationMs) * 100) + "%";
+    if(fill) fill.classList.toggle("warn", remaining < msg.durationMs * 0.25);
+    const tierIdx = Math.min(Math.floor(elapsed / msg.tierMs), msg.tiers.length - 1);
+    const points = msg.tiers[Math.max(0, tierIdx)];
+    if(badge) badge.textContent = points + " Punkte";
+    if(img){
+      // Von stark unscharf (Stufe 0) zu klar (letzte Stufe) übergehen
+      const blurLevels = [18, 10, 5, 0];
+      const blur = blurLevels[Math.min(tierIdx, blurLevels.length-1)];
+      img.style.filter = `blur(${blur}px)`;
+    }
+    if(remaining <= 0) clearInterval(party.guessTickerId);
+  }, 100);
+}
+
+function submitPartyGuess(){
+  if(party.guessAnswered) return;
+  const input = document.getElementById("guessInput");
+  const text = (input && input.value || "").trim();
+  if(!text) return;
+  partySend({action:'guessSubmit', text});
+  if(input){ input.value = ""; input.focus(); }
+}
+
+function handlePartyGuessAttempt(msg){
+  if(!party.guessAttempts) party.guessAttempts = [];
+  party.guessAttempts.unshift(msg);
+  party.guessAttempts = party.guessAttempts.slice(0, 5);
+  const feed = document.getElementById("guessAttemptsFeed");
+  if(feed){
+    feed.innerHTML = party.guessAttempts.map(a => `
+      <div class="resolve-row" style="padding:8px 14px;">
+        <span>${a.playerName}: "${a.text}"</span>
+        <span class="mark ${a.correct?'ok':'bad'}">${a.correct?'✓':'✕'}</span>
+      </div>
+    `).join("");
+  }
+  if(msg.correct && msg.teamId === party.room.players.find(p=>p.id===party.playerId)?.teamId){
+    party.guessAnswered = true;
+  }
+}
+
+function renderPartyGuessResolved(msg){
+  if(party.guessTickerId) clearInterval(party.guessTickerId);
+  const team = msg.winnerTeamId ? party.room.teams.find(t=>t.id===msg.winnerTeamId) : null;
+  renderApp(`
+    <div class="panel confirm-card">
+      <div class="points-badge ${team?'pos':'neg'}">${msg.correctAnswer}</div>
+      <p style="margin-top:10px; font-weight:700;">${team ? `${team.name} hatte es zuerst richtig (+${msg.points})` : 'Niemand hat es rechtzeitig erraten'}</p>
+    </div>
+  `);
+}
+
+/* ---------- Stadt Land Fluss ---------- */
+function renderSlfAnswering(msg){
+  party.slfMsg = msg;
+  party.slfSubmitted = false;
+  renderApp(`
+    <div class="panel">
+      <div class="qmeta">
+        <div class="qcount">Stadt Land Fluss</div>
+        <div class="qcat">Buchstabe</div>
+      </div>
+      <div class="guess-points-badge" style="font-size:52px;">${msg.letter}</div>
+      <div class="timer-wrap">
+        <div class="timer-bar"><div id="slfTimerFill" class="timer-fill" style="width:100%"></div></div>
+        <div id="slfTimerNum" class="timer-num">${Math.ceil(msg.durationMs/1000)}s</div>
+      </div>
+      <div class="picker-form" style="flex-direction:column; gap:10px; margin-top:14px;">
+        ${msg.categories.map((cat,i) => `
+          <div>
+            <label style="font-size:12px; color:var(--text-dim); font-weight:700;">${cat}</label>
+            <input type="text" id="slfInput_${i}" class="builder-search" style="margin-top:4px;" placeholder="${cat} mit ${msg.letter} …" maxlength="30" autocomplete="off">
+          </div>
+        `).join("")}
+      </div>
+      <button class="btn btn-primary btn-block" style="margin-top:16px;" id="slfSubmitBtn" onclick="submitSlfAnswers(false)">FERTIG – ABGEBEN</button>
+      <div id="slfWaitNote" class="next-hint hidden">Antwort gesendet – warte auf die anderen …</div>
+    </div>
+  `);
+  startSlfTicker(msg);
+}
+function startSlfTicker(msg){
+  if(party.slfTickerId) clearInterval(party.slfTickerId);
+  const startedAt = Date.now();
+  party.slfTickerId = setInterval(() => {
+    const elapsed = Date.now() - startedAt;
+    const remaining = Math.max(0, msg.durationMs - elapsed);
+    const fill = document.getElementById("slfTimerFill");
+    const num = document.getElementById("slfTimerNum");
+    if(fill){ fill.style.width = Math.max(0,(remaining/msg.durationMs)*100) + "%"; fill.classList.toggle("warn", remaining < msg.durationMs*0.2); }
+    if(num) num.textContent = Math.ceil(remaining/1000) + "s";
+    if(remaining <= 0){ clearInterval(party.slfTickerId); submitSlfAnswers(true); }
+  }, 150);
+}
+function submitSlfAnswers(){
+  if(party.slfSubmitted) return;
+  party.slfSubmitted = true;
+  if(party.slfTickerId) clearInterval(party.slfTickerId);
+  const answers = {};
+  (party.slfMsg.categories||[]).forEach((cat,i) => {
+    const el = document.getElementById("slfInput_"+i);
+    answers[cat] = el ? el.value : "";
+  });
+  partySend({action:'slfSubmit', answers});
+  const btn = document.getElementById("slfSubmitBtn");
+  if(btn){ btn.disabled = true; btn.textContent = "Abgegeben"; }
+  const note = document.getElementById("slfWaitNote");
+  if(note) note.classList.remove("hidden");
+  document.querySelectorAll('[id^="slfInput_"]').forEach(el=>el.disabled=true);
+}
+
+function renderSlfReveal(msg){
+  party.slfRevealMsg = msg;
+  if(!party.slfChallenges) party.slfChallenges = [];
+  const myId = party.playerId;
+  renderApp(`
+    <div class="panel">
+      <div class="picker-title">AUFLÖSUNG – Buchstabe „${msg.letter}"</div>
+      <div class="picker-sub">Vorläufige Punkte – noch anfechtbar (${Math.ceil(msg.challengeWindowMs/1000)}s Zeit)</div>
+      ${msg.categories.map((cat, catIndex) => `
+        <div style="margin-top:16px;">
+          <div style="font-weight:800; font-size:14px; margin-bottom:6px; color:var(--accent-2);">${cat}</div>
+          <div class="round-plan-list">
+            ${msg.players.map(p => {
+              const text = (msg.answers[p.id]||{})[cat] || "";
+              const pts = (msg.scores[p.id]||{})[cat] ?? 0;
+              const challenge = (party.slfChallenges||[]).find(c => c.playerId===p.id && c.category===cat);
+              const canChallenge = p.id !== myId && text && !challenge;
+              const challengeNote = challenge ? (challenge.resolved
+                ? (challenge.invalidated ? '<br><span style="font-size:11px; color:var(--danger);">❌ angefochten – ungültig</span>' : '<br><span style="font-size:11px; color:var(--accent-2);">✓ angefochten – bleibt gültig</span>')
+                : '<br><span style="font-size:11px; color:var(--warn);">⏳ wird gerade angefochten …</span>') : '';
+              const shownPts = (challenge && challenge.resolved && challenge.invalidated) ? 0 : pts;
+              return `
+                <div class="round-plan-item" style="align-items:center;">
+                  <span style="flex:1;"><b>${p.name}:</b> ${text ? text : '<span style="color:var(--text-dim);">(leer)</span>'}${challengeNote}</span>
+                  <span class="val" style="margin-right:8px;">${shownPts} P.</span>
+                  ${canChallenge ? `<button class="bot-remove-btn" style="border-color:var(--warn); color:var(--warn);" onclick="raiseSlfChallenge('${p.id}', ${catIndex})" title="Anfechten">⚑</button>` : ``}
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `).join("")}
+      <div id="slfVotePanel"></div>
+    </div>
+  `);
+  renderSlfVotePanel();
+}
+function renderSlfVotePanel(){
+  const panel = document.getElementById("slfVotePanel");
+  if(!panel) return;
+  const myId = party.playerId;
+  const activeChallenges = (party.slfChallenges||[]).filter(c => !c.resolved && c.playerId !== myId);
+  if(activeChallenges.length === 0){ panel.innerHTML = ""; return; }
+  panel.innerHTML = `
+    <div class="panel" style="margin-top:16px; border-color:var(--warn);">
+      <div class="picker-title" style="font-size:15px;">Abstimmen: Ist diese Antwort gültig?</div>
+      ${activeChallenges.map(c => `
+        <div class="resolve-row" style="margin-top:8px;"><span>${c.category}: "${c.answerText}"</span></div>
+        <div class="actions-row" style="margin-top:6px; margin-bottom:14px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="voteSlfChallenge('${c.id}', true)">✓ Gültig</button>
+          <button class="btn btn-ghost" style="flex:1; border-color:var(--danger); color:var(--danger);" onclick="voteSlfChallenge('${c.id}', false)">✕ Ungültig</button>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+function updateSlfChallengeUI(){
+  if(party.slfRevealMsg) renderSlfReveal(party.slfRevealMsg);
+}
+function raiseSlfChallenge(targetPlayerId, catIndex){
+  const category = party.slfRevealMsg.categories[catIndex];
+  partySend({action:'slfChallenge', targetPlayerId, category});
+}
+function voteSlfChallenge(challengeId, valid){
+  partySend({action:'slfVote', challengeId, valid});
+  const panel = document.getElementById("slfVotePanel");
+  if(panel) panel.innerHTML = '<p style="text-align:center; color:var(--text-dim); margin-top:10px;">Stimme abgegeben, warte auf die anderen …</p>';
+}
+function renderSlfFinal(msg){
+  const revealMsg = party.slfRevealMsg || {players:[]};
+  party.slfChallenges = [];
+  renderApp(`
+    <div class="panel">
+      <div class="picker-title">ENDGÜLTIGE WERTUNG</div>
+      <div class="round-plan-list" style="margin-top:10px;">
+        ${(revealMsg.players||[]).map(p => {
+          const catScores = msg.scores[p.id] || {};
+          const total = Object.values(catScores).reduce((a,b)=>a+b,0);
+          return `<div class="round-plan-item"><span style="flex:1;">${p.name}</span><span class="val">${total} P.</span></div>`;
+        }).join("")}
+      </div>
+    </div>
+  `);
+}
+
 /* ---------- Rundenauswertung & Spielende ---------- */
 function renderPartyRoundEnd(msg){
+  if(party.soloMode){
+    const mine = msg.teams[0];
+    const won = msg.winnerTeamIds.includes(mine.id);
+    renderApp(`
+      <div class="panel">
+        <div class="result-title">${t('round_of')} ${msg.roundNumber} ${t('round_of_mid')} ${msg.totalRounds} ${t('round_over')}</div>
+        <div class="result-grid" style="margin-top:14px;">
+          <div class="result-item ${msg.roundScores[mine.id]>=0?'pos':'neg'}">
+            <div class="n">${msg.roundScores[mine.id]>=0?'+':''}${msg.roundScores[mine.id]}</div>
+            <div class="l">${t('round_points')}</div>
+          </div>
+          <div class="result-item">
+            <div class="n">${mine.score}</div>
+            <div class="l">${t('total_points')}</div>
+          </div>
+        </div>
+        ${won ? `<p style="color:var(--accent-2); font-weight:700; margin-top:14px; text-align:center;">${t('solo_round_done')}</p>` : ``}
+        <button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="partySend({action:'continue'})">
+          ${msg.isLastRound ? t('final_eval') : t('next_round')}
+        </button>
+      </div>
+    `);
+    return;
+  }
+
   const ranked = [...msg.teams].sort((a,b)=>b.score-a.score);
   const medals = ["🥇","🥈","🥉","4.","5.","6."];
   renderApp(`
     <div class="panel">
-      <div class="result-title">RUNDE ${msg.roundNumber} BEENDET</div>
-      ${ranked.map((t,i) => `
+      <div class="result-title">${t('round_of')} ${msg.roundNumber} ${t('round_over')}</div>
+      ${ranked.map((team,i) => `
         <div class="leaderboard-row">
           <div class="medal">${medals[i]}</div>
           <div>
-            <div class="lname">${t.name}${msg.winnerTeamIds.includes(t.id) ? ' 👑' : ''}</div>
-            <div class="lsub">Rundenpunkte: ${msg.roundScores[t.id] >= 0 ? '+' : ''}${msg.roundScores[t.id]}</div>
+            <div class="lname">${team.name}${msg.winnerTeamIds.includes(team.id) ? ' 👑' : ''}</div>
+            <div class="lsub">${t('round_points_short')}: ${msg.roundScores[team.id] >= 0 ? '+' : ''}${msg.roundScores[team.id]}</div>
           </div>
-          <div class="lright"><div class="lpoints">${t.score}</div><div class="lsub">Gesamt</div></div>
+          <div class="lright"><div class="lpoints">${team.score}</div><div class="lsub">${t('total_short')}</div></div>
         </div>
       `).join("")}
       ${party.isHost ? `
         <button class="btn btn-primary btn-block" style="margin-top:14px;" onclick="partySend({action:'continue'})">
-          ${msg.isLastRound ? 'ZUR ENDAUSWERTUNG' : 'NÄCHSTE RUNDE'}
+          ${msg.isLastRound ? t('final_eval') : t('next_round')}
         </button>
-      ` : `<p style="color:var(--text-dim); text-align:center; margin-top:14px;">Warte auf den Host …</p>`}
+      ` : `<p style="color:var(--text-dim); text-align:center; margin-top:14px;">${t('lobby_waiting_host')}</p>`}
     </div>
   `);
 }
 
 function renderPartyGameEnd(msg){
+  if(party.soloMode){
+    const mine = msg.ranking[0];
+    renderApp(`
+      <div class="panel">
+        <div class="result-title">${t('solo_finished_title')}</div>
+        <div class="result-sub">${t('solo_finished_sub')}</div>
+        <div class="result-item" style="margin-top:14px;">
+          <div class="n">${mine.score}</div>
+          <div class="l">${t('total_points')}</div>
+        </div>
+        <div class="actions-row" style="margin-top:18px;">
+          <button class="btn btn-primary" onclick="restartSoloParty()">${t('play_again')}</button>
+          <button class="btn btn-ghost" onclick="partyLeave()">${t('main_menu')}</button>
+        </div>
+      </div>
+    `);
+    return;
+  }
+
   const medals = ["🥇","🥈","🥉","4.","5.","6."];
   renderApp(`
     <div class="panel">
-      <div class="result-title">SPIEL BEENDET</div>
-      ${msg.ranking.map((t,i) => `
+      <div class="result-title">${t('game_over')}</div>
+      ${msg.ranking.map((team,i) => `
         <div class="leaderboard-row">
           <div class="medal">${medals[i]}</div>
-          <div class="lname">${t.name}</div>
-          <div class="lright"><div class="lpoints">${t.score}</div><div class="lsub">Punkte</div></div>
+          <div class="lname">${team.name}</div>
+          <div class="lright"><div class="lpoints">${team.score}</div><div class="lsub">${t('points_word')}</div></div>
         </div>
       `).join("")}
       <div class="actions-row" style="margin-top:14px;">
-        ${party.soloMode ? `
-          <button class="btn btn-primary" onclick="restartSoloParty()">NOCH EINMAL</button>
-          <button class="btn btn-ghost" onclick="partyLeave()">HAUPTMENÜ</button>
-        ` : `
-          ${party.isHost ? `<button class="btn btn-primary" onclick="partySend({action:'restartLobby'})">ZURÜCK ZUM WARTERAUM</button>` : ``}
-          <button class="btn btn-ghost" onclick="partyLeave()">RAUM VERLASSEN</button>
-        `}
+        ${party.isHost ? `<button class="btn btn-primary" onclick="partySend({action:'restartLobby'})">${t('back_to_waiting_room')}</button>` : ``}
+        <button class="btn btn-ghost" onclick="partyLeave()">${t('btn_leave_room')}</button>
       </div>
     </div>
   `);
@@ -2252,6 +2868,7 @@ function renderPartyGameEnd(msg){
 
 /* ---------------------------------- START ---------------------------------- */
 renderMainMenu();
+restoreAccountSession().then(() => { if(account) renderMainMenu(); });
 </script>
 </body>
 </html>
