@@ -1388,6 +1388,15 @@ wss.on("connection", (ws) => {
         if (isHost && room.phase === "lobby") {
           if (room.roundDefs.length !== room.roundCount || room.roundDefs.some(r => !r)) randomizeRoundDefs(room);
           if (room.teams.size === 0) rebuildFfaTeams(room);
+          // Wichtig: Teams (insb. bei "Alle gegen alle") werden erst hier final
+          // zugewiesen. Ohne diesen roomUpdate hätte der Client noch die alte
+          // (leere) teamId je Spieler zwischengespeichert und würde fälschlich
+          // glauben, niemand sei je am Zug – alle Klick-Buttons blieben dann
+          // unsichtbar. phase wird deshalb VOR dem Broadcast schon auf
+          // "playing" gesetzt, damit der Client dabei nicht kurz zurück in
+          // den Warteraum/die Solo-Konfiguration zurückspringt.
+          room.phase = "playing";
+          pushRoomState(room);
           room.currentRoundIndex = -1;
           startNextRound(room);
         }

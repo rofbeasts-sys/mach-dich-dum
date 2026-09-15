@@ -102,6 +102,12 @@ test/                   Ein automatisierter End-to-End-Test (optional, `npm test
 - Rundenbonus / Punktesysteme: Funktion `awardRoundPoints()` – dort sind alle drei
   Punktesysteme (Runde / Steigend / Punkteabzug) zentral umgesetzt.
 - Höhe des Punkteabzugs bei Punktesystem 3: Konstante `MISTAKE_PENALTY` ganz oben in `server.js`.
+- Solo-Wissenstest (klassischer, eigenständiger Modus – `public/index.html`,
+  nicht Party): Rundenbonus (+150) gibt es seit dieser Version nur noch bei
+  einer perfekten Runde (alle Fragen richtig), siehe `endSoloRound()`. Nach
+  jeder Frage bleibt die "Wusstest du...?"-Erklärung außerdem so lange offen
+  stehen, bis man selbst auf "WEITER" tippt – kein automatisches
+  Weiterspringen mehr, siehe `handleSoloAnswer()`/`soloNextQuestion()`.
 
 ## 5. Ränge ändern
 
@@ -432,6 +438,18 @@ Abschnitt "Benutzerkonten".
 **Noch offen:** Profilbilder – vorbereitet (`avatar`-Feld existiert bereits
 in jedem Konto), aber noch nicht mit Auswahloberfläche, da erst die
 Charakter-Bilder benötigt werden.
+
+### Bugfix: Platzieren-Buttons blieben bei "Alle gegen alle" unsichtbar
+
+Wenn der Host nie manuell Teams einstellte (Standardfall bei "Alle gegen
+alle", also praktisch immer bei Solo-Party und oft auch im normalen
+Party-Raum), bekam der Client nach dem Start nie ein Update mit der
+tatsächlich zugewiesenen Team-ID je Spieler. Die Oberfläche dachte deshalb
+fälschlich, man sei nie am Zug, und zeigte in Einordnen, Chronologie und
+Mehr-oder-Weniger keinerlei "Hier einordnen"-Buttons an – das Spiel wirkte
+komplett eingefroren, obwohl serverseitig alles korrekt funktionierte.
+Behoben durch einen zusätzlichen `roomUpdate`-Broadcast direkt nach der
+Team-Zuweisung in `startGame`, noch bevor die erste Runde beginnt.
 
 ## 8. Bekannte Grenzen dieser ersten Version
 
