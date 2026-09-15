@@ -624,20 +624,14 @@ function handleRankPlace(room, playerId, itemId, insertIndex) {
     applyMistakePenalty(room, teamId);
     if (rt.lives.get(teamId) <= 0) rt.eliminated.add(teamId);
 
-    if (rt.revealOnTurn) {
-      // Mehr oder Weniger: Element sofort an seiner tatsächlich korrekten
-      // Stelle einsortieren, damit künftige Vergleiche weiterhin stimmen –
-      // der Wert selbst bleibt aber verborgen (erst die Auflösung am
-      // Rundenende deckt alle Werte auf). Der nächste Zug zieht ein neues,
-      // noch unbekanntes Element.
-      const trueIndex = correctInsertIndexFor(rt, item.value);
-      rt.placed.splice(trueIndex, 0, { ...item, revealed: false });
-    } else {
-      // Einordnen: Wert bleibt geheim -> Element zurück in den sichtbaren
-      // Pool, der nächste Spieler/das nächste Team kann es (oder ein
-      // anderes) versuchen.
-      rt.pool.push(item);
-    }
+    // Bei falscher Antwort wird NICHTS einsortiert – weder bei Einordnen
+    // noch bei Mehr oder Weniger. Das Element bleibt unplatziert und
+    // stellt sich hinten wieder in den Nachziehstapel/Pool an, sodass
+    // beim nächsten Zug automatisch das nächste (andere) Element dran
+    // ist. Das falsch geratene Element kann später erneut versucht
+    // werden (bei Mehr oder Weniger: erneutes Ziehen vom Stapelanfang,
+    // sobald es wieder vorne ansteht; bei Einordnen: erneute freie Wahl).
+    rt.pool.push(item);
   }
   rt.currentItem = null;
 
