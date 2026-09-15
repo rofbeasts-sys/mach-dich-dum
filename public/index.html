@@ -1326,7 +1326,7 @@ function renderSoloQuestion(){
           </button>`).join("")}
       </div>
       <div id="explanationBox" class="explanation hidden"></div>
-      <div id="nextHint" class="next-hint hidden">Weiter zur nächsten Frage …</div>
+      <button id="soloNextBtn" class="btn btn-primary btn-block hidden" style="margin-top:14px;" onclick="soloNextQuestion()">WEITER</button>
     </div>
   `);
   startSoloTimer();
@@ -1380,17 +1380,20 @@ function handleSoloAnswer(selectedIdx){
   const explBox = document.getElementById("explanationBox");
   explBox.classList.remove("hidden");
   explBox.textContent = q.e ? q.e : (isCorrect ? "Richtig beantwortet!" : "Das war leider falsch.");
-  document.getElementById("nextHint").classList.remove("hidden");
 
-  setTimeout(()=>{
-    solo.qIndex++;
-    if(solo.qIndex >= solo.questions.length) endSoloRound();
-    else renderSoloQuestion();
-  }, 2600);
+  const nextBtn = document.getElementById("soloNextBtn");
+  nextBtn.classList.remove("hidden");
+  nextBtn.textContent = (solo.qIndex + 1 >= solo.questions.length) ? "ZUR RUNDENAUSWERTUNG" : "WEITER";
+}
+function soloNextQuestion(){
+  solo.qIndex++;
+  if(solo.qIndex >= solo.questions.length) endSoloRound();
+  else renderSoloQuestion();
 }
 
 function endSoloRound(){
-  const bonus = 150;
+  const perfectRound = solo.correct === solo.questions.length;
+  const bonus = perfectRound ? 150 : 0;
   applyPoints(solo.profile, bonus);
 
   const roundWon = solo.correct >= 3;
@@ -1417,7 +1420,7 @@ function endSoloRound(){
         <div class="result-item pos"><div class="n">${solo.correct}</div><div class="l">Richtige Antworten</div></div>
         <div class="result-item neg"><div class="n">${solo.wrong}</div><div class="l">Falsche Antworten</div></div>
         <div class="result-item"><div class="n">${solo.points>=0?"+":""}${solo.points}</div><div class="l">Punkte aus Fragen</div></div>
-        <div class="result-item pos"><div class="n">+${bonus}</div><div class="l">Rundenbonus</div></div>
+        <div class="result-item ${bonus>0?'pos':''}"><div class="n">+${bonus}</div><div class="l">Rundenbonus${bonus>0?'':' (nur bei 5/5 richtig)'}</div></div>
       </div>
 
       <div class="result-item" style="margin-bottom:20px;">
