@@ -550,7 +550,7 @@
     {
      "id": "kampfrealitystars",
      "name": "🏝️ Kampf der Realitystars",
-     "value": 9
+     "value": 6
     },
     {
      "id": "temptationisland",
@@ -561,6 +561,450 @@
      "id": "areyoutheone",
      "name": "💑 Are You The One",
      "value": 4
+    },
+    {
+     "id": "bauersuchtfrau",
+     "name": "🚜 Bauer sucht Frau",
+     "value": 21
+    }
+   ],
+   "germanOnly": true
+  },
+  "trashtv_kdrs_sieger": {
+   "label": "Einordnen: Kampf der Realitystars (Sieger nach Staffel)",
+   "unit": "Staffel-Nr.",
+   "order": "asc",
+   "items": [
+    {
+     "id": "kdrs_s1",
+     "name": "🏆 Kevin Pannewitz",
+     "value": 1
+    },
+    {
+     "id": "kdrs_s2",
+     "name": "🏆 Loona",
+     "value": 2
+    },
+    {
+     "id": "kdrs_s3",
+     "name": "🏆 Elena Miras",
+     "value": 3
+    },
+    {
+     "id": "kdrs_s4",
+     "name": "🏆 Serkan Yavuz",
+     "value": 4
+    },
+    {
+     "id": "kdrs_s5",
+     "name": "🏆 Calvin Kleinen",
+     "value": 5
+    },
+    {
+     "id": "kdrs_s6",
+     "name": "🏆 Tara Tabitha",
+     "value": 6
+    }
+   ],
+   "germanOnly": true
+  },
+  "trashtv_sommerhaus_sieger": {
+   "label": "Einordnen: Sommerhaus der Stars (Sieger nach Staffel)",
+   "unit": "Staffel-Nr.",
+   "order": "asc",
+   "items": [
+    {
+     "id": "shs_s1",
+     "name": "🏆 Xenia von Sachsen & Rajab Hassan",
+     "value": 1
+    },
+    {
+     "id": "shs_s2",
+     "name": "🏆 Nico Schwanz & Saskia Atzerodt",
+     "value": 2
+    },
+    {
+     "id": "shs_s3",
+     "name": "🏆 Iris & Uwe Abel",
+     "value": 3
+    },
+    {
+     "id": "shs_s4",
+     "name": "🏆 Elena Miras & Mike Heiter",
+     "value": 4
+    },
+    {
+     "id": "shs_s5",
+     "name": "🏆 Caro & Andreas Robens",
+     "value": 5
+    },
+    {
+     "id": "shs_s6",
+     "name": "🏆 Lars Steinhöfel & Dominik Schmitt",
+     "value": 6
+    },
+    {
+     "id": "shs_s7",
+     "name": "🏆 Antonia Hemmer & Patrick Romer",
+     "value": 7
+    },
+    {
+     "id": "shs_s8",
+     "name": "🏆 Samira & Serkan Yavuz",
+     "value": 8
+    },
+    {
+     "id": "shs_s9",
+     "name": "🏆 Sam Dylan & Rafi Rachek",
+     "value": 9
+    },
+    {
+     "id": "shs_s10",
+     "name": "🏆 Edda Pilz & Michael Klotz",
+     "value": 10
+    }
+   ],
+   "germanOnly": true
+  },
+  "trashtv_lol_sieger": {
+   "label": "Einordnen: LOL – Last One Laughing (Sieger nach Staffel)",
+   "unit": "Staffel-Nr.",
+   "order": "asc",
+   "items": [
+    {
+     "id": "lol_s1",
+     "name": "😂 Torsten Sträter",
+     "value": 1
+    },
+    {
+     "id": "lol_s2",
+     "name": "😂 Max Giermann",
+     "value": 2
+    },
+    {
+     "id": "lol_s3",
+     "name": "😂 Anke Engelke",
+     "value": 3
+    },
+    {
+     "id": "lol_s4",
+     "name": "😂 Kurt Krömer & Michael Mittermeier",
+     "value": 4
+    },
+    {
+     "id": "lol_s5",
+     "name": "😂 Mirja Boes",
+     "value": 5
+    },
+    {
+     "id": "lol_s6",
+     "name": "😂 Ralf Schmitz",
+     "value": 6
+    }
+   ],
+   "germanOnly": true
+  },
+  "trashtv_dschungelcamp_sieger": {
+   "label": "Einordnen: Ich bin ein Star (Sieger, Staffel 10-19)",
+   "unit": "Staffel-Nr.",
+   "order": "asc",
+   "items": [
+    {
+     "id": "ibes_s10",
+     "name": "👑 Menderes Bagci",
+     "value": 10
+    },
+    {
+     "id": "ibes_s11",
+     "name": "👑 Marc Terenzi",
+     "value": 11
+    },
+    {
+     "id": "ibes_s12",
+     "name": "👑 Jenny Frankhauser",
+     "value": 12
+    },
+    {
+     "id": "ibes_s13",
+     "name": "👑 Evelyn Burdecki",
+     "value": 13
+    },
+    {
+     "id": "ibes_s14",
+     "name": "👑 Prince Damien",
+     "value": 14
+    },
+    {
+     "id": "ibes_s15",
+     "name": "👑 Filip Pavlovic",
+     "value": 15
+    },
+    {
+     "id": "ibes_s16",
+     "name": "👑 Djamila Rowe",
+     "value": 16
+    },
+    {
+     "id": "ibes_s17",
+     "name": "👑 Lucy Diakovska",
+     "value": 17
+    },
+    {
+     "id": "ibes_s18",
+     "name": "👑 Lilly Becker",
+     "value": 18
+    },
+    {
+     "id": "ibes_s19",
+     "name": "👑 Gil Ofarim",
+     "value": 19
+    }
+   ],
+   "germanOnly": true
+  },
+  "haeuser_groesse": {
+   "label": "Einordnen: Häuser (Wohnfläche)",
+   "unit": "m² Wohnfläche (ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "istana_nurul_iman",
+     "name": "🏰 Istana Nurul Iman (Sultanspalast, Brunei)",
+     "value": 200000
+    },
+    {
+     "id": "buckingham",
+     "name": "🏰 Buckingham Palace",
+     "value": 77000
+    },
+    {
+     "id": "versailles",
+     "name": "🏰 Schloss Versailles",
+     "value": 67000
+    },
+    {
+     "id": "falaknuma",
+     "name": "🏰 Falaknuma Palace (Hyderabad)",
+     "value": 34000
+    },
+    {
+     "id": "antilia",
+     "name": "🏠 Antilia (Mumbai)",
+     "value": 27000
+    },
+    {
+     "id": "biltmore",
+     "name": "🏠 Biltmore Estate (USA)",
+     "value": 16300
+    },
+    {
+     "id": "chatsworth",
+     "name": "🏠 Chatsworth House (UK)",
+     "value": 13000
+    },
+    {
+     "id": "cadzan",
+     "name": "🏠 Ca' d'Zan (Ringling-Anwesen)",
+     "value": 9300
+    },
+    {
+     "id": "witanhurst",
+     "name": "🏠 Witanhurst (London)",
+     "value": 9000
+    },
+    {
+     "id": "blenheim",
+     "name": "🏠 Blenheim Palace (UK)",
+     "value": 7000
+    },
+    {
+     "id": "xanadu2",
+     "name": "🏠 Xanadu 2.0 (Bill Gates' Haus)",
+     "value": 6100
+    },
+    {
+     "id": "hearstcastle",
+     "name": "🏠 Hearst Castle (USA)",
+     "value": 5600
+    },
+    {
+     "id": "spellingmanor",
+     "name": "🏠 The Manor (Spelling-Anwesen)",
+     "value": 5300
+    },
+    {
+     "id": "updown_court",
+     "name": "🏠 Updown Court (UK)",
+     "value": 4600
+    },
+    {
+     "id": "kensington",
+     "name": "🏠 Kensington Palace (Privatwohnungen)",
+     "value": 2700
+    },
+    {
+     "id": "playboy_mansion",
+     "name": "🏠 Playboy Mansion",
+     "value": 2100
+    }
+   ]
+  },
+  "dinos_groesse": {
+   "label": "Einordnen: Dinosaurier (Länge)",
+   "unit": "m Länge (ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "supersaurus",
+     "name": "🦕 Supersaurus",
+     "value": 39
+    },
+    {
+     "id": "patagotitan",
+     "name": "🦕 Patagotitan",
+     "value": 37
+    },
+    {
+     "id": "argentinosaurus",
+     "name": "🦕 Argentinosaurus",
+     "value": 35
+    },
+    {
+     "id": "diplodocus",
+     "name": "🦕 Diplodocus",
+     "value": 27
+    },
+    {
+     "id": "apatosaurus",
+     "name": "🦕 Apatosaurus (Brontosaurus)",
+     "value": 23
+    },
+    {
+     "id": "brachiosaurus",
+     "name": "🦕 Brachiosaurus",
+     "value": 21
+    },
+    {
+     "id": "spinosaurus",
+     "name": "🦖 Spinosaurus",
+     "value": 15
+    },
+    {
+     "id": "giganotosaurus",
+     "name": "🦖 Giganotosaurus",
+     "value": 13
+    },
+    {
+     "id": "trex",
+     "name": "🦖 Tyrannosaurus Rex",
+     "value": 12
+    },
+    {
+     "id": "allosaurus",
+     "name": "🦖 Allosaurus",
+     "value": 10
+    },
+    {
+     "id": "triceratops",
+     "name": "🦕 Triceratops",
+     "value": 9
+    },
+    {
+     "id": "stegosaurus",
+     "name": "🦕 Stegosaurus",
+     "value": 8
+    },
+    {
+     "id": "ankylosaurus",
+     "name": "🦕 Ankylosaurus",
+     "value": 6.5
+    },
+    {
+     "id": "parasaurolophus",
+     "name": "🦕 Parasaurolophus",
+     "value": 6
+    },
+    {
+     "id": "velociraptor",
+     "name": "🦖 Velociraptor",
+     "value": 2
+    },
+    {
+     "id": "compsognathus",
+     "name": "🦖 Compsognathus",
+     "value": 1
+    }
+   ]
+  },
+  "objekte_groesse": {
+   "label": "Einordnen: Größenvergleich (von Kakerlake bis Todesstern)",
+   "unit": "m (ca.)",
+   "order": "desc",
+   "items": [
+    {
+     "id": "todesstern",
+     "name": "⭐ Todesstern (Star Wars)",
+     "value": 120000
+    },
+    {
+     "id": "burj_khalifa2",
+     "name": "🏙️ Burj Khalifa",
+     "value": 828
+    },
+    {
+     "id": "eiffelturm2",
+     "name": "🗼 Eiffelturm",
+     "value": 330
+    },
+    {
+     "id": "godzilla",
+     "name": "🦎 Godzilla (Film-Version 2014)",
+     "value": 108
+    },
+    {
+     "id": "fussballfeld",
+     "name": "⚽ Fußballfeld",
+     "value": 105
+    },
+    {
+     "id": "blauwal2",
+     "name": "🐋 Blauwal",
+     "value": 30
+    },
+    {
+     "id": "doppeldeckerbus",
+     "name": "🚌 Doppeldeckerbus",
+     "value": 11
+    },
+    {
+     "id": "biggbird",
+     "name": "🐤 Big Bird (Sesamstraße)",
+     "value": 2.4
+    },
+    {
+     "id": "mensch",
+     "name": "🧍 Mensch (Durchschnittsgröße)",
+     "value": 1.7
+    },
+    {
+     "id": "yoda",
+     "name": "👽 Yoda (Star Wars)",
+     "value": 0.66
+    },
+    {
+     "id": "spongebob",
+     "name": "🧽 SpongeBob Schwammkopf",
+     "value": 0.6
+    },
+    {
+     "id": "pikachu",
+     "name": "⚡ Pikachu",
+     "value": 0.4
+    },
+    {
+     "id": "kakerlake",
+     "name": "🪳 Kakerlake",
+     "value": 0.05
     }
    ]
   }
@@ -1198,7 +1642,8 @@
      "name": "⚽ SV Werder Bremen",
      "value": 140
     }
-   ]
+   ],
+   "germanOnly": true
   },
   "kaderwert_2liga": {
    "label": "Mehr oder Weniger: Fußball – 2. Bundesliga (Kaderwert)",
@@ -1246,7 +1691,8 @@
      "name": "⚽ Karlsruher SC",
      "value": 12
     }
-   ]
+   ],
+   "germanOnly": true
   },
   "kaderwert_laliga": {
    "label": "Mehr oder Weniger: Fußball – La Liga (Kaderwert)",
@@ -1581,6 +2027,1085 @@
      "id": "deathnotemanga",
      "name": "📖 Death Note",
      "value": 47
+    }
+   ]
+  }
+ },
+ "guessPicture": {
+  "flaggen_erraten": {
+   "label": "Bild erraten: Flaggen",
+   "promptType": "emoji",
+   "items": [
+    {
+     "id": "f_de",
+     "promptValue": "🇩🇪",
+     "answer": "Deutschland"
+    },
+    {
+     "id": "f_fr",
+     "promptValue": "🇫🇷",
+     "answer": "Frankreich"
+    },
+    {
+     "id": "f_it",
+     "promptValue": "🇮🇹",
+     "answer": "Italien"
+    },
+    {
+     "id": "f_es",
+     "promptValue": "🇪🇸",
+     "answer": "Spanien"
+    },
+    {
+     "id": "f_jp",
+     "promptValue": "🇯🇵",
+     "answer": "Japan"
+    },
+    {
+     "id": "f_br",
+     "promptValue": "🇧🇷",
+     "answer": "Brasilien"
+    },
+    {
+     "id": "f_ca",
+     "promptValue": "🇨🇦",
+     "answer": "Kanada"
+    },
+    {
+     "id": "f_au",
+     "promptValue": "🇦🇺",
+     "answer": "Australien"
+    },
+    {
+     "id": "f_gb",
+     "promptValue": "🇬🇧",
+     "answer": "Vereinigtes Königreich",
+     "alt": [
+      "Großbritannien",
+      "England",
+      "UK"
+     ]
+    },
+    {
+     "id": "f_eg",
+     "promptValue": "🇪🇬",
+     "answer": "Ägypten"
+    },
+    {
+     "id": "f_us",
+     "promptValue": "🇺🇸",
+     "answer": "USA",
+     "alt": [
+      "Vereinigte Staaten",
+      "United States"
+     ]
+    },
+    {
+     "id": "f_cn",
+     "promptValue": "🇨🇳",
+     "answer": "China"
+    },
+    {
+     "id": "f_ru",
+     "promptValue": "🇷🇺",
+     "answer": "Russland"
+    },
+    {
+     "id": "f_in",
+     "promptValue": "🇮🇳",
+     "answer": "Indien"
+    },
+    {
+     "id": "f_mx",
+     "promptValue": "🇲🇽",
+     "answer": "Mexiko"
+    },
+    {
+     "id": "f_ar",
+     "promptValue": "🇦🇷",
+     "answer": "Argentinien"
+    },
+    {
+     "id": "f_za",
+     "promptValue": "🇿🇦",
+     "answer": "Südafrika"
+    },
+    {
+     "id": "f_kr",
+     "promptValue": "🇰🇷",
+     "answer": "Südkorea"
+    },
+    {
+     "id": "f_tr",
+     "promptValue": "🇹🇷",
+     "answer": "Türkei"
+    },
+    {
+     "id": "f_gr",
+     "promptValue": "🇬🇷",
+     "answer": "Griechenland"
+    },
+    {
+     "id": "f_pt",
+     "promptValue": "🇵🇹",
+     "answer": "Portugal"
+    },
+    {
+     "id": "f_nl",
+     "promptValue": "🇳🇱",
+     "answer": "Niederlande"
+    },
+    {
+     "id": "f_se",
+     "promptValue": "🇸🇪",
+     "answer": "Schweden"
+    },
+    {
+     "id": "f_ch",
+     "promptValue": "🇨🇭",
+     "answer": "Schweiz"
+    },
+    {
+     "id": "f_pl",
+     "promptValue": "🇵🇱",
+     "answer": "Polen"
+    },
+    {
+     "id": "f_ie",
+     "promptValue": "🇮🇪",
+     "answer": "Irland"
+    },
+    {
+     "id": "f_at",
+     "promptValue": "🇦🇹",
+     "answer": "Österreich"
+    },
+    {
+     "id": "f_no",
+     "promptValue": "🇳🇴",
+     "answer": "Norwegen"
+    }
+   ]
+  },
+  "tiere_erraten": {
+   "label": "Bild erraten: Tiere",
+   "promptType": "emoji",
+   "items": [
+    {
+     "id": "t_loewe",
+     "promptValue": "🦁",
+     "answer": "Löwe"
+    },
+    {
+     "id": "t_elefant",
+     "promptValue": "🐘",
+     "answer": "Elefant"
+    },
+    {
+     "id": "t_giraffe",
+     "promptValue": "🦒",
+     "answer": "Giraffe"
+    },
+    {
+     "id": "t_pinguin",
+     "promptValue": "🐧",
+     "answer": "Pinguin"
+    },
+    {
+     "id": "t_hai",
+     "promptValue": "🦈",
+     "answer": "Hai"
+    },
+    {
+     "id": "t_affe",
+     "promptValue": "🐒",
+     "answer": "Affe"
+    },
+    {
+     "id": "t_delfin",
+     "promptValue": "🐬",
+     "answer": "Delfin"
+    },
+    {
+     "id": "t_zebra",
+     "promptValue": "🦓",
+     "answer": "Zebra"
+    },
+    {
+     "id": "t_fledermaus",
+     "promptValue": "🦇",
+     "answer": "Fledermaus"
+    },
+    {
+     "id": "t_kaenguru",
+     "promptValue": "🦘",
+     "answer": "Känguru"
+    },
+    {
+     "id": "t_baer",
+     "promptValue": "🐻",
+     "answer": "Bär"
+    },
+    {
+     "id": "t_panda",
+     "promptValue": "🐼",
+     "answer": "Panda"
+    },
+    {
+     "id": "t_koala",
+     "promptValue": "🐨",
+     "answer": "Koala"
+    },
+    {
+     "id": "t_tiger",
+     "promptValue": "🐯",
+     "answer": "Tiger"
+    },
+    {
+     "id": "t_wolf",
+     "promptValue": "🐺",
+     "answer": "Wolf"
+    },
+    {
+     "id": "t_fuchs",
+     "promptValue": "🦊",
+     "answer": "Fuchs"
+    },
+    {
+     "id": "t_adler",
+     "promptValue": "🦅",
+     "answer": "Adler"
+    },
+    {
+     "id": "t_eule",
+     "promptValue": "🦉",
+     "answer": "Eule"
+    },
+    {
+     "id": "t_schildkroete",
+     "promptValue": "🐢",
+     "answer": "Schildkröte"
+    },
+    {
+     "id": "t_schlange",
+     "promptValue": "🐍",
+     "answer": "Schlange"
+    },
+    {
+     "id": "t_krokodil",
+     "promptValue": "🐊",
+     "answer": "Krokodil"
+    },
+    {
+     "id": "t_nashorn",
+     "promptValue": "🦏",
+     "answer": "Nashorn"
+    },
+    {
+     "id": "t_kamel",
+     "promptValue": "🐪",
+     "answer": "Kamel"
+    },
+    {
+     "id": "t_hirsch",
+     "promptValue": "🦌",
+     "answer": "Hirsch"
+    },
+    {
+     "id": "t_pfau",
+     "promptValue": "🦚",
+     "answer": "Pfau"
+    },
+    {
+     "id": "t_igel",
+     "promptValue": "🦔",
+     "answer": "Igel"
+    },
+    {
+     "id": "t_oktopus",
+     "promptValue": "🐙",
+     "answer": "Oktopus",
+     "alt": [
+      "Krake",
+      "Tintenfisch"
+     ]
+    }
+   ]
+  }
+ },
+ "chronology": {
+  "mcu_chrono": {
+   "label": "Chronologie: Marvel Cinematic Universe (Handlungschronologie)",
+   "unit": "Handlungsjahr (ca.)",
+   "order": "asc",
+   "items": [
+    {
+     "id": "mcu_cap1",
+     "name": "🎬 Captain America: The First Avenger",
+     "value": 1942
+    },
+    {
+     "id": "mcu_capmarvel",
+     "name": "🎬 Captain Marvel",
+     "value": 1995
+    },
+    {
+     "id": "mcu_ironman1",
+     "name": "🎬 Iron Man",
+     "value": 2010
+    },
+    {
+     "id": "mcu_thor1",
+     "name": "🎬 Thor",
+     "value": 2011
+    },
+    {
+     "id": "mcu_avengers1",
+     "name": "🎬 The Avengers",
+     "value": 2012
+    },
+    {
+     "id": "mcu_ironman3",
+     "name": "🎬 Iron Man 3",
+     "value": 2013
+    },
+    {
+     "id": "mcu_gotg1",
+     "name": "🎬 Guardians of the Galaxy",
+     "value": 2014
+    },
+    {
+     "id": "mcu_ageofultron",
+     "name": "🎬 Avengers: Age of Ultron",
+     "value": 2015
+    },
+    {
+     "id": "mcu_civilwar",
+     "name": "🎬 Captain America: Civil War",
+     "value": 2016
+    },
+    {
+     "id": "mcu_infinitywar",
+     "name": "🎬 Avengers: Infinity War",
+     "value": 2018
+    }
+   ]
+  },
+  "xmen_chrono": {
+   "label": "Chronologie: X-Men Filme (Handlungschronologie)",
+   "unit": "Handlungsjahr (ca.)",
+   "order": "asc",
+   "items": [
+    {
+     "id": "xmen_firstclass",
+     "name": "🎬 X-Men: First Class",
+     "value": 1962
+    },
+    {
+     "id": "xmen_dofp",
+     "name": "🎬 X-Men: Days of Future Past",
+     "value": 1973
+    },
+    {
+     "id": "xmen_originswolverine",
+     "name": "🎬 X-Men Origins: Wolverine",
+     "value": 1979
+    },
+    {
+     "id": "xmen_apocalypse",
+     "name": "🎬 X-Men: Apocalypse",
+     "value": 1983
+    },
+    {
+     "id": "xmen_darkphoenix",
+     "name": "🎬 X-Men: Dark Phoenix",
+     "value": 1992
+    },
+    {
+     "id": "xmen_1",
+     "name": "🎬 X-Men",
+     "value": 2000
+    },
+    {
+     "id": "xmen_2",
+     "name": "🎬 X2: X-Men United",
+     "value": 2003
+    },
+    {
+     "id": "xmen_laststand",
+     "name": "🎬 X-Men: The Last Stand",
+     "value": 2006
+    },
+    {
+     "id": "xmen_wolverine2",
+     "name": "🎬 The Wolverine",
+     "value": 2013
+    },
+    {
+     "id": "xmen_logan",
+     "name": "🎬 Logan",
+     "value": 2029
+    }
+   ]
+  },
+  "starwars_chrono": {
+   "label": "Chronologie: Star Wars (Handlungschronologie)",
+   "unit": "Jahre relativ zur Schlacht von Yavin (ca.)",
+   "order": "asc",
+   "items": [
+    {
+     "id": "sw_phantom",
+     "name": "🎬 Die dunkle Bedrohung",
+     "value": -32
+    },
+    {
+     "id": "sw_clones",
+     "name": "🎬 Angriff der Klonkrieger",
+     "value": -22
+    },
+    {
+     "id": "sw_sith",
+     "name": "🎬 Die Rache der Sith",
+     "value": -19
+    },
+    {
+     "id": "sw_solo",
+     "name": "🎬 Solo: A Star Wars Story",
+     "value": -13
+    },
+    {
+     "id": "sw_rogueone",
+     "name": "🎬 Rogue One",
+     "value": -1
+    },
+    {
+     "id": "sw_newhope",
+     "name": "🎬 Eine neue Hoffnung",
+     "value": 0
+    },
+    {
+     "id": "sw_empire",
+     "name": "🎬 Das Imperium schlägt zurück",
+     "value": 3
+    },
+    {
+     "id": "sw_jedi",
+     "name": "🎬 Die Rückkehr der Jedi-Ritter",
+     "value": 4
+    },
+    {
+     "id": "sw_forceawakens",
+     "name": "🎬 Das Erwachen der Macht",
+     "value": 34
+    },
+    {
+     "id": "sw_lastjedi",
+     "name": "🎬 Die letzten Jedi",
+     "value": 35
+    }
+   ]
+  },
+  "startrek_chrono": {
+   "label": "Chronologie: Star Trek Filme (Handlungschronologie)",
+   "unit": "Sternzeit-Jahr (ca.)",
+   "order": "asc",
+   "items": [
+    {
+     "id": "st_2009",
+     "name": "🖖 Star Trek (2009)",
+     "value": 2258
+    },
+    {
+     "id": "st_darkness",
+     "name": "🖖 Into Darkness",
+     "value": 2259
+    },
+    {
+     "id": "st_beyond",
+     "name": "🖖 Beyond",
+     "value": 2263
+    },
+    {
+     "id": "st_motionpicture",
+     "name": "🖖 Der Film (1979)",
+     "value": 2273
+    },
+    {
+     "id": "st_wok",
+     "name": "🖖 Der Zorn des Khan",
+     "value": 2285
+    },
+    {
+     "id": "st_voyagehome",
+     "name": "🖖 Zurück in die Gegenwart",
+     "value": 2286
+    },
+    {
+     "id": "st_undiscovered",
+     "name": "🖖 Das unentdeckte Land",
+     "value": 2293
+    },
+    {
+     "id": "st_firstcontact",
+     "name": "🖖 Der erste Kontakt",
+     "value": 2373
+    },
+    {
+     "id": "st_insurrection",
+     "name": "🖖 Der Aufstand",
+     "value": 2375
+    },
+    {
+     "id": "st_nemesis",
+     "name": "🖖 Nemesis",
+     "value": 2379
+    }
+   ]
+  },
+  "twd_chrono": {
+   "label": "Chronologie: The Walking Dead Universe (empfohlene Chronologie)",
+   "unit": "Position in der Chronologie",
+   "order": "asc",
+   "items": [
+    {
+     "id": "twd_fear",
+     "name": "🧟 Fear the Walking Dead",
+     "value": 1
+    },
+    {
+     "id": "twd_main",
+     "name": "🧟 The Walking Dead",
+     "value": 2
+    },
+    {
+     "id": "twd_tales",
+     "name": "🧟 Tales of the Walking Dead",
+     "value": 3
+    },
+    {
+     "id": "twd_worldbeyond",
+     "name": "🧟 World Beyond",
+     "value": 4
+    },
+    {
+     "id": "twd_oneswholive",
+     "name": "🧟 The Ones Who Live",
+     "value": 5
+    },
+    {
+     "id": "twd_daryl",
+     "name": "🧟 Daryl Dixon",
+     "value": 6
+    },
+    {
+     "id": "twd_deadcity",
+     "name": "🧟 Dead City",
+     "value": 7
+    }
+   ]
+  },
+  "middleearth_chrono": {
+   "label": "Chronologie: Mittelerde – Der Herr der Ringe Universum (Handlungschronologie)",
+   "unit": "Drittes Zeitalter, Jahr (ca.)",
+   "order": "asc",
+   "items": [
+    {
+     "id": "me_hobbit1",
+     "name": "🎬 Der Hobbit: Eine unerwartete Reise",
+     "value": 2941
+    },
+    {
+     "id": "me_hobbit2",
+     "name": "🎬 Der Hobbit: Smaugs Einöde",
+     "value": 2941.5
+    },
+    {
+     "id": "me_hobbit3",
+     "name": "🎬 Der Hobbit: Die Schlacht der fünf Heere",
+     "value": 2942
+    },
+    {
+     "id": "me_fellowship",
+     "name": "🎬 Die Gefährten",
+     "value": 3018
+    },
+    {
+     "id": "me_twotowers",
+     "name": "🎬 Die zwei Türme",
+     "value": 3018.5
+    },
+    {
+     "id": "me_return",
+     "name": "🎬 Die Rückkehr des Königs",
+     "value": 3019
+    }
+   ]
+  },
+  "harrypotter_chrono": {
+   "label": "Chronologie: Harry-Potter-Universum (Handlungschronologie)",
+   "unit": "Handlungsjahr (ca.)",
+   "order": "asc",
+   "items": [
+    {
+     "id": "hp_fb1",
+     "name": "🎬 Phantastische Tierwesen und wo sie zu finden sind",
+     "value": 1926
+    },
+    {
+     "id": "hp_fb2",
+     "name": "🎬 Grindelwalds Verbrechen",
+     "value": 1927
+    },
+    {
+     "id": "hp_fb3",
+     "name": "🎬 Dumbledores Geheimnisse",
+     "value": 1932
+    },
+    {
+     "id": "hp_1",
+     "name": "🎬 Harry Potter und der Stein der Weisen",
+     "value": 1991
+    },
+    {
+     "id": "hp_2",
+     "name": "🎬 Harry Potter und die Kammer des Schreckens",
+     "value": 1992
+    },
+    {
+     "id": "hp_3",
+     "name": "🎬 Harry Potter und der Gefangene von Askaban",
+     "value": 1993
+    },
+    {
+     "id": "hp_4",
+     "name": "🎬 Harry Potter und der Feuerkelch",
+     "value": 1994
+    },
+    {
+     "id": "hp_5",
+     "name": "🎬 Harry Potter und der Orden des Phönix",
+     "value": 1995
+    },
+    {
+     "id": "hp_6",
+     "name": "🎬 Harry Potter und der Halbblutprinz",
+     "value": 1996
+    },
+    {
+     "id": "hp_7a",
+     "name": "🎬 Harry Potter und die Heiligtümer des Todes 1",
+     "value": 1997
+    },
+    {
+     "id": "hp_7b",
+     "name": "🎬 Harry Potter und die Heiligtümer des Todes 2",
+     "value": 1998
+    }
+   ]
+  },
+  "conjuring_chrono": {
+   "label": "Chronologie: The Conjuring Universe (Handlungschronologie)",
+   "unit": "Handlungsjahr",
+   "order": "asc",
+   "items": [
+    {
+     "id": "con_nun1",
+     "name": "🎬 The Nun",
+     "value": 1952
+    },
+    {
+     "id": "con_annabellecreation",
+     "name": "🎬 Annabelle: Creation",
+     "value": 1955
+    },
+    {
+     "id": "con_nun2",
+     "name": "🎬 The Nun 2",
+     "value": 1956
+    },
+    {
+     "id": "con_annabelle1",
+     "name": "🎬 Annabelle",
+     "value": 1970
+    },
+    {
+     "id": "con_conjuring1",
+     "name": "🎬 Conjuring – Die Heimsuchung",
+     "value": 1971
+    },
+    {
+     "id": "con_lallorona",
+     "name": "🎬 Der Fluch der Llorona",
+     "value": 1973
+    },
+    {
+     "id": "con_conjuring2",
+     "name": "🎬 Conjuring 2",
+     "value": 1977
+    },
+    {
+     "id": "con_devilmademedoit",
+     "name": "🎬 Conjuring 3: Im Bann des Dämons",
+     "value": 1981
+    }
+   ]
+  },
+  "assassinscreed_chrono": {
+   "label": "Chronologie: Assassin's Creed (Handlungszeit im Spiel)",
+   "unit": "Jahr der Spielhandlung",
+   "order": "asc",
+   "items": [
+    {
+     "id": "ac_odyssey",
+     "name": "🎮 Assassin's Creed Odyssey",
+     "value": -431
+    },
+    {
+     "id": "ac_origins",
+     "name": "🎮 Assassin's Creed Origins",
+     "value": -49
+    },
+    {
+     "id": "ac_1",
+     "name": "🎮 Assassin's Creed",
+     "value": 1191
+    },
+    {
+     "id": "ac_2",
+     "name": "🎮 Assassin's Creed II",
+     "value": 1476
+    },
+    {
+     "id": "ac_brotherhood",
+     "name": "🎮 Assassin's Creed: Brotherhood",
+     "value": 1500
+    },
+    {
+     "id": "ac_revelations",
+     "name": "🎮 Assassin's Creed: Revelations",
+     "value": 1511
+    },
+    {
+     "id": "ac_blackflag",
+     "name": "🎮 Assassin's Creed IV: Black Flag",
+     "value": 1715
+    },
+    {
+     "id": "ac_3",
+     "name": "🎮 Assassin's Creed III",
+     "value": 1754
+    },
+    {
+     "id": "ac_unity",
+     "name": "🎮 Assassin's Creed: Unity",
+     "value": 1789
+    },
+    {
+     "id": "ac_syndicate",
+     "name": "🎮 Assassin's Creed: Syndicate",
+     "value": 1868
+    }
+   ]
+  },
+  "uncharted_chrono": {
+   "label": "Chronologie: Uncharted-Spiele (Erscheinungsjahr)",
+   "unit": "Erscheinungsjahr",
+   "order": "asc",
+   "items": [
+    {
+     "id": "unc_drakesfortune",
+     "name": "🎮 Drake's Fortune",
+     "value": 2007
+    },
+    {
+     "id": "unc_amongthieves",
+     "name": "🎮 Uncharted 2: Among Thieves",
+     "value": 2009
+    },
+    {
+     "id": "unc_drakesdeception",
+     "name": "🎮 Uncharted 3: Drake's Deception",
+     "value": 2011
+    },
+    {
+     "id": "unc_goldenabyss",
+     "name": "🎮 Golden Abyss",
+     "value": 2012
+    },
+    {
+     "id": "unc_athiefsend",
+     "name": "🎮 Uncharted 4: A Thief's End",
+     "value": 2016
+    },
+    {
+     "id": "unc_lostlegacy",
+     "name": "🎮 The Lost Legacy",
+     "value": 2017
+    }
+   ]
+  },
+  "pokemon_anime_chrono": {
+   "label": "Chronologie: Pokémon-Anime-Serien (Erstausstrahlung)",
+   "unit": "Erstausstrahlung",
+   "order": "asc",
+   "items": [
+    {
+     "id": "pkmanime_indigo",
+     "name": "📺 Indigo League (Kanto)",
+     "value": 1997
+    },
+    {
+     "id": "pkmanime_advgen",
+     "name": "📺 Advanced Generation (Hoenn)",
+     "value": 2002
+    },
+    {
+     "id": "pkmanime_dp",
+     "name": "📺 Diamant & Perle (Sinnoh)",
+     "value": 2006
+    },
+    {
+     "id": "pkmanime_bw",
+     "name": "📺 Schwarz & Weiß (Einall)",
+     "value": 2010
+    },
+    {
+     "id": "pkmanime_xy",
+     "name": "📺 XY (Kalos)",
+     "value": 2013
+    },
+    {
+     "id": "pkmanime_sm",
+     "name": "📺 Sonne & Mond (Alola)",
+     "value": 2016
+    },
+    {
+     "id": "pkmanime_journeys",
+     "name": "📺 Reisen (Galar)",
+     "value": 2019
+    },
+    {
+     "id": "pkmanime_horizons",
+     "name": "📺 Horizonte",
+     "value": 2023
+    }
+   ]
+  },
+  "pokemon_games_chrono": {
+   "label": "Chronologie: Pokémon-Hauptspiele (Erscheinungsjahr)",
+   "unit": "Erscheinungsjahr",
+   "order": "asc",
+   "items": [
+    {
+     "id": "pkmgame_rgb",
+     "name": "🎮 Rot/Grün/Blau (Kanto)",
+     "value": 1996
+    },
+    {
+     "id": "pkmgame_gs",
+     "name": "🎮 Gold/Silber (Johto)",
+     "value": 1999
+    },
+    {
+     "id": "pkmgame_rs",
+     "name": "🎮 Rubin/Saphir (Hoenn)",
+     "value": 2002
+    },
+    {
+     "id": "pkmgame_dp",
+     "name": "🎮 Diamant/Perle (Sinnoh)",
+     "value": 2006
+    },
+    {
+     "id": "pkmgame_bw",
+     "name": "🎮 Schwarz/Weiß (Einall)",
+     "value": 2010
+    },
+    {
+     "id": "pkmgame_xy",
+     "name": "🎮 X/Y (Kalos)",
+     "value": 2013
+    },
+    {
+     "id": "pkmgame_sm",
+     "name": "🎮 Sonne/Mond (Alola)",
+     "value": 2016
+    },
+    {
+     "id": "pkmgame_swsh",
+     "name": "🎮 Schwert/Schild (Galar)",
+     "value": 2019
+    },
+    {
+     "id": "pkmgame_sv",
+     "name": "🎮 Karmesin/Purpur (Paldea)",
+     "value": 2022
+    }
+   ]
+  },
+  "residentevil_chrono": {
+   "label": "Chronologie: Resident Evil (Handlungschronologie)",
+   "unit": "Handlungsjahr (ca.)",
+   "order": "asc",
+   "items": [
+    {
+     "id": "re_0",
+     "name": "🎮 Resident Evil 0",
+     "value": 1998.1
+    },
+    {
+     "id": "re_1",
+     "name": "🎮 Resident Evil",
+     "value": 1998.2
+    },
+    {
+     "id": "re_3",
+     "name": "🎮 Resident Evil 3: Nemesis",
+     "value": 1998.3
+    },
+    {
+     "id": "re_cv",
+     "name": "🎮 Resident Evil: Code Veronica",
+     "value": 1998.4
+    },
+    {
+     "id": "re_4",
+     "name": "🎮 Resident Evil 4",
+     "value": 2004
+    },
+    {
+     "id": "re_5",
+     "name": "🎮 Resident Evil 5",
+     "value": 2009
+    },
+    {
+     "id": "re_6",
+     "name": "🎮 Resident Evil 6",
+     "value": 2013
+    },
+    {
+     "id": "re_7",
+     "name": "🎮 Resident Evil 7: Biohazard",
+     "value": 2017
+    },
+    {
+     "id": "re_village",
+     "name": "🎮 Resident Evil Village",
+     "value": 2021
+    }
+   ]
+  },
+  "cod_release": {
+   "label": "Chronologie: Call of Duty (Erscheinungsjahr)",
+   "unit": "Erscheinungsjahr",
+   "order": "asc",
+   "items": [
+    {
+     "id": "cod_1",
+     "name": "🎮 Call of Duty",
+     "value": 2003
+    },
+    {
+     "id": "cod_4",
+     "name": "🎮 Modern Warfare",
+     "value": 2007
+    },
+    {
+     "id": "cod_waw",
+     "name": "🎮 World at War",
+     "value": 2008
+    },
+    {
+     "id": "cod_bo1",
+     "name": "🎮 Black Ops",
+     "value": 2010
+    },
+    {
+     "id": "cod_bo2",
+     "name": "🎮 Black Ops II",
+     "value": 2012
+    },
+    {
+     "id": "cod_aw",
+     "name": "🎮 Advanced Warfare",
+     "value": 2014
+    },
+    {
+     "id": "cod_wwii",
+     "name": "🎮 WWII",
+     "value": 2017
+    },
+    {
+     "id": "cod_mw19",
+     "name": "🎮 Modern Warfare (2019)",
+     "value": 2019
+    },
+    {
+     "id": "cod_bocw",
+     "name": "🎮 Black Ops Cold War",
+     "value": 2020
+    },
+    {
+     "id": "cod_mw2",
+     "name": "🎮 Modern Warfare II (2022)",
+     "value": 2022
+    }
+   ]
+  },
+  "cod_story": {
+   "label": "Chronologie: Call of Duty (Handlungsjahr)",
+   "unit": "Handlungsjahr (ca.)",
+   "order": "asc",
+   "items": [
+    {
+     "id": "cod_1b",
+     "name": "🎮 Call of Duty",
+     "value": 1942
+    },
+    {
+     "id": "cod_wwiib",
+     "name": "🎮 WWII",
+     "value": 1944
+    },
+    {
+     "id": "cod_wawb",
+     "name": "🎮 World at War",
+     "value": 1945
+    },
+    {
+     "id": "cod_bo1b",
+     "name": "🎮 Black Ops",
+     "value": 1968
+    },
+    {
+     "id": "cod_bocwb",
+     "name": "🎮 Black Ops Cold War",
+     "value": 1981
+    },
+    {
+     "id": "cod_4b",
+     "name": "🎮 Modern Warfare",
+     "value": 2011
+    },
+    {
+     "id": "cod_mw19b",
+     "name": "🎮 Modern Warfare (2019)",
+     "value": 2019
+    },
+    {
+     "id": "cod_mw2b",
+     "name": "🎮 Modern Warfare II (2022)",
+     "value": 2022
+    },
+    {
+     "id": "cod_bo2b",
+     "name": "🎮 Black Ops II",
+     "value": 2025
+    },
+    {
+     "id": "cod_awb",
+     "name": "🎮 Advanced Warfare",
+     "value": 2054
     }
    ]
   }
