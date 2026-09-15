@@ -1,8 +1,7 @@
 # WISSENSDUELL PARTY
 
-Erweiterung des bestehenden Wissensduell-Spiels um einen echten **WLAN-Mehrgeräte-Modus**
-(„Party-Raum"), zusätzlich zu Solo und dem bisherigen lokalen Multiplayer (Pass & Play
-auf einem Gerät), die unverändert erhalten bleiben.
+Erweiterung des bestehenden Wissensduell-Spiels um einen echten **WLAN-/Internet-
+Mehrgeräte-Modus** ("Party-Raum") sowie einen Solo-Modus.
 
 ## 1. Starten
 
@@ -24,8 +23,8 @@ Für andere Geräte im selben WLAN:
 - **Host:** öffnet `http://localhost:3000` (oder die angezeigte WLAN-Adresse) im Browser.
 - **Alle anderen Geräte** (Handys, Tablets, Laptops) müssen im **selben WLAN** sein und
   ebenfalls die angezeigte `http://192.168.x.x:3000`-Adresse öffnen.
-- Solo und "Lokaler Multiplayer" funktionieren weiterhin genauso wie zuvor – dafür ist
-  keine Verbindung zu anderen Geräten nötig, nur der Party-Modus nutzt den Server aktiv.
+- Der Solo-Wissenstest funktioniert weiterhin ganz ohne Verbindung zu anderen Geräten;
+  Solo-Party und der Party-Raum nutzen den Server aktiv.
 
 Einen anderen Port verwenden: `PORT=4000 node server.js`.
 
@@ -80,7 +79,7 @@ server.js              Der Node-Server: Räume, Runden, Teams, Punktesysteme, Sp
 lib/miniws.js           Minimaler WebSocket-Server (nur Node-Bordmittel, kein npm-Paket nötig)
 shared/quizQuestions.json   Zentrale Fragen-Datenbank (Wissenstest) – von Solo, lokalem MP und Party genutzt
 shared/partyDatasets.json   Datensätze für "Einordnen" und "Mehr oder Weniger" (Werte anfangs verborgen)
-public/index.html       Die komplette Client-Oberfläche (Solo, Lokaler Multiplayer, Party)
+public/index.html       Die komplette Client-Oberfläche (Solo, Solo-Party, Party)
 test/                   Ein automatisierter End-to-End-Test (optional, `npm test`)
 ```
 
@@ -106,8 +105,8 @@ test/                   Ein automatisierter End-to-End-Test (optional, `npm test
 
 ## 5. Ränge ändern
 
-Weiterhin im Client in `public/index.html`, Array `RANKS` (gilt für Solo- und
-lokale-Multiplayer-Profile; der Party-Modus verwendet eigene, sitzungsbasierte
+Weiterhin im Client in `public/index.html`, Array `RANKS` (gilt für Solo-
+Profile; der Party-Modus verwendet eigene, sitzungsbasierte
 Team-Punktestände ohne Rangsystem).
 
 ## 6. Bots im Party-Raum
@@ -121,7 +120,15 @@ konfiguriert Rundenanzahl und Zufallsrunde/Spiel erstellen wie ein Host, der
 Lobby-Wartebildschirm mit Raum-Code entfällt aber, da niemand beitreten muss.
 Es kommt dieselbe Server-Logik zum Einsatz wie im WLAN-Party-Modus (Wissenstest,
 Einordnen, Mehr oder Weniger) – Punktestände sind auch hier sitzungsbasiert und
-nicht mit dem persönlichen Solo-Rang verknüpft.
+nicht mit dem persönlichen Solo-Rang verknüpft. Die Anzeige ist bewusst frei von
+jeglicher Gegner-/Bot-Sprache gehalten (kein "Team", keine Medaillen-Rangliste) –
+Rundenauswertung und Spielende zeigen stattdessen nur den eigenen Punktestand,
+im Sinne von "wie weit schaffst du es".
+
+Der frühere Menüpunkt "Lokaler Multiplayer" (Pass & Play auf einem gemeinsamen
+Gerät) wurde aus dem Hauptmenü entfernt, da der Party-Raum diese Funktion nun
+auch online/im selben WLAN abdeckt. Der zugehörige Code ist weiterhin in
+`public/index.html` vorhanden, aber über die Oberfläche nicht mehr erreichbar.
 
 ### Eigene Spielrunde zusammenstellen ("Spiel erstellen")
 
@@ -154,16 +161,90 @@ auswählbar sind, z. B.:
   gibt es jetzt auch Anime (Episodenanzahl), Manga (verkaufte Bände) und
   Animationsfilme (Einspielergebnis)
 
-Aktuell (Stand dieser Version): 12 Einordnen- und 21 Mehr-oder-Weniger-
+Aktuell (Stand dieser Version): 19 Einordnen-, 15 Chronologie- und 21
+Mehr-oder-Weniger-
 Kategorien, darunter auch "Trash-TV Deutschland" (Anzahl der Staffeln von
-Dschungelcamp, Bachelor, Big Brother & Co. – Stand 2026, da sich Staffelzahlen
-bei jährlich laufenden Formaten schnell ändern). Weitere Liga-/Genre-Varianten
-lassen sich genauso leicht ergänzen – einfach einen neuen Eintrag in
-`shared/partyDatasets.json` anlegen, der Round-Builder und die Zufallsrunde
-nehmen ihn automatisch auf.
+Dschungelcamp, Bachelor, Big Brother, Bauer sucht Frau & Co. – Stand 2026, da
+sich Staffelzahlen bei jährlich laufenden Formaten schnell ändern). Zusätzlich
+gibt es je eine eigene "Sieger nach Staffel"-Kategorie für Kampf der
+Realitystars, Das Sommerhaus der Stars, LOL – Last One Laughing und Ich bin
+ein Star (Dschungelcamp): Dort wird nicht die Staffelanzahl, sondern die
+tatsächlichen Sieger:innen chronologisch (niedrigste Staffelnummer zuerst)
+einsortiert. Bei Formaten mit bis zu 10 Staffeln (KDRS, Sommerhaus, LOL) sind
+das alle Staffeln von Anfang an; bei längeren Formaten wie Dschungelcamp (19
+Staffeln) die letzten 10 bis zur aktuellsten Staffel, im Kategorienamen als
+Spanne ausgewiesen (z. B. "Staffel 10-19") – so kommt der Pool je Runde
+(max. 10 Elemente) nie an seine Grenze, und es bleiben die aktuellsten,
+bekanntesten Staffeln erhalten. Für "Der Bachelor" gibt es bewusst noch keine
+solche Kategorie: Eine Staffel hatte gar keine Siegerin, zwei weitere hatten
+gleich zwei Bachelors mit je zwei Gewinnerinnen gleichzeitig – das lässt sich
+nicht sauber in "ein Sieger pro Staffel" packen.
 
-Bots gibt es **ausschließlich im Party-Raum** – Solo und der bisherige lokale/Online-Multiplayer
-bleiben komplett bot-frei und unverändert.
+Außerdem gibt es einen fünften, eigenständigen Spielmodus **"Chronologie"**
+(eigenes `kind: "chronologyGame"`, technisch dieselbe Engine wie Einordnen,
+aber im Round-Builder als klar getrennter Modus mit eigenen 15 Kategorien
+auswählbar) für bekannte Film-/
+Serien-/Spiele-Universen (Marvel Cinematic Universe, X-Men, Star Wars, Star
+Trek, The Walking Dead Universe, Mittelerde/Der Herr der Ringe, Harry Potter,
+The Conjuring Universe, Assassin's Creed, Uncharted, Pokémon-Anime,
+Pokémon-Hauptspiele, Resident Evil sowie Call of Duty gleich zweimal – einmal
+nach Erscheinungsjahr, einmal nach Handlungsjahr, da beides bei dieser Reihe
+bewusst stark auseinanderfällt). Sortiert wird nach dem Jahr, in dem die
+Handlung spielt (nicht nach Erscheinungsjahr) – bei Reihen mit klarem
+Zeitsprung wie Star Wars oder Assassin's Creed ist das die eigentlich
+interessante Trivia-Frage. Bei Titeln, die am selben Tag/Jahr spielen (z. B.
+die ersten vier Resident-Evil-Spiele, alle 1998), wurden minimal
+unterschiedliche Dezimalwerte vergeben, um die tatsächliche Reihenfolge
+weiterhin eindeutig abzufragen. Bei The Walking Dead Universe ist die reale
+Chronologie durch ständige staffelweise Überschneidungen zwischen den
+Serien so verschachtelt, dass keine seriöse Jahresangabe je Serie möglich
+ist – dort wird stattdessen eine vereinfachte, in Fan-Guides gängige
+empfohlene Reihenfolge verwendet (Positionsnummer statt Jahr).
+
+Außerdem drei reine Größenvergleich-Kategorien bei Einordnen: Häuser (nach
+Wohnfläche, von Antilia bis zum Sultanspalast von Brunei), Dinosaurier (nach
+Länge) und ein bunter "Größenvergleich" quer durch komplett unterschiedliche
+Objekte – von der Kakerlake (5 cm) über Pikachu, SpongeBob und Yoda bis zum
+fiktiven Todesstern aus Star Wars (120 km Durchmesser).
+
+### Größere Datenpools mit echter Zufallsauswahl je Runde
+
+Kategorien können jetzt deutlich mehr Elemente enthalten, als tatsächlich in
+einer einzelnen Runde vorkommen (weiterhin max. 10 je Runde, wie bisher).
+`startRankingRound()` in `server.js` zieht bei mehr als 10 Elementen jedes
+Mal eine neue Zufallsauswahl aus dem vollen Pool – bei "Mehr oder Weniger"
+bleibt dabei das Referenzelement (`seedId`) garantiert immer Teil der
+Auswahl. Bislang nutzen "Häuser" (16 Elemente), "Dinosaurier" (16) und
+"Größenvergleich" (13) diesen größeren Pool; alle anderen, bereits
+bestehenden Kategorien haben weiterhin ihre ursprüngliche Elementanzahl
+(meist genau 8–10) und zeigen daher bei jeder Runde dieselben Elemente wie
+bisher – ließe sich aber genauso leicht um weitere Elemente ergänzen.
+
+### Chronologie zeigt jetzt bewusst ALLE Einträge, kein Zehner-Limit
+
+Bei "Chronologie" wird nie mehr zufällig gekürzt – jede Runde zeigt wirklich
+jedes Element der Kategorie (Ausnahme von der sonst geltenden 10er-Grenze
+bei Einordnen/Mehr-oder-Weniger, siehe oben). Bei mehr als 10 Elementen
+scrollt der Spielbereich einfach länger, das Layout hat dafür keine feste
+Höhenbegrenzung. "Harry-Potter-Universum" ist jetzt mit allen 11 Filmen
+vollständig (die bisher fehlenden "Kammer des Schreckens" und "Heiligtümer
+des Todes 1" wurden ergänzt).
+
+Die übrigen 14 Chronologie-Kategorien haben weiterhin ihre ursprüngliche,
+kuratierte Auswahl (meist 6-10 Einträge) – sie zeigen also bereits alles,
+was aktuell hinterlegt ist, das ist nur (noch) nicht die vollständige Liste
+jedes Films/Spiels der jeweiligen Reihe bis Stand Juni 2026. Eine wirklich
+vollständige, verifizierte Liste je Reihe (z. B. MCU: über 35 Filme mit
+teils umstrittener interner Chronologie) ist ein größeres Rechercheprojekt
+für sich und wurde hier bewusst noch nicht in einem Rutsch für alle 14
+gemacht, um keine falschen Daten unter Zeitdruck einzubauen.
+
+Weitere Sieger-/Chronologie-Kategorien lassen sich genauso leicht ergänzen –
+einfach einen neuen Eintrag in `shared/partyDatasets.json` anlegen, der
+Round-Builder und die Zufallsrunde nehmen ihn automatisch auf.
+
+Bots gibt es **ausschließlich im normalen Party-Raum** – der Solo-Modus (Wissenstest wie
+Solo-Party) bleibt komplett bot-frei und unverändert.
 
 - Im Warteraum kann der Host über **„+ BOT HINZUFÜGEN"** beliebig viele Bots ergänzen
   (maximal so viele, bis die Teilnehmerzahl inkl. echter Spieler das Party-Limit von
@@ -194,6 +275,105 @@ bessere KI, perspektivisch auch durch echte Online-Spieler ersetzen).
 
 ## 7. Wie der Party-Modus technisch funktioniert
 
+### Neuer Spielmodus: „Stadt Land Fluss"
+
+Ein sechster, eigenständiger Spielmodus (`kind: "stadtLandFluss"`) – klassisches
+Papier-Stift-Prinzip, nur digital: Ein zufälliger Buchstabe wird gezogen
+(Q, X, Y bewusst ausgelassen, da zu schwer für ein flüssiges Spiel), alle
+Spieler schreiben gleichzeitig 80 Sekunden lang Wörter zu den gewählten
+Kategorien, die mit diesem Buchstaben beginnen.
+
+**Original**: die sieben klassischen Kategorien (Stadt, Land, Fluss, Name,
+Tier, Beruf, Pflanze) – direkt im Round-Builder auswählbar wie jede andere
+Kategorie auch.
+
+**Eigene Kategorien**: Im Round-Builder gibt es bei „Stadt Land Fluss" statt
+der normalen Kategorie-Suche einen eigenen Baukasten – 13 vorgeschlagene
+Kategorien zum Anklicken (u. a. Farbe, Automarke, Filmtitel, Promi) plus ein
+Textfeld, um beliebige eigene Kategorien einzutippen (bis zu 8 insgesamt).
+Diese individuelle Auswahl wird direkt als eigene Rundendefinition zum Server
+geschickt (`setSlfCustomRoundDef`) und muss nicht erst in
+`shared/partyDatasets.json` vordefiniert sein.
+
+**Wertung**: Nach Ablauf der Schreibzeit werden alle Antworten aller Spieler
+offengelegt – eindeutige gültige Antwort (richtiger Anfangsbuchstabe) = 20
+Punkte, mehrfach vorhandene = 10 Punkte, leer/falscher Buchstabe = 0 Punkte.
+Punkte werden pro Spieler vergeben (nicht pro Team), auch bei größeren
+Teams – die Teampunkte am Rundenende sind die Summe der Mitgliederpunkte.
+
+**Anfechten**: 30 Sekunden lang kann jede Antwort außer der eigenen von
+anderen Spielern angefochten werden (⚑-Button). Danach stimmen alle übrigen
+Spieler außer dem/der Angefochtenen "Gültig"/"Ungültig" ab; bei Mehrheit für
+"Ungültig" fällt die Antwort auf 0 Punkte, bei Gleichstand bleibt sie gültig.
+Erst danach wird final gewertet.
+
+**Bots**: Beteiligen sich an Stadt-Land-Fluss bewusst **nicht aktiv** am
+Schreiben – ein verlässliches Wörterbuch für alle Buchstaben-Kategorie-
+Kombinationen wäre ein eigenes, sehr großes Projekt für sich. Mit Bots im
+Raum tragen diese für Stadt-Land-Fluss-Runden schlicht 0 Punkte bei.
+
+**Zentral anpassbar** in `server.js`: `SLF_DEFAULT_CATEGORIES`, `SLF_LETTERS`,
+`SLF_ANSWER_MS`, `SLF_CHALLENGE_MS`, `SLF_VOTE_MS`.
+
+### Sprachen
+
+Sprachumschalter (7 Sprachen: Deutsch, Englisch, Japanisch, Chinesisch,
+Französisch, Italienisch, Spanisch) oben im Hauptmenü, per `localStorage`
+gemerkt. Übersetzt sind Menüs, Buttons und die zentralen Bildschirme
+(Hauptmenü, Solo-Auswahl, Party-Einstieg, Warteraum, Rundenübersicht,
+Rundenauswertung, Spielende). Übersetzungen liegen im `I18N`-Objekt in
+`public/index.html`, abgerufen über `t('schlüssel')`.
+
+Da die eigentlichen **Inhalte** (545 Wissensfragen, Trash-TV-/Bundesliga-
+Kategorien) sehr Deutschland-spezifisch sind, werden diese bei anderen
+Sprachen nicht übersetzt, sondern schlicht ausgeblendet: Der Wissenstest ist
+im Solo-Menü gesperrt, solange keine deutsche Sprache gewählt ist; im
+Party-Raum verschwinden Wissenstest sowie die Kategorien "Trash-TV
+Deutschland", "Kampf der Realitystars", "Sommerhaus der Stars", "LOL",
+"Dschungelcamp", "Bundesliga" und "2. Bundesliga" automatisch aus Zufallsrunde
+und Round-Builder, sobald der Host eine andere Sprache als Deutsch wählt
+(steuerbar über `germanOnly: true` je Kategorie in `shared/partyDatasets.json`
+bzw. für den Wissenstest fest in `server.js`). International verständliche
+Kategorien (Flaggen, Tiere, Länder, Berge, Fußball-Weltmeister, La Liga,
+Premier League, Musik, Filme, Olympia usw.) bleiben in jeder Sprache
+verfügbar – ihre Inhalte (Ländernamen, Titel) stehen aktuell aber weiterhin
+auf Deutsch, da eine vollständige Übersetzung aller Kategorie-Inhalte ein
+deutlich größerer, separater Schritt wäre.
+
+Die Sprache ist eine **Raum-Einstellung** (vom Host beim Erstellen gewählt,
+im Warteraum änderbar), nicht pro Spieler – alle Teilnehmer eines Raums
+sehen dieselben verfügbaren Kategorien. Bereits ausgewählte "Spiel
+erstellen"-Runden, die durch einen Sprachwechsel ungültig werden, werden
+automatisch auf "noch nicht gewählt" zurückgesetzt statt zu crashen.
+
+### Neuer Spielmodus: „Bild erraten"
+
+Ein viertes Rundenformat (`kind: "guessPicture"`) neben Wissenstest, Einordnen
+und Mehr oder Weniger: Ein Bild bzw. Emoji wird über 12 Sekunden hinweg in
+4 Stufen (3 Sekunden je Stufe) zunehmend schärfer/deutlicher. Punktestufen
+`[5, 3, 2, 1]` – je früher richtig geraten wird, desto mehr Punkte. Alle
+Spieler können jederzeit per Freitext raten; wer zuerst richtig liegt,
+bekommt die Punkte für dieses Bild, danach geht's zum nächsten. Tippfehler
+werden toleriert (kleine Levenshtein-Distanz je nach Wortlänge, sowie
+alternative Schreibweisen über das Feld `alt` je Element).
+
+**Bilder:** Aktuell mit zwei Kategorien befüllt, die ohne echte Fotos
+auskommen (Flaggen: 28 Länder, Tiere: 27 – jeweils per Emoji, keine
+Bildrechte nötig; ein Spielpool je Runde zieht daraus zufällig 10).
+Zwei Kategorien mit echten Fotos sind als Nächstes geplant, aber noch nicht
+befüllt – "Promis/Trash-TV-Stars" und "Autos" (konkrete Marken/Modelle,
+dafür reichen Emoji nicht, da es keine markenspezifischen Auto-Emoji gibt
+und Logos ohnehin geschützt sind). Für beide werden reale Bilddateien mit
+Nutzungsrecht benötigt (Foto + der Name/das Modell, der/das als Lösung
+gelten soll, für jedes Bild).
+Neue Kategorien einfach in `shared/partyDatasets.json` unter
+`"guessPicture"` ergänzen; für Foto-Kategorien `promptType: "image"` und
+`promptValue` als Bildpfad (z. B. `/images/dateiname.jpg`, Datei dann unter
+`public/images/` ablegen) statt eines Emoji verwenden.
+
+**Zentral anpassbar** in `server.js`: `GUESS_TIER_MS` (Dauer je Stufe) und
+`GUESS_TIERS` (Punktewerte je Stufe).
+
 - `server.js` hält pro Raum (`rooms`-Map) den kompletten Spielzustand serverseitig vor
   (Spieler, Teams, Rundenplan, Punktestände, aktueller Rundenzustand). Der Server ist die
   einzige Quelle der Wahrheit – Clients senden nur Aktionen (`quizAnswer`, `rankPlace`, …)
@@ -219,6 +399,39 @@ bessere KI, perspektivisch auch durch echte Online-Spieler ersetzen).
   bestehende Logik zu verändern (siehe Punkt 15 der Anforderung: "knowledgeQuiz",
   "orderingGame", "higherLowerGame" sind bereits als klar getrennte, modulare Engines
   aufgebaut).
+
+## 7b. Benutzerkonten (Online-Profile)
+
+Im Hauptmenü gibt es jetzt "Anmelden" (Benutzername + Passwort). Wer sich
+registriert/anmeldet, spielt den **Solo-Wissenstest** automatisch mit einem
+serverseitig gespeicherten Konto statt mit einem lokalen Browser-Profil –
+Punktestand/Rang folgen damit über Geräte und Browser hinweg dem Account.
+Ohne Anmeldung funktioniert Solo weiterhin exakt wie bisher, komplett lokal.
+
+**Sicherheit:** Passwörter werden nie im Klartext gespeichert, sondern mit
+`crypto.scrypt` (Node-Bordmittel) + zufälligem Salt pro Nutzer gehasht;
+Logins verwenden einen zeitkonstanten Vergleich (`crypto.timingSafeEqual`)
+gegen Timing-Angriffe. Falsche Logins zeigen bewusst dieselbe Fehlermeldung,
+egal ob der Nutzername existiert oder das Passwort falsch war (kein
+Ausspähen registrierter Namen).
+
+**Speicherung:** Als JSON-Datei unter `data/` (wird von Git ignoriert, landet
+also nie im Repository). Wichtiger Hinweis wie schon beim Hosting erwähnt:
+Auf Render-Gratis-Tier ist die Festplatte nicht garantiert dauerhaft – bei
+einem Neustart des Dienstes können gespeicherte Konten verloren gehen. Für
+echte Dauerhaftigkeit bräuchte es einen Plan mit persistenter Festplatte
+oder eine externe Datenbank.
+
+**Technisch:** Vier schlanke HTTP-Endpunkte neben dem WebSocket-Server:
+`POST /api/register`, `/api/login`, `/api/session` (Auto-Login beim erneuten
+Öffnen der Seite über einen in `localStorage` gemerkten Token), `/api/logout`
+und `/api/save-stats` (Punktestand wird am Rundenende synchronisiert, nicht
+nach jeder einzelnen Frage). Die komplette Logik liegt in `server.js` im
+Abschnitt "Benutzerkonten".
+
+**Noch offen:** Profilbilder – vorbereitet (`avatar`-Feld existiert bereits
+in jedem Konto), aber noch nicht mit Auswahloberfläche, da erst die
+Charakter-Bilder benötigt werden.
 
 ## 8. Bekannte Grenzen dieser ersten Version
 

@@ -10,7 +10,7 @@
  *  - Rundenkonfiguration (Anzahl, Zufallsrunde / Spiel erstellen)
  *  - Teams (Alle gegen alle, 2v2, 3v3, 2v2v2)
  *  - Punktesysteme (Runde / Steigend / Punkteabzug)
- *  - Die drei Spiel-Engines: knowledgeQuiz, orderingGame, higherLowerGame
+ *  - Die vier Spiel-Engines: knowledgeQuiz, orderingGame, chronologyGame, higherLowerGame
  *
  * Alle Inhalte (Fragen, Einordnen-/Mehr-oder-Weniger-Datensätze) liegen
  * getrennt in ./shared/*.json und werden hier nur eingelesen – neue
@@ -21,6 +21,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
+const crypto = require("crypto");
 const { WebSocketServer } = require("./lib/miniws");
 
 const PORT = process.env.PORT || 3000;
@@ -56,6 +57,15 @@ const BOT_TIER_ORDER = ["dumm", "einsteiger", "schlau", "doktor", "wissenschaftl
 const BOT_NAME_POOL = ["Alex", "Max", "Lisa", "Tom", "Anna", "Chris", "Ben", "Leon", "Sophie", "Daniel"];
 const DEFAULT_BOT_TIER = "schlau";
 const MAX_PARTICIPANTS = 6;
+const SUPPORTED_LANGS = ["de", "en", "ja", "zh", "fr", "it", "es"];
+
+// Stadt-Land-Fluss-Konstanten (hier oben, da schon beim Aufbau des
+// Rundenpools benötigt – siehe buildRoundDefPool()/slfBuildRoundDef()).
+const SLF_DEFAULT_CATEGORIES = ["Stadt", "Land", "Fluss", "Name", "Tier", "Beruf", "Pflanze"];
+const SLF_LETTERS = "ABCDEFGHIJKLMNOPRSTUVWZ".split(""); // Q, X, Y ausgelassen (zu schwer für flüssiges Spiel)
+const SLF_ANSWER_MS = 80000;      // Zeit zum Schreiben
+const SLF_CHALLENGE_MS = 30000;   // Zeit zum Anfechten nach der Auflösung
+const SLF_VOTE_MS = 20000;        // Zeit zum Abstimmen über eine einzelne Anfechtung
 
 function randRange(min, max) { return min + Math.random() * (max - min); }
 
@@ -71,17 +81,27 @@ function pickBotName(room) {
 /* Verfügbare Rundentypen (modular, leicht erweiterbar – Punkt 15)           */
 /* ------------------------------------------------------------------------ */
 function buildRoundDefPool() {
-  const pool = [{ id: "quiz", kind: "knowledgeQuiz", label: "Wissenstest" }];
+  const pool = [{ id: "quiz", kind: "knowledgeQuiz", label: "Wissenstest", germanOnly: true }];
+  pool.push(slfBuildRoundDef(null, false)); // "Stadt Land Fluss: Original"
   Object.entries(DATASETS.ordering).forEach(([key, ds]) => {
-    pool.push({ id: "order_" + key, kind: "orderingGame", label: ds.label, datasetGroup: "ordering", datasetKey: key });
+    pool.push({ id: "order_" + key, kind: "orderingGame", label: ds.label, datasetGroup: "ordering", datasetKey: key, germanOnly: !!ds.germanOnly });
+  });
+  Object.entries(DATASETS.chronology || {}).forEach(([key, ds]) => {
+    pool.push({ id: "chrono_" + key, kind: "chronologyGame", label: ds.label, datasetGroup: "chronology", datasetKey: key, germanOnly: !!ds.germanOnly });
   });
   Object.entries(DATASETS.higherLower).forEach(([key, ds]) => {
-    pool.push({ id: "hilo_" + key, kind: "higherLowerGame", label: ds.label, datasetGroup: "higherLower", datasetKey: key });
+    pool.push({ id: "hilo_" + key, kind: "higherLowerGame", label: ds.label, datasetGroup: "higherLower", datasetKey: key, germanOnly: !!ds.germanOnly });
+  });
+  Object.entries(DATASETS.guessPicture || {}).forEach(([key, ds]) => {
+    pool.push({ id: "guess_" + key, kind: "guessPicture", label: ds.label, datasetGroup: "guessPicture", datasetKey: key, germanOnly: !!ds.germanOnly });
   });
   return pool;
 }
 const ROUND_DEF_POOL = buildRoundDefPool();
 function findRoundDef(id) { return ROUND_DEF_POOL.find(r => r.id === id); }
+function roundDefPoolForLanguage(language) {
+  return language === "de" ? ROUND_DEF_POOL : ROUND_DEF_POOL.filter(r => !r.germanOnly);
+}
 
 /* ------------------------------------------------------------------------ */
 /* Räume                                                                     */
@@ -97,7 +117,7 @@ function makeRoomCode() {
   return code;
 }
 
-function createRoom(hostWs, hostName) {
+function createRoom(hostWs, hostName, language) {
   const code = makeRoomCode();
   const hostId = "pl_" + Math.random().toString(36).slice(2, 9);
   const room = {
@@ -110,12 +130,14 @@ function createRoom(hostWs, hostName) {
     roundCount: 5,
     roundMode: "random", // 'random' | 'custom'
     roundDefs: [],
+    language: SUPPORTED_LANGS.includes(language) ? language : "de",
     currentRoundIndex: -1,
     phase: "lobby", // lobby | roundIntro | playing | roundResult | gameEnd
     runtime: null
   };
   rooms.set(code, room);
   addPlayer(room, hostWs, hostId, hostName);
+  randomizeRoundDefs(room); // gleich passend zur Sprache vorbefüllen
   return room;
 }
 
@@ -187,8 +209,9 @@ function roomStateForClient(room) {
     pointSystem: room.pointSystem,
     roundCount: room.roundCount,
     roundMode: room.roundMode,
-    roundDefs: room.roundDefs.map(r => r ? ({ id: r.id, kind: r.kind, label: r.label }) : null),
-    availableRoundDefs: ROUND_DEF_POOL.map(r => ({ id: r.id, kind: r.kind, label: r.label })),
+    roundDefs: room.roundDefs.map(r => r ? ({ id: r.id, kind: r.kind, label: r.label, categories: r.categories }) : null),
+    availableRoundDefs: roundDefPoolForLanguage(room.language).map(r => ({ id: r.id, kind: r.kind, label: r.label })),
+    language: room.language,
     botTierOptions: BOT_TIER_ORDER.map(key => ({ id: key, label: BOT_TIERS[key].label })),
     maxParticipants: MAX_PARTICIPANTS,
     phase: room.phase,
@@ -201,9 +224,10 @@ function pushRoomState(room) { broadcast(room, roomStateForClient(room)); }
 /* Rundenauswahl                                                             */
 /* ------------------------------------------------------------------------ */
 function randomizeRoundDefs(room) {
+  const availablePool = roundDefPoolForLanguage(room.language);
   const defs = [];
   for (let i = 0; i < room.roundCount; i++) {
-    const def = ROUND_DEF_POOL[Math.floor(Math.random() * ROUND_DEF_POOL.length)];
+    const def = availablePool[Math.floor(Math.random() * availablePool.length)];
     defs.push(def);
   }
   room.roundDefs = defs;
@@ -392,7 +416,28 @@ function startRankingRound(room, def) {
   // gezogenes Element pro Zug, dafür wird der Wert direkt aufgedeckt.
   const freeChoice = !revealOnTurn;
 
-  let pool = dsRaw.items.map(it => ({ ...it }));
+  // Manche Kategorien enthalten deutlich mehr als MAX_ROUND_ITEMS Elemente
+  // (größerer, "echter" Datenpool). Damit eine Runde nicht ewig dauert, wird
+  // daraus jedes Mal eine zufällige Auswahl gezogen – bei "Mehr oder Weniger"
+  // bleibt das Referenzelement (seedId) dabei garantiert immer Teil der
+  // Auswahl, egal wie die Zufallsauswahl sonst ausfällt.
+  // Ausnahme: "Chronologie" soll bewusst IMMER die vollständige Liste zeigen
+  // (z. B. wirklich jeder MCU-Film), auch wenn das mehr als 10 Elemente sind –
+  // dafür ist das Spielfenster clientseitig scrollbar.
+  const MAX_ROUND_ITEMS = 10;
+  const allItems = dsRaw.items.map(it => ({ ...it }));
+  let selected;
+  if (def.kind === "chronologyGame" || allItems.length <= MAX_ROUND_ITEMS) {
+    selected = allItems.sort(() => Math.random() - 0.5); // nur die Anzeige-Reihenfolge mischen, nichts weglassen
+  } else if (revealOnTurn && dsRaw.seedId) {
+    const seedItem = allItems.find(it => it.id === dsRaw.seedId);
+    const rest = allItems.filter(it => it.id !== dsRaw.seedId).sort(() => Math.random() - 0.5).slice(0, MAX_ROUND_ITEMS - 1);
+    selected = seedItem ? [seedItem, ...rest] : allItems.sort(() => Math.random() - 0.5).slice(0, MAX_ROUND_ITEMS);
+  } else {
+    selected = allItems.sort(() => Math.random() - 0.5).slice(0, MAX_ROUND_ITEMS);
+  }
+
+  let pool = selected;
   let placed = []; // aufsteigend nach Spielreihenfolge, in "order" sortiert (true Reihenfolge)
   let seed = null;
 
@@ -401,7 +446,9 @@ function startRankingRound(room, def) {
     pool = pool.filter(it => it.id !== dsRaw.seedId);
     placed = [{ ...seed, revealed: true }];
   }
-  pool = pool.slice(0, 10 - placed.length);
+  if (def.kind !== "chronologyGame") {
+    pool = pool.slice(0, 10 - placed.length);
+  }
   pool = pool.sort(() => Math.random() - 0.5);
 
   const teamIds = Array.from(room.teams.keys());
@@ -625,6 +672,356 @@ function finishRankingRound(room) {
 }
 
 /* ------------------------------------------------------------------------ */
+/* RUNDE: guessPicture ("Bild erraten")                                      */
+/* Ein Bild/Emoji wird zunehmend deutlicher; je früher richtig geraten wird  */
+/* (Freitext, tippfehlertolerant), desto mehr Punkte gibt es. Alle Spieler   */
+/* können jederzeit raten – wer zuerst richtig liegt, bekommt die Punkte.   */
+/* ------------------------------------------------------------------------ */
+const GUESS_TIER_MS = 3000;           // Dauer je Punktestufe
+const GUESS_TIERS = [5, 3, 2, 1];     // Punkte je Stufe (zentral anpassbar)
+const GUESS_TOTAL_MS = GUESS_TIER_MS * GUESS_TIERS.length;
+
+function normalizeGuess(s) {
+  return (s || "")
+    .toString()
+    .toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Akzente entfernen
+    .replace(/[^a-z0-9]/g, "") // Leerzeichen/Sonderzeichen entfernen
+    .trim();
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+function isGuessCorrect(guessText, item) {
+  const norm = normalizeGuess(guessText);
+  if (!norm) return false;
+  const candidates = [item.answer, ...(item.alt || [])].map(normalizeGuess);
+  return candidates.some(c => {
+    if (norm === c) return true;
+    const maxDist = c.length <= 4 ? 0 : (c.length <= 8 ? 1 : 2);
+    return levenshtein(norm, c) <= maxDist;
+  });
+}
+
+function currentGuessTierPoints(rt) {
+  const elapsed = Date.now() - rt.currentStartedAt;
+  const tierIdx = Math.min(Math.floor(elapsed / GUESS_TIER_MS), GUESS_TIERS.length - 1);
+  return GUESS_TIERS[Math.max(0, tierIdx)];
+}
+
+function startGuessPictureRound(room, def) {
+  const dsRaw = DATASETS.guessPicture[def.datasetKey];
+  const items = [...dsRaw.items].sort(() => Math.random() - 0.5).slice(0, 10);
+  const teamIds = Array.from(room.teams.keys());
+  room.runtime = {
+    kind: "guessPicture",
+    label: dsRaw.label,
+    items,
+    index: -1,
+    current: null,
+    currentStartedAt: 0,
+    currentResolved: false,
+    timer: null,
+    roundPointsByTeam: new Map(teamIds.map(id => [id, 0]))
+  };
+  nextGuessItem(room);
+}
+
+function nextGuessItem(room) {
+  const rt = room.runtime;
+  clearTimeout(rt.timer);
+  rt.index++;
+  if (rt.index >= rt.items.length) {
+    return finishRoundEngine(room, rt.roundPointsByTeam);
+  }
+  rt.current = rt.items[rt.index];
+  rt.currentStartedAt = Date.now();
+  rt.currentResolved = false;
+
+  broadcast(room, {
+    type: "guessItem",
+    index: rt.index,
+    total: rt.items.length,
+    label: rt.label,
+    promptType: rt.current.promptType,
+    promptValue: rt.current.promptValue,
+    durationMs: GUESS_TOTAL_MS,
+    tierMs: GUESS_TIER_MS,
+    tiers: GUESS_TIERS,
+    startedAt: rt.currentStartedAt
+  });
+
+  rt.timer = setTimeout(() => resolveGuessItem(room, null, 0), GUESS_TOTAL_MS + 300);
+  scheduleBotGuesses(room);
+}
+
+function handleGuessSubmit(room, playerId, text) {
+  const rt = room.runtime;
+  if (!rt || rt.kind !== "guessPicture" || rt.currentResolved || !rt.current) return;
+  const player = room.players.get(playerId);
+  if (!player) return;
+  const correct = isGuessCorrect(text, rt.current);
+  broadcast(room, { type: "guessAttempt", teamId: player.teamId, playerName: player.name, text: (text || "").slice(0, 40), correct });
+  if (correct) {
+    const pts = currentGuessTierPoints(rt);
+    resolveGuessItem(room, player.teamId, pts);
+  }
+}
+
+function resolveGuessItem(room, winnerTeamId, points) {
+  const rt = room.runtime;
+  if (!rt || rt.currentResolved) return;
+  rt.currentResolved = true;
+  clearTimeout(rt.timer);
+  if (winnerTeamId) {
+    rt.roundPointsByTeam.set(winnerTeamId, (rt.roundPointsByTeam.get(winnerTeamId) || 0) + points);
+  }
+  broadcast(room, {
+    type: "guessResolved",
+    correctAnswer: rt.current.answer,
+    winnerTeamId: winnerTeamId || null,
+    points: points || 0
+  });
+  setTimeout(() => nextGuessItem(room), 2600);
+}
+
+// Bots raten mit schwierigkeitsabhängiger Verzögerung und Trefferquote –
+// analog zu den Bots beim Wissenstest.
+function scheduleBotGuesses(room) {
+  const rt = room.runtime;
+  const itemAtSchedule = rt.index;
+  room.players.forEach(p => {
+    if (!p.isBot) return;
+    const tier = BOT_TIERS[p.botTier] || BOT_TIERS[DEFAULT_BOT_TIER];
+    const delayMs = Math.max(400, randRange(tier.quizMinPct, tier.quizMaxPct) * GUESS_TOTAL_MS);
+    setTimeout(() => {
+      if (!room.runtime || room.runtime !== rt || rt.index !== itemAtSchedule || rt.currentResolved) return;
+      if (Math.random() < tier.prob) {
+        const pts = currentGuessTierPoints(rt);
+        broadcast(room, { type: "guessAttempt", teamId: p.teamId, playerName: p.name, text: rt.current.answer, correct: true });
+        resolveGuessItem(room, p.teamId, pts);
+      }
+    }, delayMs);
+  });
+}
+
+/* ------------------------------------------------------------------------ */
+/* ------------------------------------------------------------------------ */
+/* RUNDE: stadtLandFluss                                                     */
+/* Alle Spieler schreiben gleichzeitig zu einem zufälligen Buchstaben Wörter */
+/* je Kategorie. Nach Ablauf der Zeit: Auflösung mit vorläufiger Wertung     */
+/* (eindeutig=20, mehrfach=10, ungültig/leer=0), danach eine Anfechtungs-   */
+/* /Abstimmungsphase, in der alle anderen Spieler über strittige Antworten  */
+/* abstimmen können, bevor die Runde final gewertet wird.                   */
+/* ------------------------------------------------------------------------ */
+function slfBuildRoundDef(categories, isCustom) {
+  const cats = (categories && categories.length ? categories : SLF_DEFAULT_CATEGORIES).slice(0, 8);
+  return {
+    id: isCustom ? "slf_custom" : "slf_original",
+    kind: "stadtLandFluss",
+    label: "Stadt Land Fluss: " + (isCustom ? "Eigene Kategorien (" + cats.join(", ") + ")" : "Original"),
+    categories: cats
+  };
+}
+
+function normalizeSlfWord(s) {
+  return (s || "").toString().trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function startStadtLandFlussRound(room, def) {
+  const categories = def.categories && def.categories.length ? def.categories : SLF_DEFAULT_CATEGORIES;
+  const letter = SLF_LETTERS[Math.floor(Math.random() * SLF_LETTERS.length)];
+  const teamIds = Array.from(room.teams.keys());
+  room.runtime = {
+    kind: "stadtLandFluss",
+    label: def.label,
+    categories,
+    letter,
+    phase: "answering",
+    answers: new Map(),      // playerId -> { category: text }
+    submitted: new Set(),
+    challenges: new Map(),   // challengeId -> { playerId, category, votes: Map(playerId->bool), resolved, invalidated }
+    challengeCounter: 0,
+    timer: null,
+    roundPointsByTeam: new Map(teamIds.map(id => [id, 0]))
+  };
+  broadcast(room, { type: "slfRoundStart", categories, letter, durationMs: SLF_ANSWER_MS });
+  room.runtime.timer = setTimeout(() => slfFinishAnswering(room), SLF_ANSWER_MS + 400);
+  // Hinweis: Bots beteiligen sich an Stadt-Land-Fluss bewusst nicht aktiv am
+  // Schreiben (echte, sinnvolle Wörter je Buchstabe/Kategorie zu generieren
+  // würde ein riesiges, fest hinterlegtes Wörterbuch erfordern) – sie liefern
+  // hier keine Antworten ab und tragen für diese Runde 0 Punkte bei.
+}
+
+function handleSlfSubmit(room, playerId, answers) {
+  const rt = room.runtime;
+  if (!rt || rt.kind !== "stadtLandFluss" || rt.phase !== "answering") return;
+  if (rt.submitted.has(playerId)) return;
+  const clean = {};
+  rt.categories.forEach(cat => { clean[cat] = (answers && typeof answers[cat] === "string") ? answers[cat].slice(0, 40) : ""; });
+  rt.answers.set(playerId, clean);
+  rt.submitted.add(playerId);
+  const allSubmitted = Array.from(room.players.keys())
+    .filter(pid => !room.players.get(pid).isBot)
+    .every(pid => rt.submitted.has(pid));
+  if (allSubmitted) { clearTimeout(rt.timer); slfFinishAnswering(room); }
+}
+
+function slfIsValidLetter(word, letter) {
+  const n = normalizeSlfWord(word);
+  return n.length > 0 && n[0].toUpperCase() === letter.toUpperCase();
+}
+
+// Berechnet die (vorläufige oder finale) Punkte je Spieler und Kategorie:
+// eindeutige gültige Antwort = 20, mehrfach vorhandene gültige Antwort = 10,
+// leer/ungültig (falscher Anfangsbuchstabe) = 0. `invalidPlayerCatPairs`
+// enthält per Anfechtung für ungültig erklärte Antworten und wird wie eine
+// leere Antwort behandelt.
+function slfComputeScores(rt, invalidPlayerCatPairs) {
+  const scores = new Map(); // playerId -> {category: points}
+  const playerIds = Array.from(rt.answers.keys());
+  playerIds.forEach(pid => scores.set(pid, {}));
+
+  rt.categories.forEach(cat => {
+    const wordCount = new Map(); // normalisiertes Wort -> Anzahl
+    playerIds.forEach(pid => {
+      const word = rt.answers.get(pid)[cat];
+      const invalidated = invalidPlayerCatPairs && invalidPlayerCatPairs.has(pid + "|" + cat);
+      if (invalidated || !slfIsValidLetter(word, rt.letter)) return;
+      const norm = normalizeSlfWord(word);
+      wordCount.set(norm, (wordCount.get(norm) || 0) + 1);
+    });
+    playerIds.forEach(pid => {
+      const word = rt.answers.get(pid)[cat];
+      const invalidated = invalidPlayerCatPairs && invalidPlayerCatPairs.has(pid + "|" + cat);
+      if (invalidated || !slfIsValidLetter(word, rt.letter)) { scores.get(pid)[cat] = 0; return; }
+      const norm = normalizeSlfWord(word);
+      scores.get(pid)[cat] = wordCount.get(norm) === 1 ? 20 : 10;
+    });
+  });
+  return scores;
+}
+
+function slfFinishAnswering(room) {
+  const rt = room.runtime;
+  if (!rt || rt.phase !== "answering") return;
+  rt.phase = "reveal";
+  // Wer nicht abgegeben hat, bekommt eine leere Antwort je Kategorie
+  room.players.forEach(p => {
+    if (!rt.answers.has(p.id)) {
+      const empty = {};
+      rt.categories.forEach(cat => { empty[cat] = ""; });
+      rt.answers.set(p.id, empty);
+    }
+  });
+  const scores = slfComputeScores(rt, null);
+  broadcast(room, {
+    type: "slfReveal",
+    categories: rt.categories,
+    letter: rt.letter,
+    answers: Object.fromEntries(rt.answers),
+    players: Array.from(room.players.values()).map(p => ({ id: p.id, name: p.name, teamId: p.teamId })),
+    scores: Object.fromEntries(scores),
+    challengeWindowMs: SLF_CHALLENGE_MS
+  });
+  rt.phase = "challenge";
+  rt.timer = setTimeout(() => slfFinalizeRound(room), SLF_CHALLENGE_MS + 400);
+}
+
+function handleSlfChallenge(room, challengerId, targetPlayerId, category) {
+  const rt = room.runtime;
+  if (!rt || rt.phase !== "challenge") return;
+  if (!rt.categories.includes(category)) return;
+  if (targetPlayerId === challengerId) return; // eigene Antwort nicht anfechtbar
+  const targetAnswers = rt.answers.get(targetPlayerId);
+  if (!targetAnswers || !targetAnswers[category]) return;
+  // Keine doppelte Anfechtung derselben Antwort
+  const already = Array.from(rt.challenges.values()).some(c => c.playerId === targetPlayerId && c.category === category && !c.resolved);
+  if (already) return;
+
+  const challengeId = "c" + (++rt.challengeCounter);
+  const votes = new Map();
+  votes.set(challengerId, false); // Anfechter stimmt implizit "ungültig"
+  const challenge = { id: challengeId, playerId: targetPlayerId, category, answerText: targetAnswers[category], votes, resolved: false, voteDeadline: Date.now() + SLF_VOTE_MS };
+  rt.challenges.set(challengeId, challenge);
+  broadcastSlfChallenges(room);
+  setTimeout(() => slfResolveChallenge(room, challengeId), SLF_VOTE_MS + 300);
+}
+
+function handleSlfVote(room, voterId, challengeId, valid) {
+  const rt = room.runtime;
+  if (!rt || rt.phase !== "challenge") return;
+  const challenge = rt.challenges.get(challengeId);
+  if (!challenge || challenge.resolved || voterId === challenge.playerId) return;
+  challenge.votes.set(voterId, !!valid);
+  const eligibleVoters = Array.from(room.players.keys()).filter(pid => pid !== challenge.playerId && !room.players.get(pid).isBot);
+  if (eligibleVoters.every(pid => challenge.votes.has(pid))) slfResolveChallenge(room, challengeId);
+  else broadcastSlfChallenges(room);
+}
+
+function slfResolveChallenge(room, challengeId) {
+  const rt = room.runtime;
+  if (!rt) return;
+  const challenge = rt.challenges.get(challengeId);
+  if (!challenge || challenge.resolved) return;
+  challenge.resolved = true;
+  const votes = Array.from(challenge.votes.values());
+  const invalidVotes = votes.filter(v => v === false).length;
+  const validVotes = votes.filter(v => v === true).length;
+  challenge.invalidated = invalidVotes > validVotes; // bei Gleichstand bleibt die Antwort gültig
+  broadcastSlfChallenges(room);
+}
+
+function broadcastSlfChallenges(room) {
+  const rt = room.runtime;
+  broadcast(room, {
+    type: "slfChallengeUpdate",
+    challenges: Array.from(rt.challenges.values()).map(c => ({
+      id: c.id, playerId: c.playerId, category: c.category, answerText: c.answerText,
+      resolved: c.resolved, invalidated: c.invalidated, voteCount: c.votes.size
+    }))
+  });
+}
+
+function slfFinalizeRound(room) {
+  const rt = room.runtime;
+  if (!rt || rt.phase === "done") return;
+  rt.phase = "done";
+  const invalidPairs = new Set();
+  rt.challenges.forEach(c => { if (c.resolved && c.invalidated) invalidPairs.add(c.playerId + "|" + c.category); });
+  const finalScores = slfComputeScores(rt, invalidPairs);
+
+  // Punkte je Spieler aufsummieren, dann auf dessen Team addieren
+  finalScores.forEach((catScores, playerId) => {
+    const player = room.players.get(playerId);
+    if (!player || !player.teamId) return;
+    const total = Object.values(catScores).reduce((a, b) => a + b, 0);
+    rt.roundPointsByTeam.set(player.teamId, (rt.roundPointsByTeam.get(player.teamId) || 0) + total);
+  });
+
+  broadcast(room, {
+    type: "slfFinalReveal",
+    scores: Object.fromEntries(finalScores)
+  });
+  setTimeout(() => finishRoundEngine(room, rt.roundPointsByTeam), 2200);
+}
+
+/* ------------------------------------------------------------------------ */
 /* Rundenabschluss (gemeinsam für alle Engines)                              */
 /* ------------------------------------------------------------------------ */
 function finishRoundEngine(room, roundPointsByTeam) {
@@ -671,6 +1068,8 @@ function startNextRound(room) {
 
   setTimeout(() => {
     if (def.kind === "knowledgeQuiz") startQuizRound(room);
+    else if (def.kind === "guessPicture") startGuessPictureRound(room, def);
+    else if (def.kind === "stadtLandFluss") startStadtLandFlussRound(room, def);
     else startRankingRound(room, def);
   }, 1800);
 }
@@ -685,10 +1084,140 @@ function endGame(room) {
 }
 
 /* ------------------------------------------------------------------------ */
+/* Benutzerkonten (Benutzername + Passwort, serverseitig gespeichert)        */
+/* ------------------------------------------------------------------------ */
+// Passwörter werden NIE im Klartext gespeichert, sondern mit scrypt (Node-
+// Bordmittel, sicher, kein externes Paket) + zufälligem Salt pro Nutzer
+// gehasht. Speicherung als einfache JSON-Datei – reicht für dieses Projekt,
+// siehe README für Hinweise zur Persistenz bei manchen Hosting-Anbietern.
+const USERS_FILE = path.join(__dirname, "data", "users.json");
+
+let users = [];
+function loadUsers() {
+  try { users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8")); }
+  catch (e) { users = []; }
+}
+function saveUsers() {
+  try {
+    fs.mkdirSync(path.dirname(USERS_FILE), { recursive: true });
+    fs.writeFileSync(USERS_FILE, JSON.stringify(users, null, 1), "utf8");
+  } catch (e) {
+    console.error("Konnte Nutzerdaten nicht speichern:", e.message);
+  }
+}
+loadUsers();
+
+function hashPassword(password, salt) {
+  return crypto.scryptSync(password, salt, 64).toString("hex");
+}
+function findUserByName(username) {
+  const norm = (username || "").trim().toLowerCase();
+  return users.find(u => u.username.toLowerCase() === norm);
+}
+function findUserByToken(token) {
+  if (!token) return null;
+  return users.find(u => (u.tokens || []).some(t => t.token === token));
+}
+function defaultStats() {
+  return { score: 0, roundsPlayed: 0, wins: 0, losses: 0, correctAnswers: 0, wrongAnswers: 0, bestScore: 0 };
+}
+function publicProfile(user) {
+  return { username: user.username, avatar: user.avatar || null, ...user.stats };
+}
+
+function registerUser(username, password) {
+  username = (username || "").trim();
+  if (username.length < 3 || username.length > 20 || !/^[a-zA-Z0-9_äöüÄÖÜß]+$/.test(username)) {
+    return { ok: false, error: "Benutzername muss 3-20 Zeichen haben (Buchstaben, Zahlen, _)." };
+  }
+  if (!password || password.length < 6) {
+    return { ok: false, error: "Passwort muss mindestens 6 Zeichen haben." };
+  }
+  if (findUserByName(username)) {
+    return { ok: false, error: "Dieser Benutzername ist bereits vergeben." };
+  }
+  const salt = crypto.randomBytes(16).toString("hex");
+  const passwordHash = hashPassword(password, salt);
+  const token = crypto.randomBytes(24).toString("hex");
+  const user = {
+    username, salt, passwordHash,
+    avatar: null,
+    stats: defaultStats(),
+    tokens: [{ token, createdAt: Date.now() }],
+    createdAt: Date.now()
+  };
+  users.push(user);
+  saveUsers();
+  return { ok: true, token, profile: publicProfile(user) };
+}
+
+function loginUser(username, password) {
+  const user = findUserByName(username);
+  const genericError = { ok: false, error: "Benutzername oder Passwort ist falsch." };
+  if (!user) return genericError;
+  const hash = hashPassword(password || "", user.salt);
+  const a = Buffer.from(hash, "hex");
+  const b = Buffer.from(user.passwordHash, "hex");
+  if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return genericError;
+  const token = crypto.randomBytes(24).toString("hex");
+  user.tokens = user.tokens || [];
+  user.tokens.push({ token, createdAt: Date.now() });
+  saveUsers();
+  return { ok: true, token, profile: publicProfile(user) };
+}
+
+function sessionUser(token) {
+  const user = findUserByToken(token);
+  if (!user) return { ok: false };
+  return { ok: true, profile: publicProfile(user) };
+}
+
+function logoutUser(token) {
+  const user = findUserByToken(token);
+  if (user) {
+    user.tokens = (user.tokens || []).filter(t => t.token !== token);
+    saveUsers();
+  }
+  return { ok: true };
+}
+
+function saveUserStats(token, stats) {
+  const user = findUserByToken(token);
+  if (!user) return { ok: false, error: "Nicht angemeldet." };
+  const allowedKeys = ["score", "roundsPlayed", "wins", "losses", "correctAnswers", "wrongAnswers", "bestScore"];
+  allowedKeys.forEach(k => {
+    if (typeof stats[k] === "number" && Number.isFinite(stats[k])) {
+      user.stats[k] = Math.max(0, Math.round(stats[k]));
+    }
+  });
+  saveUsers();
+  return { ok: true, profile: publicProfile(user) };
+}
+
+/* ------------------------------------------------------------------------ */
 /* HTTP: statische Dateien aus /public                                       */
 /* ------------------------------------------------------------------------ */
-const MIME = { ".html": "text/html", ".js": "application/javascript", ".css": "text/css", ".json": "application/json" };
+const MIME = { ".html": "text/html", ".js": "application/javascript", ".css": "text/css", ".json": "application/json", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".png": "image/png", ".webp": "image/webp", ".gif": "image/gif", ".svg": "image/svg+xml" };
 const server = http.createServer((req, res) => {
+  if (req.method === "POST" && req.url.startsWith("/api/")) {
+    let body = "";
+    req.on("data", chunk => { body += chunk; if (body.length > 1e6) req.destroy(); });
+    req.on("end", () => {
+      let payload;
+      try { payload = body ? JSON.parse(body) : {}; } catch (e) { payload = {}; }
+      let result;
+      if (req.url === "/api/register") result = registerUser(payload.username, payload.password);
+      else if (req.url === "/api/login") result = loginUser(payload.username, payload.password);
+      else if (req.url === "/api/session") result = sessionUser(payload.token);
+      else if (req.url === "/api/logout") result = logoutUser(payload.token);
+      else if (req.url === "/api/save-stats") result = saveUserStats(payload.token, payload.stats || {});
+      else result = { ok: false, error: "Unbekannter Endpunkt." };
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(result));
+    });
+    return;
+  }
+
   let filePath = req.url.split("?")[0];
   if (filePath === "/") filePath = "/index.html";
   const fullPath = path.join(__dirname, "public", filePath);
@@ -720,7 +1249,7 @@ wss.on("connection", (ws) => {
     try { msg = JSON.parse(raw); } catch (e) { return; }
 
     if (msg.action === "createRoom") {
-      const room = createRoom(ws, msg.name || "Host");
+      const room = createRoom(ws, msg.name || "Host", msg.language);
       send(ws, { type: "joined", roomCode: room.code, playerId: ws.playerId, isHost: true });
       pushRoomState(room);
       return;
@@ -780,6 +1309,17 @@ wss.on("connection", (ws) => {
           }
         }
         break;
+      case "setSlfCustomRoundDef":
+        if (isHost && room.phase === "lobby" && room.roundMode === "custom") {
+          if (msg.index >= 0 && msg.index < room.roundCount && Array.isArray(msg.categories) && msg.categories.length > 0) {
+            const cleanCats = msg.categories.map(c => (c || "").toString().trim().slice(0, 20)).filter(Boolean).slice(0, 8);
+            if (cleanCats.length > 0) {
+              room.roundDefs[msg.index] = slfBuildRoundDef(cleanCats, true);
+              pushRoomState(room);
+            }
+          }
+        }
+        break;
       case "setTeamMode":
         if (isHost && room.phase === "lobby") {
           room.teamMode = msg.teamMode;
@@ -809,6 +1349,20 @@ wss.on("connection", (ws) => {
         break;
       case "setPointSystem":
         if (isHost && room.phase === "lobby") { room.pointSystem = [1, 2, 3].includes(msg.system) ? msg.system : 1; pushRoomState(room); }
+        break;
+      case "setLanguage":
+        if (isHost && room.phase === "lobby") {
+          room.language = SUPPORTED_LANGS.includes(msg.language) ? msg.language : "de";
+          if (room.roundMode === "random") {
+            randomizeRoundDefs(room);
+          } else {
+            // Bereits gewählte Runden, die mit der neuen Sprache nicht mehr
+            // verfügbar sind (germanOnly), zurück auf "nicht gewählt" setzen.
+            const availableIds = new Set(roundDefPoolForLanguage(room.language).map(d => d.id));
+            room.roundDefs = room.roundDefs.map(r => (r && availableIds.has(r.id)) ? r : null);
+          }
+          pushRoomState(room);
+        }
         break;
       case "addBot":
         if (isHost && room.phase === "lobby") {
@@ -846,6 +1400,18 @@ wss.on("connection", (ws) => {
         break;
       case "rankPlace":
         handleRankPlace(room, ws.playerId, msg.itemId, msg.insertIndex);
+        break;
+      case "guessSubmit":
+        handleGuessSubmit(room, ws.playerId, msg.text);
+        break;
+      case "slfSubmit":
+        handleSlfSubmit(room, ws.playerId, msg.answers);
+        break;
+      case "slfChallenge":
+        handleSlfChallenge(room, ws.playerId, msg.targetPlayerId, msg.category);
+        break;
+      case "slfVote":
+        handleSlfVote(room, ws.playerId, msg.challengeId, msg.valid);
         break;
       case "restartLobby":
         if (isHost && room.phase === "gameEnd") {
